@@ -68,7 +68,7 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
         is_new: product.is_new,
         slug: product.slug,
         image: product.product_images?.find(img => img.is_primary)?.image_url || product.product_images?.[0]?.image_url || '/placeholder.svg',
-        category: 'Product'
+        category: 'Kantoormeubel'
       })) || [];
     }
   });
@@ -141,7 +141,7 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
           </div>
           <Link to={`/collections/${collectionSlug}`}>
             <Button variant="outline" size="sm">
-              View All
+              Bekijk alle
             </Button>
           </Link>
         </div>

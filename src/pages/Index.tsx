@@ -34,23 +34,23 @@ const heroProduct = {
 const features = [
   {
     icon: Truck,
-    title: "Free Shipping & Returns",
-    description: "Fast delivery worldwide"
+    title: "Gratis Verzending & Retour",
+    description: "Snelle levering wereldwijd"
   },
   {
     icon: RotateCcw,
-    title: "Money Back Guarantee", 
-    description: "30-day return policy"
+    title: "Geld Terug Garantie", 
+    description: "30 dagen retourbeleid"
   },
   {
     icon: Headphones,
-    title: "Online Support 24/7",
-    description: "Expert assistance anytime"
+    title: "Online Ondersteuning 24/7",
+    description: "Deskundige hulp op elk moment"
   },
   {
     icon: Percent,
-    title: "Regular Sales",
-    description: "Exclusive member discounts"
+    title: "Regelmatige Aanbiedingen",
+    description: "Exclusieve ledenkorting"
   }
 ];
 
@@ -278,96 +278,23 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Products Grid */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
-              FEATURED ITEMS
-            </Badge>
-            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Top 10 Electronics & Bestsellers
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Discover the most popular business equipment and office solutions. 
-              These premium products are trusted by professionals worldwide for their quality, 
-              design, and reliability.
-            </p>
-          </div>
-          
-          {isLoading ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading featured products...</p>
-            </div>
-          ) : featuredProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No featured products available</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <Card key={product.id} className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
-                  <div className="aspect-square bg-white p-4 relative">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {product.soldOut && (
-                      <Badge className="absolute top-2 left-2 bg-red-500 text-white">
-                        Sold out
-                      </Badge>
-                    )}
-                    {product.isSale && (
-                      <Badge className="absolute top-2 left-2 bg-red-500 text-white">
-                        Sale
-                      </Badge>
-                    )}
-                    {product.isNew && (
-                      <Badge className="absolute top-2 left-2 bg-green-500 text-white">
-                        New
-                      </Badge>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground mb-1">{product.brand}</p>
-                    <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-bold text-foreground">€{product.price}</span>
-                      {product.originalPrice && (
-                        <span className="text-xs text-muted-foreground line-through">
-                          €{product.originalPrice}
-                        </span>
-                      )}
-                    </div>
-                    {product.colors && (
-                      <div className="flex gap-1">
-                        {product.colors.map((color, index) => (
-                          <div
-                            key={index}
-                            className="w-3 h-3 rounded-full border border-gray-300"
-                            style={{ backgroundColor: color }}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-          
-          <div className="text-center mt-12">
-            <Link to="/products">
-              <Button size="lg" className="px-8">
-                View All Products
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
+      {/* Aanbevolen voor U */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">Aanbevolen voor U</h2>
+          <p className="text-slate-600 max-w-2xl mx-auto">
+            Samengestelde selecties gebaseerd op uw voorkeuren en populaire keuzes
+          </p>
         </div>
+        
+        {collections.map((collection) => (
+          <CollectionSlider
+            key={collection.id}
+            collectionId={collection.id}
+            collectionName={collection.name}
+            collectionSlug={collection.slug}
+          />
+        ))}
       </section>
 
       {/* Countdown Timer Section */}
@@ -476,26 +403,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Collection-Based Product Sliders */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Recommended for You</h2>
-            <p className="text-muted-foreground">Discover products from our carefully curated collections</p>
-          </div>
-          
-          <div className="space-y-12">
-            {collections.map((collection) => (
-              <CollectionSlider
-                key={collection.id}
-                collectionId={collection.id}
-                collectionName={collection.name}
-                collectionSlug={collection.slug}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Office Tables Banner */}
       <section className="py-16 bg-slate-900 text-white">
@@ -513,12 +420,12 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Popular Categories */}
+      {/* Populaire Categorieën */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Popular Categories</h2>
-            <p className="text-muted-foreground">Shop by category to find exactly what you need</p>
+            <h2 className="text-3xl font-bold mb-4">Populaire Categorieën</h2>
+            <p className="text-muted-foreground">Shop per categorie om precies te vinden wat u zoekt</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
@@ -535,7 +442,7 @@ const Index = () => {
                     </div>
                     <h3 className="font-medium text-sm">{collection.name}</h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {collection.product_count} products
+                      {collection.product_count} producten
                     </p>
                   </CardContent>
                 </Card>
