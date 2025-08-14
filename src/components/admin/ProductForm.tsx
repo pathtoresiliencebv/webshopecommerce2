@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,6 @@ interface ProductFormProps {
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [availableTags, setAvailableTags] = useState<any[]>([]);
   const [availableCollections, setAvailableCollections] = useState<any[]>([]);
-  const { toast } = useToast();
   
   const [formData, setFormData] = useState({
     name: product?.name || "",
@@ -110,11 +108,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
         tags: [...prev.tags, tagName]
       }));
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to add tag",
-        variant: "destructive",
-      });
+      console.error("Failed to add tag:", error);
     }
     setNewTag("");
   };
@@ -153,11 +147,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
         collections: [...prev.collections, collectionName]
       }));
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to add collection",
-        variant: "destructive",
-      });
+      console.error("Failed to add collection:", error);
     }
     setNewCollection("");
   };

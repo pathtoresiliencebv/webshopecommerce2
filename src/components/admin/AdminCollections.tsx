@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Search, Edit, Trash2, Eye, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { CollectionForm } from "./CollectionForm";
 
 interface Collection {
@@ -45,7 +44,6 @@ export function AdminCollections() {
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   // Fetch collections
   const { data: collections = [], isLoading } = useQuery({
@@ -73,18 +71,9 @@ export function AdminCollections() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-collections"] });
-      toast({
-        title: "Success",
-        description: "Collection deleted successfully",
-      });
       setDeleteId(null);
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to delete collection",
-        variant: "destructive",
-      });
       console.error("Delete error:", error);
     },
   });
@@ -139,18 +128,9 @@ export function AdminCollections() {
       }
 
       queryClient.invalidateQueries({ queryKey: ["admin-collections"] });
-      toast({
-        title: "Success",
-        description: `Collection ${editingCollection ? "updated" : "created"} successfully`,
-      });
       setShowForm(false);
       setEditingCollection(null);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: `Failed to ${editingCollection ? "update" : "create"} collection`,
-        variant: "destructive",
-      });
       console.error("Save error:", error);
     }
   };
