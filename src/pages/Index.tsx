@@ -146,26 +146,34 @@ const Index = () => {
   const { data: collections = [] } = useQuery({
     queryKey: ['homepage-collections'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get all active collections
+      const { data: collectionsData, error: collectionsError } = await supabase
         .from('collections')
-        .select(`
-          id, name, slug,
-          product_collections!left (
-            product_id
-          )
-        `)
+        .select('id, name, slug')
         .eq('is_active', true)
-        .order('sort_order', { ascending: true });
+        .order('sort_order');
 
-      if (error) {
-        console.error('Error fetching collections:', error);
+      if (collectionsError) {
+        console.error('Error fetching collections:', collectionsError);
         return [];
       }
 
-      // Only return collections that have products
-      return data?.filter(collection => 
-        collection.product_collections && collection.product_collections.length > 0
-      ) || [];
+      if (!collectionsData?.length) return [];
+
+      // Then check which collections have products
+      const collectionsWithProducts = [];
+      for (const collection of collectionsData) {
+        const { data: productCount } = await supabase
+          .from('product_collections')
+          .select('product_id', { count: 'exact' })
+          .eq('collection_id', collection.id);
+        
+        if (productCount && productCount.length > 0) {
+          collectionsWithProducts.push(collection);
+        }
+      }
+
+      return collectionsWithProducts;
     }
   });
 
@@ -173,27 +181,35 @@ const Index = () => {
   const { data: collectionsWithImages = [] } = useQuery({
     queryKey: ['collections-with-images'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: collectionsData, error: collectionsError } = await supabase
         .from('collections')
-        .select(`
-          id, name, slug, image_url,
-          product_collections!left (
-            product_id
-          )
-        `)
+        .select('id, name, slug, image_url')
         .eq('is_active', true)
         .not('image_url', 'is', null)
-        .order('sort_order', { ascending: true });
+        .order('sort_order');
 
-      if (error) {
-        console.error('Error fetching collections with images:', error);
+      if (collectionsError) {
+        console.error('Error fetching collections with images:', collectionsError);
         return [];
       }
 
-      return data?.map(collection => ({
-        ...collection,
-        product_count: collection.product_collections?.length || 0
-      })) || [];
+      if (!collectionsData?.length) return [];
+
+      // Get product counts for each collection
+      const collectionsWithCounts = [];
+      for (const collection of collectionsData) {
+        const { data: productCount } = await supabase
+          .from('product_collections')
+          .select('product_id', { count: 'exact' })
+          .eq('collection_id', collection.id);
+        
+        collectionsWithCounts.push({
+          ...collection,
+          product_count: productCount?.length || 0
+        });
+      }
+
+      return collectionsWithCounts;
     }
   });
 
@@ -302,11 +318,11 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-red-500 text-white rounded-lg p-8 text-center">
             <h2 className="text-2xl lg:text-3xl font-bold mb-4">
-              Limited Stock with 18% Off Modern Storage Cabinets - Order Now!
+              Beperkte Voorraad met 18% Korting op Moderne Opbergkasten - Bestel Nu!
             </h2>
             <CountdownTimer />
             <Button variant="secondary" size="lg" className="mt-4">
-              Shop Now
+              Bestel Nu
             </Button>
           </div>
         </div>
