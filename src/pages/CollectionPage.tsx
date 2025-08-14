@@ -107,6 +107,19 @@ export default function CollectionPage() {
     queryFn: async () => {
       if (!collection?.id) return [];
       
+      // First get product IDs from the collection
+      const { data: productCollections, error: pcError } = await supabase
+        .from("product_collections")
+        .select("product_id")
+        .eq("collection_id", collection.id);
+
+      if (pcError || !productCollections?.length) {
+        return [];
+      }
+
+      const productIds = productCollections.map(pc => pc.product_id);
+
+      // Then get the products with those IDs
       const { data, error } = await supabase
         .from("products")
         .select(`
@@ -115,17 +128,16 @@ export default function CollectionPage() {
           product_attributes(attribute_type, name, value),
           reviews(rating)
         `)
-        .eq("is_active", true)
-        .in("id", 
-          await supabase
-            .from("product_collections")
-            .select("product_id")
-            .eq("collection_id", collection.id)
-            .then(({ data }) => data?.map(pc => pc.product_id) || [])
-        );
+        .in("id", productIds)
+        .eq("is_active", true);
       
       if (error) throw error;
-      return data as Product[];
+      return (data || []).map(product => ({
+        ...product,
+        product_images: product.product_images || [],
+        product_attributes: product.product_attributes || [],
+        reviews: product.reviews || []
+      })) as Product[];
     },
     enabled: !!collection?.id,
   });
@@ -133,13 +145,13 @@ export default function CollectionPage() {
   // Get unique filter options from products
   const filterOptions = {
     brands: [...new Set(products.map(p => 
-      p.product_attributes.find(attr => attr.attribute_type === "brand")?.value
+      p.product_attributes?.find(attr => attr.attribute_type === "brand")?.value
     ).filter(Boolean))],
     types: [...new Set(products.map(p => 
-      p.product_attributes.find(attr => attr.attribute_type === "type")?.value
+      p.product_attributes?.find(attr => attr.attribute_type === "type")?.value
     ).filter(Boolean))],
     colors: [...new Set(products.map(p => 
-      p.product_attributes.find(attr => attr.attribute_type === "color")?.value
+      p.product_attributes?.find(attr => attr.attribute_type === "color")?.value
     ).filter(Boolean))],
   };
 
@@ -147,9 +159,9 @@ export default function CollectionPage() {
   const filteredProducts = products
     .filter((product) => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const brand = product.product_attributes.find(attr => attr.attribute_type === "brand")?.value;
-      const type = product.product_attributes.find(attr => attr.attribute_type === "type")?.value;
-      const color = product.product_attributes.find(attr => attr.attribute_type === "color")?.value;
+      const brand = product.product_attributes?.find(attr => attr.attribute_type === "brand")?.value;
+      const type = product.product_attributes?.find(attr => attr.attribute_type === "type")?.value;
+      const color = product.product_attributes?.find(attr => attr.attribute_type === "color")?.value;
       
       const matchesBrand = selectedBrands.length === 0 || (brand && selectedBrands.includes(brand));
       const matchesType = selectedTypes.length === 0 || (type && selectedTypes.includes(type));
@@ -171,8 +183,8 @@ export default function CollectionPage() {
         case "newest":
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case "rating":
-          const aAvgRating = a.reviews.length > 0 ? a.reviews.reduce((sum, r) => sum + r.rating, 0) / a.reviews.length : 0;
-          const bAvgRating = b.reviews.length > 0 ? b.reviews.reduce((sum, r) => sum + r.rating, 0) / b.reviews.length : 0;
+          const aAvgRating = a.reviews?.length > 0 ? a.reviews.reduce((sum, r) => sum + r.rating, 0) / a.reviews.length : 0;
+          const bAvgRating = b.reviews?.length > 0 ? b.reviews.reduce((sum, r) => sum + r.rating, 0) / b.reviews.length : 0;
           return bAvgRating - aAvgRating;
         default:
           return a.name.localeCompare(b.name);
@@ -494,8 +506,8 @@ export default function CollectionPage() {
                   : "grid-cols-1"
               }`}>
                 {filteredProducts.map((product) => {
-                  const primaryImage = product.product_images.find(img => img.is_primary) || product.product_images[0];
-                  const avgRating = product.reviews.length > 0 
+                  const primaryImage = product.product_images?.find(img => img.is_primary) || product.product_images?.[0];
+                  const avgRating = product.reviews?.length > 0 
                     ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length 
                     : 0;
 
@@ -508,8 +520,8 @@ export default function CollectionPage() {
                       originalPrice={product.original_price}
                       image={primaryImage?.image_url || ""}
                       rating={avgRating}
-                      reviewCount={product.reviews.length}
-                      category={product.product_attributes.find(attr => attr.attribute_type === "category")?.value || ""}
+                      reviewCount={product.reviews?.length || 0}
+                      category={product.product_attributes?.find(attr => attr.attribute_type === "category")?.value || ""}
                       isNew={product.is_new}
                       isSale={product.is_sale}
                     />
