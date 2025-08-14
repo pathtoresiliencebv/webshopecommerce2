@@ -146,6 +146,27 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
       price: 199.95,
       image: chairOffice,
       category: "Stoelen"
+    },
+    {
+      id: "9",
+      name: "Compacte Opbergeenheid",
+      price: 129.95,
+      image: cabinetStorage,
+      category: "Opslag"
+    },
+    {
+      id: "10",
+      name: "Luxe Bureau Set",
+      price: 549.95,
+      image: deskStanding,
+      category: "Bureaus"
+    },
+    {
+      id: "11",
+      name: "Draadloze Oplader",
+      price: 49.95,
+      image: chairOffice,
+      category: "Accessoires"
     }
   ];
 
@@ -156,7 +177,7 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
-          <Link to="/" className="hover:text-primary">Home</Link>
+          <Link to="/" className="hover:text-primary">Startpagina</Link>
           <ChevronLeft className="h-4 w-4 rotate-180" />
           <Link to="/products" className="hover:text-primary">Werktafels</Link>
           <ChevronLeft className="h-4 w-4 rotate-180" />
@@ -197,7 +218,7 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
           {/* Product Info - Right Column - Sticky */}
           <div className="lg:sticky lg:top-8 lg:self-start space-y-6">
             <div className="text-xs text-muted-foreground uppercase tracking-wide">
-              STOCKMART by Stockmart
+              STOCKMART door Stockmart
             </div>
             
             <div>
@@ -465,11 +486,11 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
           </div>
         </div>
 
-        {/* Shop For More Compatible Items */}
+        {/* Shop For More Compatible Items - 6 Columns */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold mb-2">Shop Voor Meer Compatibele Items</h2>
           <p className="text-muted-foreground text-sm mb-6">Items die goed samen gaan</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-6">
             {compatibleProducts.map((item) => (
               <Card key={item.id} className="group cursor-pointer hover:shadow-lg transition-shadow">
                 <CardContent className="p-0">
@@ -484,7 +505,7 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">
                       {item.category}
                     </p>
-                    <h3 className="font-medium text-sm mb-2">{item.name}</h3>
+                    <h3 className="font-medium text-sm mb-2 line-clamp-2">{item.name}</h3>
                     <p className="text-lg font-bold">€{item.price}</p>
                   </div>
                 </CardContent>
