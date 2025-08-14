@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { X, Plus, Upload, Tag, Folder } from "lucide-react";
+import { ImageUpload } from "./ImageUpload";
+import { SEOPreview } from "./SEOPreview";
 
 interface ProductFormProps {
   product?: any;
@@ -42,6 +44,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     isSale: product?.isSale ?? false,
     metaTitle: product?.metaTitle || "",
     metaDescription: product?.metaDescription || "",
+    imageUrl: product?.imageUrl || "",
     weight: product?.weight || "",
     dimensions: {
       length: product?.dimensions?.length || "",
@@ -49,6 +52,15 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       height: product?.dimensions?.height || ""
     }
   });
+
+  // Generate slug from name
+  const generateSlug = (name: string) => {
+    return name.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
 
   const [newTag, setNewTag] = useState("");
   const [newCollection, setNewCollection] = useState("");
@@ -243,18 +255,12 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                 />
               </div>
 
-              <div className="space-y-4">
-                <h3 className="font-medium">Product Images</h3>
-                <div className="flex items-center gap-4">
-                  <div className="h-24 w-24 bg-muted rounded-lg flex items-center justify-center border-2 border-dashed">
-                    <Upload className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <Button variant="outline">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Images
-                  </Button>
-                </div>
-              </div>
+              <ImageUpload
+                value={formData.imageUrl}
+                onChange={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
+                onRemove={() => setFormData(prev => ({ ...prev, imageUrl: "" }))}
+                label="Product Image"
+              />
 
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
@@ -505,37 +511,46 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
         </TabsContent>
 
         <TabsContent value="seo" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO & Meta Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="meta-title">Meta Title</Label>
-                <Input
-                  id="meta-title"
-                  value={formData.metaTitle}
-                  onChange={(e) => setFormData(prev => ({ ...prev, metaTitle: e.target.value }))}
-                  placeholder="SEO optimized title (max 60 characters)"
-                  maxLength={60}
-                />
-                <p className="text-xs text-muted-foreground">{formData.metaTitle.length}/60 characters</p>
-              </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>SEO & Meta Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="meta-title">Meta Title</Label>
+                  <Input
+                    id="meta-title"
+                    value={formData.metaTitle}
+                    onChange={(e) => setFormData(prev => ({ ...prev, metaTitle: e.target.value }))}
+                    placeholder="SEO optimized title (max 60 characters)"
+                    maxLength={60}
+                  />
+                  <p className="text-xs text-muted-foreground">{formData.metaTitle.length}/60 characters</p>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="meta-description">Meta Description</Label>
-                <Textarea
-                  id="meta-description"
-                  value={formData.metaDescription}
-                  onChange={(e) => setFormData(prev => ({ ...prev, metaDescription: e.target.value }))}
-                  placeholder="SEO optimized description (max 160 characters)"
-                  maxLength={160}
-                  rows={3}
-                />
-                <p className="text-xs text-muted-foreground">{formData.metaDescription.length}/160 characters</p>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="meta-description">Meta Description</Label>
+                  <Textarea
+                    id="meta-description"
+                    value={formData.metaDescription}
+                    onChange={(e) => setFormData(prev => ({ ...prev, metaDescription: e.target.value }))}
+                    placeholder="SEO optimized description (max 160 characters)"
+                    maxLength={160}
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground">{formData.metaDescription.length}/160 characters</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <SEOPreview
+              title={formData.metaTitle || formData.name}
+              description={formData.metaDescription || formData.shortDescription}
+              slug={generateSlug(formData.name)}
+              type="product"
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

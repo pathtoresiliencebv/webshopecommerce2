@@ -19,6 +19,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Upload, Search, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ImageUpload } from "./ImageUpload";
+import { SEOPreview } from "./SEOPreview";
 
 interface Product {
   id: string;
@@ -237,29 +239,12 @@ export function CollectionForm({ collection, onSave, onCancel }: CollectionFormP
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="image_url">Collection Image URL</Label>
-                    <div className="flex space-x-2">
-                      <Input
-                        id="image_url"
-                        value={formData.image_url}
-                        onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                        placeholder="https://example.com/collection-image.jpg"
-                      />
-                      <Button type="button" variant="outline" size="sm">
-                        <Upload className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {formData.image_url && (
-                      <div className="mt-2">
-                        <img
-                          src={formData.image_url}
-                          alt="Collection preview"
-                          className="h-32 w-32 object-cover rounded-lg border"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  <ImageUpload
+                    value={formData.image_url}
+                    onChange={(url) => setFormData(prev => ({ ...prev, image_url: url }))}
+                    onRemove={() => setFormData(prev => ({ ...prev, image_url: "" }))}
+                    label="Collection Image"
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -366,41 +351,50 @@ export function CollectionForm({ collection, onSave, onCancel }: CollectionFormP
 
           {/* SEO Tab */}
           <TabsContent value="seo" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Search Engine Optimization</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="meta_title">Meta Title</Label>
-                  <Input
-                    id="meta_title"
-                    value={formData.meta_title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, meta_title: e.target.value }))}
-                    placeholder="SEO title for search engines"
-                    maxLength={60}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {formData.meta_title.length}/60 characters
-                  </p>
-                </div>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Search Engine Optimization</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="meta_title">Meta Title</Label>
+                    <Input
+                      id="meta_title"
+                      value={formData.meta_title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, meta_title: e.target.value }))}
+                      placeholder="SEO title for search engines"
+                      maxLength={60}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {formData.meta_title.length}/60 characters
+                    </p>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="meta_description">Meta Description</Label>
-                  <Textarea
-                    id="meta_description"
-                    value={formData.meta_description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
-                    placeholder="Description for search engine results"
-                    maxLength={160}
-                    rows={3}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {formData.meta_description.length}/160 characters
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="meta_description">Meta Description</Label>
+                    <Textarea
+                      id="meta_description"
+                      value={formData.meta_description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
+                      placeholder="Description for search engine results"
+                      maxLength={160}
+                      rows={3}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {formData.meta_description.length}/160 characters
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <SEOPreview
+                title={formData.meta_title || formData.name}
+                description={formData.meta_description || formData.description}
+                slug={formData.slug}
+                type="collection"
+              />
+            </div>
           </TabsContent>
 
           {/* Form Actions */}
