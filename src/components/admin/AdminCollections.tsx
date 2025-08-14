@@ -45,17 +45,26 @@ export function AdminCollections() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Fetch collections
+  // Fetch collections with product counts
   const { data: collections = [], isLoading } = useQuery({
     queryKey: ["admin-collections"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collections")
-        .select("*")
+        .select(`
+          *,
+          product_collections (
+            product_id
+          )
+        `)
         .order("sort_order", { ascending: true });
       
       if (error) throw error;
-      return data as Collection[];
+      
+      return data?.map(collection => ({
+        ...collection,
+        product_count: collection.product_collections?.length || 0
+      })) as (Collection & { product_count: number })[];
     },
   });
 
@@ -217,6 +226,7 @@ export function AdminCollections() {
                 <TableRow>
                   <TableHead>Collection</TableHead>
                   <TableHead>Slug</TableHead>
+                  <TableHead>Products</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Sort Order</TableHead>
                   <TableHead>Created</TableHead>
@@ -253,6 +263,17 @@ export function AdminCollections() {
                       <code className="bg-muted px-2 py-1 rounded text-sm">
                         /{collection.slug}
                       </code>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{(collection as any).product_count}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {(collection as any).product_count === 1 ? 'product' : 'products'}
+                        </span>
+                        {(collection as any).product_count === 0 && (
+                          <Badge variant="outline" className="text-xs">Empty</Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={collection.is_active ? "default" : "secondary"}>

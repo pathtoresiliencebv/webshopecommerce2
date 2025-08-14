@@ -50,7 +50,7 @@ export function AdminOrders() {
       return data?.map(order => ({
         id: order.order_number,
         customer: `${order.shipping_first_name} ${order.shipping_last_name}`,
-        email: "customer@example.com", // Email not stored in orders table
+        email: "No email available", // Will be updated when profiles are linked
         products: order.order_items?.map(item => item.product_name) || [],
         total: `€${Number(order.total_amount).toFixed(2)}`,
         status: order.status,
@@ -159,12 +159,20 @@ export function AdminOrders() {
                       Loading orders...
                     </TableCell>
                   </TableRow>
-                ) : filteredOrders.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
-                      No orders found
-                    </TableCell>
-                  </TableRow>
+                 ) : filteredOrders.length === 0 ? (
+                   <TableRow>
+                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                       <div className="flex flex-col items-center gap-2">
+                         <div className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
+                           <Search className="h-6 w-6" />
+                         </div>
+                         <div>
+                           <p className="font-medium">No orders yet</p>
+                           <p className="text-sm">Orders will appear here when customers make purchases</p>
+                         </div>
+                       </div>
+                     </TableCell>
+                   </TableRow>
                 ) : (
                   filteredOrders.map((order) => (
                     <TableRow key={order.id}>

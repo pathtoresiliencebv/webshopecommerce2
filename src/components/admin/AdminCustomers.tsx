@@ -6,75 +6,37 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Download, MoreHorizontal, Eye, Mail, Phone, Plus, Edit, Trash2 } from "lucide-react";
 import { CustomerForm } from "./CustomerForm";
-
-const customers = [
-  {
-    id: "1",
-    name: "John Smith",
-    email: "john@example.com",
-    phone: "+1 555 123 4567",
-    orders: 5,
-    totalSpent: "$1,247",
-    lastOrder: "2024-12-01",
-    status: "active",
-    joinDate: "2024-01-15"
-  },
-  {
-    id: "2",
-    name: "Sarah Johnson",
-    email: "sarah@example.com",
-    phone: "+1 555 234 5678",
-    orders: 3,
-    totalSpent: "$892",
-    lastOrder: "2024-11-28",
-    status: "active",
-    joinDate: "2024-03-22"
-  },
-  {
-    id: "3",
-    name: "Mike Wilson",
-    email: "mike@example.com",
-    phone: "+1 555 345 6789",
-    orders: 8,
-    totalSpent: "$2,156",
-    lastOrder: "2024-11-30",
-    status: "vip",
-    joinDate: "2023-11-10"
-  },
-  {
-    id: "4",
-    name: "Emily Davis",
-    email: "emily@example.com",
-    phone: "+1 555 456 7890",
-    orders: 1,
-    totalSpent: "$449",
-    lastOrder: "2024-11-30",
-    status: "new",
-    joinDate: "2024-11-30"
-  },
-  {
-    id: "5",
-    name: "David Brown",
-    email: "david@example.com",
-    phone: "+1 555 567 8901",
-    orders: 12,
-    totalSpent: "$3,489",
-    lastOrder: "2024-11-25",
-    status: "vip",
-    joinDate: "2023-08-14"
-  }
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export function AdminCustomers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
 
+  // Fetch customer statistics
+  const { data: customerStats = { total: 0, newThisMonth: 0, vipCount: 0, avgOrderValue: 0 } } = useQuery({
+    queryKey: ['customer-stats'],
+    queryFn: async () => {
+      // Since we don't have real customer data yet, return zeros
+      // This will be updated when we have real profiles and orders
+      return {
+        total: 0,
+        newThisMonth: 0,
+        vipCount: 0,
+        avgOrderValue: 0
+      };
+    }
+  });
+
+  // Since we don't have real customer data in profiles yet, show empty state
+  const customers: any[] = [];
+
   const filteredCustomers = customers.filter((customer) => {
     const matchesSearch = 
-      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.phone.includes(searchQuery);
+      customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.phone?.includes(searchQuery);
     
     return matchesSearch;
   });
@@ -160,25 +122,25 @@ export function AdminCustomers() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">2,847</div>
+            <div className="text-2xl font-bold">{customerStats.total}</div>
             <p className="text-xs text-muted-foreground">Total Customers</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">156</div>
+            <div className="text-2xl font-bold">{customerStats.newThisMonth}</div>
             <p className="text-xs text-muted-foreground">New This Month</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">47</div>
+            <div className="text-2xl font-bold">{customerStats.vipCount}</div>
             <p className="text-xs text-muted-foreground">VIP Customers</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">$2,156</div>
+            <div className="text-2xl font-bold">€{customerStats.avgOrderValue}</div>
             <p className="text-xs text-muted-foreground">Avg. Order Value</p>
           </CardContent>
         </Card>
@@ -218,63 +180,83 @@ export function AdminCustomers() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-primary">
-                            {customer.name.split(' ').map(n => n[0]).join('')}
-                          </span>
+                {filteredCustomers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
+                          <Mail className="h-6 w-6" />
                         </div>
                         <div>
-                          <p className="font-medium">{customer.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Joined {new Date(customer.joinDate).toLocaleDateString()}
-                          </p>
+                          <p className="font-medium">No customers yet</p>
+                          <p className="text-sm">Customer profiles will appear here when orders are placed</p>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <p className="text-sm">{customer.email}</p>
-                        <p className="text-xs text-muted-foreground">{customer.phone}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium">{customer.orders}</span>
-                      <span className="text-xs text-muted-foreground ml-1">orders</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`font-medium ${getCustomerValue(customer.totalSpent)}`}>
-                        {customer.totalSpent}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(customer.lastOrder).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(customer.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Mail className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
+                        <Button onClick={handleAddCustomer} className="mt-2">
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Customer
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredCustomers.map((customer) => (
+                    <TableRow key={customer.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary">
+                              {customer.name.split(' ').map((n: string) => n[0]).join('')}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium">{customer.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Joined {new Date(customer.joinDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="text-sm">{customer.email}</p>
+                          <p className="text-xs text-muted-foreground">{customer.phone}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium">{customer.orders}</span>
+                        <span className="text-xs text-muted-foreground ml-1">orders</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`font-medium ${getCustomerValue(customer.totalSpent)}`}>
+                          {customer.totalSpent}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(customer.lastOrder).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(customer.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Mail className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
