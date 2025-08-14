@@ -15,8 +15,11 @@ import {
   Key,
   Users,
   AlertTriangle,
-  Save
+  Save,
+  CreditCard,
+  Mail
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 export function AdminSettings() {
   return (
@@ -34,11 +37,12 @@ export function AdminSettings() {
       </div>
 
       <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="payments">Payments</TabsTrigger>
+          <TabsTrigger value="emails">Emails</TabsTrigger>
+          <TabsTrigger value="taxes">Tax & Invoices</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="system">System</TabsTrigger>
         </TabsList>
 
@@ -136,6 +140,321 @@ export function AdminSettings() {
                     <p className="text-xs text-muted-foreground">Use dark theme for the admin panel</p>
                   </div>
                   <Switch />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Payments Tab */}
+        <TabsContent value="payments" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Stripe Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="stripe-publishable">Stripe Publishable Key</Label>
+                  <Input
+                    id="stripe-publishable"
+                    placeholder="pk_test_..."
+                    defaultValue="pk_test_51xxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="stripe-secret">Stripe Secret Key</Label>
+                  <Input
+                    id="stripe-secret"
+                    type="password"
+                    placeholder="sk_test_..."
+                    defaultValue="sk_test_51xxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="stripe-webhook">Webhook Endpoint Secret</Label>
+                  <Input
+                    id="stripe-webhook"
+                    type="password"
+                    placeholder="whsec_..."
+                    defaultValue="whsec_xxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Test Mode</Label>
+                    <p className="text-xs text-muted-foreground">Use Stripe test environment</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <Button className="w-full">Test Connection</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Methods</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Credit/Debit Cards</Label>
+                    <p className="text-xs text-muted-foreground">Visa, Mastercard, American Express</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>PayPal</Label>
+                    <p className="text-xs text-muted-foreground">PayPal and Pay Later options</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>iDEAL</Label>
+                    <p className="text-xs text-muted-foreground">Dutch bank transfer</p>
+                  </div>
+                  <Switch />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>SEPA Direct Debit</Label>
+                    <p className="text-xs text-muted-foreground">European bank transfers</p>
+                  </div>
+                  <Switch />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Apple Pay</Label>
+                    <p className="text-xs text-muted-foreground">Mobile payments</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Emails Tab */}
+        <TabsContent value="emails" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Email Provider
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email-provider">Email Service</Label>
+                  <Select defaultValue="resend">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="resend">Resend</SelectItem>
+                      <SelectItem value="sendgrid">SendGrid</SelectItem>
+                      <SelectItem value="mailgun">Mailgun</SelectItem>
+                      <SelectItem value="smtp">Custom SMTP</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="resend-api-key">Resend API Key</Label>
+                  <Input
+                    id="resend-api-key"
+                    type="password"
+                    placeholder="re_..."
+                    defaultValue="re_xxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="from-email">From Email Address</Label>
+                  <Input
+                    id="from-email"
+                    type="email"
+                    defaultValue="noreply@furnistore.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="from-name">From Name</Label>
+                  <Input
+                    id="from-name"
+                    defaultValue="FurniStore"
+                  />
+                </div>
+
+                <Button className="w-full">Test Email Configuration</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Email Templates</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Order Confirmation</p>
+                      <p className="text-xs text-muted-foreground">Sent when order is placed</p>
+                    </div>
+                    <Button variant="outline" size="sm">Edit</Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Shipping Notification</p>
+                      <p className="text-xs text-muted-foreground">Sent when order ships</p>
+                    </div>
+                    <Button variant="outline" size="sm">Edit</Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Welcome Email</p>
+                      <p className="text-xs text-muted-foreground">Sent to new customers</p>
+                    </div>
+                    <Button variant="outline" size="sm">Edit</Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Password Reset</p>
+                      <p className="text-xs text-muted-foreground">Sent for password recovery</p>
+                    </div>
+                    <Button variant="outline" size="sm">Edit</Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Tax & Invoices Tab */}
+        <TabsContent value="taxes" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tax Configuration</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="default-tax">Default Tax Rate (%)</Label>
+                  <Input
+                    id="default-tax"
+                    type="number"
+                    defaultValue="21"
+                    placeholder="21"
+                  />
+                  <p className="text-xs text-muted-foreground">Netherlands VAT rate (BTW)</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vat-number">VAT Number</Label>
+                  <Input
+                    id="vat-number"
+                    defaultValue="NL123456789B01"
+                    placeholder="NL123456789B01"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tax-inclusive">Tax Display</Label>
+                  <Select defaultValue="inclusive">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="inclusive">Prices include tax</SelectItem>
+                      <SelectItem value="exclusive">Prices exclude tax</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>EU VAT Compliance</Label>
+                    <p className="text-xs text-muted-foreground">Automatically handle EU VAT rules</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Digital Goods Tax</Label>
+                    <p className="text-xs text-muted-foreground">Apply tax based on customer location</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Invoice Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invoice-prefix">Invoice Number Prefix</Label>
+                  <Input
+                    id="invoice-prefix"
+                    defaultValue="INV-"
+                    placeholder="INV-"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="next-invoice">Next Invoice Number</Label>
+                  <Input
+                    id="next-invoice"
+                    type="number"
+                    defaultValue="1001"
+                    placeholder="1001"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="invoice-terms">Payment Terms (days)</Label>
+                  <Input
+                    id="invoice-terms"
+                    type="number"
+                    defaultValue="30"
+                    placeholder="30"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="invoice-notes">Invoice Footer Notes</Label>
+                  <Textarea
+                    id="invoice-notes"
+                    defaultValue="Thank you for your business! Payment is due within 30 days."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Auto-send Invoices</Label>
+                    <p className="text-xs text-muted-foreground">Email invoices automatically when orders are placed</p>
+                  </div>
+                  <Switch defaultChecked />
                 </div>
               </CardContent>
             </Card>

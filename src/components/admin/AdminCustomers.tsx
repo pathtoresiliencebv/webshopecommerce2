@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Download, MoreHorizontal, Eye, Mail, Phone } from "lucide-react";
+import { Search, Download, MoreHorizontal, Eye, Mail, Phone, Plus, Edit, Trash2 } from "lucide-react";
+import { CustomerForm } from "./CustomerForm";
 
 const customers = [
   {
@@ -66,6 +67,8 @@ const customers = [
 
 export function AdminCustomers() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
 
   const filteredCustomers = customers.filter((customer) => {
     const matchesSearch = 
@@ -99,6 +102,36 @@ export function AdminCustomers() {
     return "text-muted-foreground"; // Low value
   };
 
+  const handleAddCustomer = () => {
+    setEditingCustomer(null);
+    setShowCustomerForm(true);
+  };
+
+  const handleEditCustomer = (customer: any) => {
+    setEditingCustomer(customer);
+    setShowCustomerForm(true);
+  };
+
+  const handleSaveCustomer = (customerData: any) => {
+    console.log('Saving customer:', customerData);
+    setShowCustomerForm(false);
+    setEditingCustomer(null);
+  };
+
+  const handleDeleteCustomer = (customerId: string) => {
+    console.log('Deleting customer:', customerId);
+  };
+
+  if (showCustomerForm) {
+    return (
+      <CustomerForm
+        customer={editingCustomer}
+        onSave={handleSaveCustomer}
+        onCancel={() => setShowCustomerForm(false)}
+      />
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -115,6 +148,10 @@ export function AdminCustomers() {
           <Button variant="outline">
             <Mail className="mr-2 h-4 w-4" />
             Send Newsletter
+          </Button>
+          <Button onClick={handleAddCustomer}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Customer
           </Button>
         </div>
       </div>
@@ -222,11 +259,14 @@ export function AdminCustomers() {
                         <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="sm">
                           <Mail className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
-                          <Phone className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm">
                           <MoreHorizontal className="h-4 w-4" />

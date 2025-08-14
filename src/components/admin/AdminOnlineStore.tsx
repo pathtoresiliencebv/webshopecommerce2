@@ -40,8 +40,9 @@ export function AdminOnlineStore() {
       </div>
 
       <Tabs defaultValue="appearance" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="seo">SEO</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="shipping">Shipping</TabsTrigger>
           <TabsTrigger value="general">General</TabsTrigger>
@@ -157,6 +158,102 @@ export function AdminOnlineStore() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* SEO Tab */}
+        <TabsContent value="seo" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                SEO Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="font-medium">Global SEO</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="site-title">Site Title</Label>
+                  <Input id="site-title" defaultValue="FurniStore - Premium Office Furniture" />
+                  <p className="text-xs text-muted-foreground">Appears in browser tabs and search results</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="site-description">Site Description</Label>
+                  <Textarea 
+                    id="site-description" 
+                    defaultValue="Discover premium office furniture for modern workspaces. Ergonomic chairs, standing desks, and storage solutions."
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground">Meta description for your homepage (max 160 characters)</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="keywords">Focus Keywords</Label>
+                  <Input id="keywords" defaultValue="office furniture, ergonomic chairs, standing desks, workspace solutions" />
+                  <p className="text-xs text-muted-foreground">Comma-separated keywords</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-medium">Open Graph & Social Media</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="og-title">Social Media Title</Label>
+                  <Input id="og-title" defaultValue="FurniStore - Premium Office Furniture" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="og-description">Social Media Description</Label>
+                  <Textarea 
+                    id="og-description" 
+                    defaultValue="Transform your workspace with our premium office furniture collection."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Social Media Image</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="h-16 w-24 bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-xs">OG Image</span>
+                    </div>
+                    <Button variant="outline" size="sm">Upload Image</Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Recommended size: 1200x630px</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-medium">Technical SEO</h3>
+                
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>XML Sitemap</Label>
+                    <p className="text-xs text-muted-foreground">Automatically generate and submit sitemap</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Robots.txt</Label>
+                    <p className="text-xs text-muted-foreground">Allow search engines to crawl your site</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Structured Data</Label>
+                    <p className="text-xs text-muted-foreground">Add JSON-LD schema markup for products</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Payments Tab */}

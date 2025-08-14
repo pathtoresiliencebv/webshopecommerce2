@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Plus, Filter, Download, MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
+import { ProductForm } from "./ProductForm";
 
 const products = [
   {
@@ -80,6 +81,8 @@ export function AdminProducts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch = 
@@ -115,6 +118,38 @@ export function AdminProducts() {
     return "text-green-600";
   };
 
+  const handleAddProduct = () => {
+    setEditingProduct(null);
+    setShowProductForm(true);
+  };
+
+  const handleEditProduct = (product: any) => {
+    setEditingProduct(product);
+    setShowProductForm(true);
+  };
+
+  const handleSaveProduct = (productData: any) => {
+    // Here you would save to database
+    console.log('Saving product:', productData);
+    setShowProductForm(false);
+    setEditingProduct(null);
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    // Here you would delete from database
+    console.log('Deleting product:', productId);
+  };
+
+  if (showProductForm) {
+    return (
+      <ProductForm
+        product={editingProduct}
+        onSave={handleSaveProduct}
+        onCancel={() => setShowProductForm(false)}
+      />
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -128,7 +163,7 @@ export function AdminProducts() {
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
-          <Button>
+          <Button onClick={handleAddProduct}>
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>
@@ -220,10 +255,10 @@ export function AdminProducts() {
                         <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditProduct(product)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteProduct(product.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm">
