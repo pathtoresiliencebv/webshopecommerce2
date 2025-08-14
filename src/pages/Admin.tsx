@@ -9,6 +9,9 @@ import { AdminOnlineStore } from "@/components/admin/AdminOnlineStore";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminCollections } from "@/components/admin/AdminCollections";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 export type AdminSection = 
   | "home" 
@@ -22,6 +25,11 @@ export type AdminSection =
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState<AdminSection>("home");
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   const renderContent = () => {
     switch (activeSection) {
@@ -54,7 +62,21 @@ const Admin = () => {
           onSectionChange={setActiveSection} 
         />
         <main className="flex-1 overflow-auto">
-          {renderContent()}
+          <div className="border-b bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/50">
+            <div className="flex h-14 items-center justify-between px-6">
+              <h1 className="font-semibold">Admin Panel</h1>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">{user?.email}</span>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Uitloggen
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="p-6">
+            {renderContent()}
+          </div>
         </main>
       </div>
     </SidebarProvider>

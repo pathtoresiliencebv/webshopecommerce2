@@ -8,8 +8,10 @@ import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
+import AdminAuth from "./pages/AdminAuth";
 import NotFound from "./pages/NotFound";
 import CollectionPage from "./pages/CollectionPage";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +27,12 @@ const App = () => (
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/collections/:slug" element={<CollectionPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/auth" element={<AdminAuth />} />
+          <Route path="/admin" element={
+            <AdminProtectedRoute>
+              <Admin />
+            </AdminProtectedRoute>
+          } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
