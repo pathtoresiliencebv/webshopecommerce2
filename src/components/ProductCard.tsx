@@ -15,6 +15,7 @@ interface ProductCardProps {
   category: string;
   isNew?: boolean;
   isSale?: boolean;
+  colors?: string[];
 }
 
 export function ProductCard({
@@ -28,6 +29,7 @@ export function ProductCard({
   category,
   isNew = false,
   isSale = false,
+  colors = [],
 }: ProductCardProps) {
   const formatPrice = (price: number) => `€${price.toLocaleString()}`;
 
@@ -114,6 +116,20 @@ export function ProductCard({
             </span>
           )}
         </div>
+
+        {/* Color Palette */}
+        {colors.length > 0 && (
+          <div className="flex items-center gap-1">
+            {colors.map((color, index) => (
+              <div
+                key={index}
+                className="w-3 h-3 rounded-full border border-border/20 cursor-pointer hover:scale-110 transition-transform"
+                style={{ backgroundColor: color }}
+                title={`Color option ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

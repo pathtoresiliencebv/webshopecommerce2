@@ -80,28 +80,54 @@ That's also what we love about our work. Allow us to share our workplace design 
       name: "Premium Writing Desk",
       price: 156.95,
       image: deskStanding,
-      rating: 4.6
+      rating: 4.6,
+      category: "Desks",
+      colors: ["#8B4513", "#000000", "#FFFFFF"]
     },
     {
       id: "3", 
       name: "Executive Office Chair",
       price: 299.95,
       image: chairOffice,
-      rating: 4.7
+      rating: 4.7,
+      category: "Chairs",
+      colors: ["#000000", "#8B4513", "#696969"]
     },
     {
       id: "4",
       name: "Storage Cabinet Pro", 
       price: 189.95,
       image: cabinetStorage,
-      rating: 4.5
+      rating: 4.5,
+      category: "Storage",
+      colors: ["#FFFFFF", "#000000", "#C0C0C0"]
     },
     {
       id: "5",
       name: "Adjustable Standing Desk",
       price: 349.95, 
       image: deskStanding,
-      rating: 4.9
+      rating: 4.9,
+      category: "Desks",
+      colors: ["#8B4513", "#000000", "#FFFFFF", "#696969"]
+    },
+    {
+      id: "6",
+      name: "Modern Office Chair",
+      price: 199.95,
+      image: chairOffice,
+      rating: 4.6,
+      category: "Chairs",
+      colors: ["#000000", "#FFFFFF", "#FF0000"]
+    },
+    {
+      id: "7",
+      name: "Compact Storage Unit",
+      price: 129.95,
+      image: cabinetStorage,
+      rating: 4.4,
+      category: "Storage",
+      colors: ["#FFFFFF", "#8B4513", "#C0C0C0"]
     }
   ];
 
@@ -362,7 +388,7 @@ That's also what we love about our work. Allow us to share our workplace design 
         {/* Check Out These Related Products */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold mb-6">Check Out These Related Products</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             {relatedProducts.map((item) => (
               <Card key={item.id} className="group cursor-pointer hover:shadow-lg transition-shadow">
                 <CardContent className="p-0">
@@ -373,9 +399,23 @@ That's also what we love about our work. Allow us to share our workplace design 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   </div>
-                  <div className="p-3">
-                    <h3 className="font-medium text-xs mb-1 line-clamp-2">{item.name}</h3>
+                  <div className="p-3 space-y-2">
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                      {item.category}
+                    </p>
+                    <h3 className="font-medium text-xs line-clamp-2">{item.name}</h3>
                     <p className="text-sm font-bold">€{item.price}</p>
+                    {item.colors && (
+                      <div className="flex items-center gap-1">
+                        {item.colors.map((color, index) => (
+                          <div
+                            key={index}
+                            className="w-3 h-3 rounded-full border border-border/20"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
