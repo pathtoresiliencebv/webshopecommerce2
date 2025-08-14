@@ -25,28 +25,81 @@ export function AdminProducts() {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      
+      // First get all products
+      const { data: products, error: productsError } = await supabase
         .from('products')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (productsError) throw productsError;
 
-      const formattedProducts = data?.map(product => ({
-        ...product,
-        tags: [], // Will be populated later when relations are set up
-        collections: [], // Will be populated later when relations are set up
-        image: null // Will be populated later when product_images are set up
-      })) || [];
+      // Then get images, collections, and tags for each product
+      const enrichedProducts = await Promise.all((products || []).map(async (product) => {
+        // Get primary image
+        const { data: images } = await supabase
+          .from('product_images')
+          .select('image_url')
+          .eq('product_id', product.id)
+          .eq('is_primary', true)
+          .limit(1);
 
-      setProducts(formattedProducts);
+        // Get collections (simplified approach)
+        const { data: productCollections } = await supabase
+          .from('product_collections')
+          .select('collection_id')
+          .eq('product_id', product.id);
+
+        const collectionNames: string[] = [];
+        if (productCollections && productCollections.length > 0) {
+          const { data: collections } = await supabase
+            .from('collections')
+            .select('name')
+            .in('id', productCollections.map(pc => pc.collection_id));
+          collectionNames.push(...(collections?.map(c => c.name) || []));
+        }
+
+        // Get tags (simplified approach)
+        const { data: productTags } = await supabase
+          .from('product_tags')
+          .select('tag_id')
+          .eq('product_id', product.id);
+
+        const tagNames: string[] = [];
+        if (productTags && productTags.length > 0) {
+          const { data: tags } = await supabase
+            .from('tags')
+            .select('name')
+            .in('id', productTags.map(pt => pt.tag_id));
+          tagNames.push(...(tags?.map(t => t.name) || []));
+        }
+
+        return {
+          ...product,
+          image: images?.[0]?.image_url || null,
+          imageUrl: images?.[0]?.image_url || '',
+          collections: collectionNames,
+          tags: tagNames
+        };
+      }));
+      
+      setProducts(enrichedProducts);
     } catch (error: any) {
       console.error('Error fetching products:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load products",
-        variant: "destructive",
-      });
+      // Fallback to basic query
+      const { data } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      const fallbackProducts = (data || []).map(product => ({
+        ...product,
+        tags: [],
+        collections: [],
+        image: null,
+        imageUrl: ''
+      }));
+      setProducts(fallbackProducts);
     } finally {
       setLoading(false);
     }
@@ -78,6 +131,8 @@ export function AdminProducts() {
 
   const handleSaveProduct = async (productData: any) => {
     try {
+      let productId = editingProduct?.id;
+
       if (editingProduct?.id) {
         // Update existing product
         const { error } = await supabase
@@ -104,7 +159,6 @@ export function AdminProducts() {
           .eq('id', editingProduct.id);
 
         if (error) throw error;
-        toast({ title: "Success", description: "Product updated successfully" });
       } else {
         // Create new product
         const { data, error } = await supabase
@@ -133,7 +187,78 @@ export function AdminProducts() {
           .single();
 
         if (error) throw error;
-        toast({ title: "Success", description: "Product created successfully" });
+        productId = data.id;
+      }
+
+      // Handle product image
+      if (productData.imageUrl && productId) {
+        // Delete existing images for this product
+        await supabase
+          .from('product_images')
+          .delete()
+          .eq('product_id', productId);
+
+        // Insert new image
+        await supabase
+          .from('product_images')
+          .insert({
+            product_id: productId,
+            image_url: productData.imageUrl,
+            is_primary: true,
+            sort_order: 0
+          });
+      }
+
+      // Handle collections
+      if (productData.collections && productData.collections.length > 0 && productId) {
+        // Delete existing collection relationships
+        await supabase
+          .from('product_collections')
+          .delete()
+          .eq('product_id', productId);
+
+        // Get collection IDs
+        const { data: collections } = await supabase
+          .from('collections')
+          .select('id, name')
+          .in('name', productData.collections);
+
+        if (collections) {
+          const collectionInserts = collections.map(collection => ({
+            product_id: productId,
+            collection_id: collection.id
+          }));
+
+          await supabase
+            .from('product_collections')
+            .insert(collectionInserts);
+        }
+      }
+
+      // Handle tags
+      if (productData.tags && productData.tags.length > 0 && productId) {
+        // Delete existing tag relationships
+        await supabase
+          .from('product_tags')
+          .delete()
+          .eq('product_id', productId);
+
+        // Get tag IDs
+        const { data: tags } = await supabase
+          .from('tags')
+          .select('id, name')
+          .in('name', productData.tags);
+
+        if (tags) {
+          const tagInserts = tags.map(tag => ({
+            product_id: productId,
+            tag_id: tag.id
+          }));
+
+          await supabase
+            .from('product_tags')
+            .insert(tagInserts);
+        }
       }
       
       await fetchProducts();
@@ -141,11 +266,6 @@ export function AdminProducts() {
       setEditingProduct(null);
     } catch (error: any) {
       console.error('Error saving product:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save product",
-        variant: "destructive",
-      });
     }
   };
 
