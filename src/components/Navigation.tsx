@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -23,47 +25,40 @@ export function Navigation() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
 
+  // Fetch collections from database
+  const { data: collections = [] } = useQuery({
+    queryKey: ['navigation-collections'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('collections')
+        .select(`
+          id, name, slug,
+          product_collections!left (
+            product_id
+          )
+        `)
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching collections:', error);
+        return [];
+      }
+
+      // Only return collections that have products
+      return data?.filter(collection => 
+        collection.product_collections && collection.product_collections.length > 0
+      ) || [];
+    }
+  });
+
   const navItems = [
-    { 
-      name: "Features", 
-      href: "/features",
-      submenu: [
-        { name: "Standing Desks", href: "/features/standing-desks" },
-        { name: "Ergonomic Chairs", href: "/features/ergonomic-chairs" },
-        { name: "Storage Solutions", href: "/features/storage" },
-        { name: "Lighting", href: "/features/lighting" }
-      ]
-    },
-    { 
-      name: "Working Tables", 
-      href: "/working-tables",
-      submenu: [
-        { name: "Executive Desks", href: "/working-tables/executive" },
-        { name: "Standing Desks", href: "/working-tables/standing" },
-        { name: "Corner Desks", href: "/working-tables/corner" },
-        { name: "Collaborative Tables", href: "/working-tables/collaborative" }
-      ]
-    },
-    { 
-      name: "Chairs", 
-      href: "/chairs",
-      submenu: [
-        { name: "Office Chairs", href: "/chairs/office" },
-        { name: "Executive Chairs", href: "/chairs/executive" },
-        { name: "Ergonomic Chairs", href: "/chairs/ergonomic" },
-        { name: "Conference Chairs", href: "/chairs/conference" }
-      ]
-    },
-    { 
-      name: "Storage", 
-      href: "/storage",
-      submenu: [
-        { name: "Filing Cabinets", href: "/storage/filing" },
-        { name: "Bookcases", href: "/storage/bookcases" },
-        { name: "Lockers", href: "/storage/lockers" },
-        { name: "Mobile Storage", href: "/storage/mobile" }
-      ]
-    },
+    { name: "Home", href: "/" },
+    { name: "All Products", href: "/products" },
+    ...collections.map(collection => ({
+      name: collection.name,
+      href: `/collections/${collection.slug}`
+    })),
     { name: "About", href: "/about" },
   ];
 
@@ -182,25 +177,7 @@ export function Navigation() {
                     }`}
                   >
                     {item.name}
-                    {item.submenu && <ChevronDown className="ml-1 h-3 w-3" />}
                   </Link>
-                  
-                  {/* Dropdown Menu */}
-                  {item.submenu && (
-                    <div className="absolute top-full left-0 mt-2 w-64 bg-background border border-border shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                      <div className="py-2">
-                        {item.submenu.map((subItem) => (
-                          <Link
-                            key={subItem.name}
-                            to={subItem.href}
-                            className="block px-4 py-3 text-sm font-body text-muted-foreground hover:text-primary hover:bg-muted/50 transition-colors"
-                          >
-                            {subItem.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               ))}
             </nav>
@@ -235,20 +212,6 @@ export function Navigation() {
                   >
                     {item.name}
                   </Link>
-                  {item.submenu && (
-                    <div className="ml-4 mt-2 space-y-1">
-                      {item.submenu.map((subItem) => (
-                        <Link
-                          key={subItem.name}
-                          to={subItem.href}
-                          className="block px-3 py-2 text-xs font-body text-muted-foreground hover:text-primary"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          {subItem.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
                 </div>
               ))}
               

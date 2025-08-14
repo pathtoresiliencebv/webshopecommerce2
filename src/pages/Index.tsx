@@ -1,5 +1,6 @@
 import { Navigation } from "@/components/Navigation";
 import { ProductCard } from "@/components/ProductCard";
+import { CollectionSlider } from "@/components/CollectionSlider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -137,6 +138,61 @@ const Index = () => {
         isNew: product.is_new,
         soldOut: (product.stock_quantity || 0) === 0,
         colors: ["#000000", "#808080"] // Default colors for demo
+      })) || [];
+    }
+  });
+
+  // Fetch collections with products for the sliders
+  const { data: collections = [] } = useQuery({
+    queryKey: ['homepage-collections'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('collections')
+        .select(`
+          id, name, slug,
+          product_collections!left (
+            product_id
+          )
+        `)
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching collections:', error);
+        return [];
+      }
+
+      // Only return collections that have products
+      return data?.filter(collection => 
+        collection.product_collections && collection.product_collections.length > 0
+      ) || [];
+    }
+  });
+
+  // Fetch collections with images for Popular Categories
+  const { data: collectionsWithImages = [] } = useQuery({
+    queryKey: ['collections-with-images'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('collections')
+        .select(`
+          id, name, slug, image_url,
+          product_collections!left (
+            product_id
+          )
+        `)
+        .eq('is_active', true)
+        .not('image_url', 'is', null)
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching collections with images:', error);
+        return [];
+      }
+
+      return data?.map(collection => ({
+        ...collection,
+        product_count: collection.product_collections?.length || 0
       })) || [];
     }
   });
@@ -420,71 +476,24 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Recommended Products Grid */}
+      {/* Collection-Based Product Sliders */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Recommended for You</h2>
+            <p className="text-muted-foreground">Discover products from our carefully curated collections</p>
           </div>
           
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 mb-8">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="cabinets">Cabinets and Shelves</TabsTrigger>
-              <TabsTrigger value="chairs">Chairs</TabsTrigger>
-              <TabsTrigger value="printers">Printers</TabsTrigger>
-              <TabsTrigger value="projectors">Projectors</TabsTrigger>
-              <TabsTrigger value="stationery">Stationery</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="all">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {featuredProducts.slice(0, 8).map((product) => (
-                  <ProductCard key={product.id} {...product} />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="cabinets">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {featuredProducts.filter(p => p.category === "Storage").map((product) => (
-                  <ProductCard key={product.id} {...product} />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="chairs">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {featuredProducts.filter(p => p.category === "Chairs").map((product) => (
-                  <ProductCard key={product.id} {...product} />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="printers">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="text-center py-12 col-span-full text-muted-foreground">
-                  Printer products coming soon...
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="projectors">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="text-center py-12 col-span-full text-muted-foreground">
-                  Projector products coming soon...
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="stationery">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="text-center py-12 col-span-full text-muted-foreground">
-                  Stationery products coming soon...
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="space-y-12">
+            {collections.map((collection) => (
+              <CollectionSlider
+                key={collection.id}
+                collectionId={collection.id}
+                collectionName={collection.name}
+                collectionSlug={collection.slug}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -513,26 +522,24 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {[
-              { name: "Working Tables", image: deskStanding },
-              { name: "Printers", image: cabinetStorage },
-              { name: "Cabinets and Shelves", image: cabinetStorage },
-              { name: "Chairs", image: chairOffice },
-              { name: "Projectors", image: deskStanding },
-              { name: "Stationery", image: cabinetStorage }
-            ].map((category, index) => (
-              <Card key={index} className="group cursor-pointer hover:shadow-lg transition-all">
-                <CardContent className="p-4 text-center">
-                  <div className="aspect-square bg-gray-100 rounded-lg mb-4 overflow-hidden">
-                    <img 
-                      src={category.image} 
-                      alt={category.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                  </div>
-                  <h3 className="font-medium text-sm">{category.name}</h3>
-                </CardContent>
-              </Card>
+            {collectionsWithImages.map((collection) => (
+              <Link key={collection.id} to={`/collections/${collection.slug}`}>
+                <Card className="group cursor-pointer hover:shadow-lg transition-all">
+                  <CardContent className="p-4 text-center">
+                    <div className="aspect-square bg-gray-100 rounded-lg mb-4 overflow-hidden">
+                      <img 
+                        src={collection.image_url} 
+                        alt={collection.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    </div>
+                    <h3 className="font-medium text-sm">{collection.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {collection.product_count} products
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
