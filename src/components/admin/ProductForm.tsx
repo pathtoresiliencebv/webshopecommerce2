@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,10 +18,13 @@ interface ProductFormProps {
   onCancel: () => void;
 }
 
-const availableTags = ["Ergonomic", "Premium", "Modern", "Adjustable", "Luxury", "Eco-Friendly", "Best Seller"];
-const availableCollections = ["Office Chairs", "Standing Desks", "Storage Solutions", "Executive Furniture", "Home Office"];
+// Remove hardcoded arrays - will be fetched from database
 
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
+  const [availableTags, setAvailableTags] = useState<any[]>([]);
+  const [availableCollections, setAvailableCollections] = useState<any[]>([]);
+  const { toast } = useToast();
+  
   const [formData, setFormData] = useState({
     name: product?.name || "",
     sku: product?.sku || "",
@@ -48,12 +53,56 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [newTag, setNewTag] = useState("");
   const [newCollection, setNewCollection] = useState("");
 
-  const handleAddTag = (tag: string) => {
-    if (tag && !formData.tags.includes(tag)) {
+  useEffect(() => {
+    fetchTagsAndCollections();
+  }, []);
+
+  const fetchTagsAndCollections = async () => {
+    try {
+      const [tagsResponse, collectionsResponse] = await Promise.all([
+        supabase.from('tags').select('*').order('name'),
+        supabase.from('collections').select('*').eq('is_active', true).order('name')
+      ]);
+
+      if (tagsResponse.data) setAvailableTags(tagsResponse.data);
+      if (collectionsResponse.data) setAvailableCollections(collectionsResponse.data);
+    } catch (error) {
+      console.error('Error fetching tags and collections:', error);
+    }
+  };
+
+  const handleAddTag = async (tagName: string) => {
+    if (!tagName || formData.tags.includes(tagName)) return;
+
+    try {
+      // Check if tag exists, if not create it
+      let tag = availableTags.find(t => t.name === tagName);
+      
+      if (!tag) {
+        const { data, error } = await supabase
+          .from('tags')
+          .insert({
+            name: tagName,
+            slug: tagName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        tag = data;
+        setAvailableTags(prev => [...prev, tag]);
+      }
+
       setFormData(prev => ({
         ...prev,
-        tags: [...prev.tags, tag]
+        tags: [...prev.tags, tagName]
       }));
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to add tag",
+        variant: "destructive",
+      });
     }
     setNewTag("");
   };
@@ -65,12 +114,38 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     }));
   };
 
-  const handleAddCollection = (collection: string) => {
-    if (collection && !formData.collections.includes(collection)) {
+  const handleAddCollection = async (collectionName: string) => {
+    if (!collectionName || formData.collections.includes(collectionName)) return;
+
+    try {
+      // Check if collection exists, if not create it
+      let collection = availableCollections.find(c => c.name === collectionName);
+      
+      if (!collection) {
+        const { data, error } = await supabase
+          .from('collections')
+          .insert({
+            name: collectionName,
+            slug: collectionName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        collection = data;
+        setAvailableCollections(prev => [...prev, collection]);
+      }
+
       setFormData(prev => ({
         ...prev,
-        collections: [...prev.collections, collection]
+        collections: [...prev.collections, collectionName]
       }));
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to add collection",
+        variant: "destructive",
+      });
     }
     setNewCollection("");
   };
@@ -261,15 +336,15 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                 <div className="space-y-2">
                   <Label>Add Existing Tags</Label>
                   <div className="flex flex-wrap gap-2">
-                    {availableTags.filter(tag => !formData.tags.includes(tag)).map((tag) => (
+                    {availableTags.filter(tag => !formData.tags.includes(tag.name)).map((tag) => (
                       <Button
-                        key={tag}
+                        key={tag.id}
                         variant="outline"
                         size="sm"
-                        onClick={() => handleAddTag(tag)}
+                        onClick={() => handleAddTag(tag.name)}
                       >
                         <Plus className="h-3 w-3 mr-1" />
-                        {tag}
+                        {tag.name}
                       </Button>
                     ))}
                   </div>
@@ -313,15 +388,15 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                 <div className="space-y-2">
                   <Label>Add to Existing Collections</Label>
                   <div className="flex flex-wrap gap-2">
-                    {availableCollections.filter(collection => !formData.collections.includes(collection)).map((collection) => (
+                    {availableCollections.filter(collection => !formData.collections.includes(collection.name)).map((collection) => (
                       <Button
-                        key={collection}
+                        key={collection.id}
                         variant="outline"
                         size="sm"
-                        onClick={() => handleAddCollection(collection)}
+                        onClick={() => handleAddCollection(collection.name)}
                       >
                         <Plus className="h-3 w-3 mr-1" />
-                        {collection}
+                        {collection.name}
                       </Button>
                     ))}
                   </div>

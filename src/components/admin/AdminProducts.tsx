@@ -1,291 +1,321 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Filter, Download, MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 import { ProductForm } from "./ProductForm";
-
-const products = [
-  {
-    id: "1",
-    name: "Ergonomic Office Chair Pro",
-    sku: "EOC-PRO-001",
-    category: "Chairs",
-    price: "$299",
-    stock: 24,
-    status: "active",
-    image: "/placeholder.svg"
-  },
-  {
-    id: "2",
-    name: "Adjustable Standing Desk Premium",
-    sku: "ASD-PREM-002",
-    category: "Desks",
-    price: "$599",
-    stock: 12,
-    status: "active",
-    image: "/placeholder.svg"
-  },
-  {
-    id: "3",
-    name: "Modern Storage Cabinet White",
-    sku: "MSC-WHT-003",
-    category: "Storage",
-    price: "$199",
-    stock: 0,
-    status: "out-of-stock",
-    image: "/placeholder.svg"
-  },
-  {
-    id: "4",
-    name: "Executive Leather Chair",
-    sku: "ELC-BLK-004",
-    category: "Chairs",
-    price: "$449",
-    stock: 8,
-    status: "low-stock",
-    image: "/placeholder.svg"
-  },
-  {
-    id: "5",
-    name: "Minimalist Work Desk",
-    sku: "MWD-WHT-005",
-    category: "Desks",
-    price: "$349",
-    stock: 15,
-    status: "active",
-    image: "/placeholder.svg"
-  }
-];
-
-const categoryOptions = [
-  { value: "all", label: "All Categories" },
-  { value: "chairs", label: "Chairs" },
-  { value: "desks", label: "Desks" },
-  { value: "storage", label: "Storage" },
-  { value: "lighting", label: "Lighting" }
-];
-
-const statusOptions = [
-  { value: "all", label: "All Status" },
-  { value: "active", label: "Active" },
-  { value: "low-stock", label: "Low Stock" },
-  { value: "out-of-stock", label: "Out of Stock" },
-  { value: "inactive", label: "Inactive" }
-];
+import { ProductScraper } from "./ProductScraper";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export function AdminProducts() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [showProductForm, setShowProductForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [showScraper, setShowScraper] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = categoryFilter === "all" || 
-      product.category.toLowerCase() === categoryFilter.toLowerCase();
-    
-    const matchesStatus = statusFilter === "all" || product.status === statusFilter;
-    
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
-  const getStatusBadge = (status: string, stock: number) => {
-    switch (status) {
-      case "active":
-        return <Badge variant="default">Active</Badge>;
-      case "low-stock":
-        return <Badge variant="secondary">Low Stock</Badge>;
-      case "out-of-stock":
-        return <Badge variant="destructive">Out of Stock</Badge>;
-      case "inactive":
-        return <Badge variant="outline">Inactive</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedProducts = data?.map(product => ({
+        ...product,
+        tags: [], // Will be populated later when relations are set up
+        collections: [], // Will be populated later when relations are set up
+        image: null // Will be populated later when product_images are set up
+      })) || [];
+
+      setProducts(formattedProducts);
+    } catch (error: any) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStockColor = (stock: number) => {
-    if (stock === 0) return "text-red-600";
-    if (stock < 10) return "text-yellow-600";
-    return "text-green-600";
-  };
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleAddProduct = () => {
     setEditingProduct(null);
-    setShowProductForm(true);
+    setShowForm(true);
+  };
+
+  const handleScrapeProduct = () => {
+    setShowScraper(true);
+  };
+
+  const handleProductScraped = (productData: any) => {
+    setEditingProduct(productData);
+    setShowForm(true);
   };
 
   const handleEditProduct = (product: any) => {
     setEditingProduct(product);
-    setShowProductForm(true);
+    setShowForm(true);
   };
 
-  const handleSaveProduct = (productData: any) => {
-    // Here you would save to database
-    console.log('Saving product:', productData);
-    setShowProductForm(false);
-    setEditingProduct(null);
+  const handleSaveProduct = async (productData: any) => {
+    try {
+      if (editingProduct?.id) {
+        // Update existing product
+        const { error } = await supabase
+          .from('products')
+          .update({
+            name: productData.name,
+            sku: productData.sku,
+            description: productData.description,
+            short_description: productData.shortDescription,
+            price: parseFloat(productData.price) || 0,
+            original_price: parseFloat(productData.originalPrice) || null,
+            stock_quantity: parseInt(productData.stockQuantity) || 0,
+            is_active: productData.isActive,
+            is_featured: productData.isFeatured,
+            is_new: productData.isNew,
+            is_sale: productData.isSale,
+            meta_title: productData.metaTitle,
+            meta_description: productData.metaDescription,
+            weight: parseFloat(productData.weight) || null,
+            dimensions_length: parseFloat(productData.dimensions.length) || null,
+            dimensions_width: parseFloat(productData.dimensions.width) || null,
+            dimensions_height: parseFloat(productData.dimensions.height) || null,
+          })
+          .eq('id', editingProduct.id);
+
+        if (error) throw error;
+        toast({ title: "Success", description: "Product updated successfully" });
+      } else {
+        // Create new product
+        const { data, error } = await supabase
+          .from('products')
+          .insert({
+            name: productData.name,
+            sku: productData.sku,
+            description: productData.description,
+            short_description: productData.shortDescription,
+            price: parseFloat(productData.price) || 0,
+            original_price: parseFloat(productData.originalPrice) || null,
+            stock_quantity: parseInt(productData.stockQuantity) || 0,
+            is_active: productData.isActive,
+            is_featured: productData.isFeatured,
+            is_new: productData.isNew,
+            is_sale: productData.isSale,
+            meta_title: productData.metaTitle,
+            meta_description: productData.metaDescription,
+            weight: parseFloat(productData.weight) || null,
+            dimensions_length: parseFloat(productData.dimensions.length) || null,
+            dimensions_width: parseFloat(productData.dimensions.width) || null,
+            dimensions_height: parseFloat(productData.dimensions.height) || null,
+            slug: productData.name.toLowerCase().replace(/[^a-z0-9]/g, '-')
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        toast({ title: "Success", description: "Product created successfully" });
+      }
+      
+      await fetchProducts();
+      setShowForm(false);
+      setEditingProduct(null);
+    } catch (error: any) {
+      console.error('Error saving product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save product",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    // Here you would delete from database
-    console.log('Deleting product:', productId);
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) throw error;
+      
+      toast({ title: "Success", description: "Product deleted successfully" });
+      await fetchProducts();
+    } catch (error: any) {
+      console.error('Error deleting product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    }
   };
 
-  if (showProductForm) {
+  if (showForm) {
     return (
       <ProductForm
         product={editingProduct}
         onSave={handleSaveProduct}
-        onCancel={() => setShowProductForm(false)}
+        onCancel={() => {
+          setShowForm(false);
+          setEditingProduct(null);
+        }}
       />
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Products</h1>
-          <p className="text-muted-foreground">Manage your product catalog and inventory</p>
+          <h2 className="text-2xl font-bold">Products</h2>
+          <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button onClick={handleAddProduct}>
+          <Button onClick={handleScrapeProduct}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Product
+            Scrape Product
+          </Button>
+          <Button variant="outline" onClick={handleAddProduct}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Manually
           </Button>
         </div>
       </div>
 
-      {/* Product Management */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Product Catalog</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="flex gap-4 mb-6">
-            <div className="relative flex-1">
+          <div className="flex items-center gap-4">
+            <CardTitle>Product List</CardTitle>
+            <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search products or SKU..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoryOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
-
-          {/* Products Table */}
-          <div className="border rounded-lg">
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Product</TableHead>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>SKU</TableHead>
-                  <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center">
-                          <span className="text-xs font-medium">IMG</span>
-                        </div>
-                        <div>
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">ID: {product.id}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{product.sku}</TableCell>
-                    <TableCell>{product.category}</TableCell>
-                    <TableCell className="font-medium">{product.price}</TableCell>
-                    <TableCell>
-                      <span className={getStockColor(product.stock)}>
-                        {product.stock} units
-                      </span>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(product.status, product.stock)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleEditProduct(product)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteProduct(product.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </div>
+                {filteredProducts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      No products found. Try scraping or adding products manually.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        {product.image ? (
+                          <img 
+                            src={product.image} 
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                            <span className="text-xs">No img</span>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.sku || '-'}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span>€{product.price}</span>
+                          {product.original_price && (
+                            <span className="text-sm text-muted-foreground line-through">
+                              €{product.original_price}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{product.stock_quantity || 0}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {product.is_active && <Badge variant="default">Active</Badge>}
+                          {product.is_featured && <Badge variant="secondary">Featured</Badge>}
+                          {product.is_new && <Badge variant="outline">New</Badge>}
+                          {product.is_sale && <Badge variant="destructive">Sale</Badge>}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {product.tags.map((tag: string) => (
+                            <Badge key={tag} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleEditProduct(product)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleDeleteProduct(product.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
-          </div>
-
-          {/* Results Summary */}
-          <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-            <p>Showing {filteredProducts.length} of {products.length} products</p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm">
-                Next
-              </Button>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
+
+      <ProductScraper
+        open={showScraper}
+        onClose={() => setShowScraper(false)}
+        onProductScraped={handleProductScraped}
+      />
     </div>
   );
 }
