@@ -6,76 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Grid3X3, List } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-// Import images
-import chairOffice from "@/assets/chair-office.jpg";
-import deskStanding from "@/assets/desk-standing.jpg";
-import cabinetStorage from "@/assets/cabinet-storage.jpg";
-
-const products = [
-  {
-    id: "1",
-    name: "Ergonomic Office Chair Pro",
-    price: 299,
-    originalPrice: 399,
-    image: chairOffice,
-    rating: 4.8,
-    reviewCount: 124,
-    category: "Chairs",
-    isSale: true,
-  },
-  {
-    id: "2",
-    name: "Adjustable Standing Desk Premium",
-    price: 599,
-    image: deskStanding,
-    rating: 4.6,
-    reviewCount: 89,
-    category: "Desks",
-    isNew: true,
-  },
-  {
-    id: "3",
-    name: "Modern Storage Cabinet White",
-    price: 199,
-    image: cabinetStorage,
-    rating: 4.4,
-    reviewCount: 67,
-    category: "Storage",
-  },
-  {
-    id: "4",
-    name: "Executive Leather Chair",
-    price: 449,
-    originalPrice: 549,
-    image: chairOffice,
-    rating: 4.9,
-    reviewCount: 156,
-    category: "Chairs",
-    isSale: true,
-  },
-  {
-    id: "5",
-    name: "Minimalist Work Desk",
-    price: 349,
-    image: deskStanding,
-    rating: 4.5,
-    reviewCount: 78,
-    category: "Desks",
-  },
-  {
-    id: "6",
-    name: "Modular Storage Unit",
-    price: 279,
-    image: cabinetStorage,
-    rating: 4.3,
-    reviewCount: 43,
-    category: "Storage",
-    isNew: true,
-  },
-];
-
-const categories = ["All", "Chairs", "Desks", "Storage", "Lighting"];
 const sortOptions = [
   { value: "name", label: "Name" },
   { value: "price-low", label: "Price: Low to High" },
@@ -88,6 +21,63 @@ export default function Products() {
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Fetch products from database
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          price,
+          original_price,
+          is_sale,
+          is_new,
+          category_id,
+          categories (name),
+          product_images (
+            image_url,
+            is_primary
+          )
+        `)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return data?.map(product => ({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        originalPrice: product.original_price ? Number(product.original_price) : null,
+        image: product.product_images?.find(img => img.is_primary)?.image_url || '/placeholder.svg',
+        rating: 4.5, // Default rating since reviews are not implemented yet
+        reviewCount: 0,
+        category: product.categories?.name || 'Uncategorized',
+        isSale: product.is_sale,
+        isNew: product.is_new,
+      })) || [];
+    }
+  });
+
+  // Fetch categories from database
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (error) throw error;
+
+      const categoryNames = data?.map(cat => cat.name) || [];
+      return ["All", ...categoryNames];
+    }
+  });
 
   const filteredProducts = products
     .filter((product) => {
@@ -197,15 +187,25 @@ export default function Products() {
         </div>
 
         {/* Products Grid */}
-        <div className={`grid gap-6 ${
-          viewMode === "grid" 
-            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
-            : "grid-cols-1"
-        }`}>
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading products...</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No products found</p>
+          </div>
+        ) : (
+          <div className={`grid gap-6 ${
+            viewMode === "grid" 
+              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+              : "grid-cols-1"
+          }`}>
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} {...product} />
+            ))}
+          </div>
+        )}
 
         {/* Load More */}
         <div className="flex justify-center mt-12">

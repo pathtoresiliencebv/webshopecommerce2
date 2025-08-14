@@ -6,59 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Filter, Download, MoreHorizontal, Eye, Printer } from "lucide-react";
-
-const orders = [
-  {
-    id: "ORD-20241201-1234",
-    customer: "John Smith",
-    email: "john@example.com",
-    products: ["Ergonomic Office Chair Pro"],
-    total: "$299",
-    status: "shipped",
-    date: "2024-12-01",
-    shippingAddress: "123 Main St, New York, NY"
-  },
-  {
-    id: "ORD-20241201-1235",
-    customer: "Sarah Johnson",
-    email: "sarah@example.com",
-    products: ["Standing Desk Premium", "Storage Cabinet"],
-    total: "$798",
-    status: "processing",
-    date: "2024-12-01",
-    shippingAddress: "456 Oak Ave, Los Angeles, CA"
-  },
-  {
-    id: "ORD-20241201-1236",
-    customer: "Mike Wilson",
-    email: "mike@example.com",
-    products: ["Storage Cabinet"],
-    total: "$199",
-    status: "delivered",
-    date: "2024-11-30",
-    shippingAddress: "789 Pine St, Chicago, IL"
-  },
-  {
-    id: "ORD-20241201-1237",
-    customer: "Emily Davis",
-    email: "emily@example.com",
-    products: ["Executive Leather Chair"],
-    total: "$449",
-    status: "pending",
-    date: "2024-11-30",
-    shippingAddress: "321 Elm St, Houston, TX"
-  },
-  {
-    id: "ORD-20241201-1238",
-    customer: "David Brown",
-    email: "david@example.com",
-    products: ["Minimalist Work Desk"],
-    total: "$349",
-    status: "shipped",
-    date: "2024-11-29",
-    shippingAddress: "654 Maple Dr, Phoenix, AZ"
-  }
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusOptions = [
   { value: "all", label: "All Status" },
@@ -72,6 +21,44 @@ const statusOptions = [
 export function AdminOrders() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  // Fetch orders from database
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ['orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          order_number,
+          total_amount,
+          status,
+          created_at,
+          shipping_first_name,
+          shipping_last_name,
+          shipping_address_line1,
+          shipping_city,
+          shipping_country,
+          order_items (
+            product_name
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return data?.map(order => ({
+        id: order.order_number,
+        customer: `${order.shipping_first_name} ${order.shipping_last_name}`,
+        email: "customer@example.com", // Email not stored in orders table
+        products: order.order_items?.map(item => item.product_name) || [],
+        total: `€${Number(order.total_amount).toFixed(2)}`,
+        status: order.status,
+        date: new Date(order.created_at).toISOString().split('T')[0],
+        shippingAddress: `${order.shipping_address_line1}, ${order.shipping_city}, ${order.shipping_country}`
+      })) || [];
+    }
+  });
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch = 
@@ -166,44 +153,58 @@ export function AdminOrders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.id}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{order.customer}</p>
-                        <p className="text-xs text-muted-foreground">{order.email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-48">
-                        {order.products.map((product, index) => (
-                          <p key={index} className="text-sm truncate">
-                            {product}
-                          </p>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{order.total}</TableCell>
-                    <TableCell>{getStatusBadge(order.status)}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(order.date).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Printer className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </div>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4">
+                      Loading orders...
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : filteredOrders.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                      No orders found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredOrders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-medium">{order.id}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{order.customer}</p>
+                          <p className="text-xs text-muted-foreground">{order.email}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-48">
+                          {order.products.map((product, index) => (
+                            <p key={index} className="text-sm truncate">
+                              {product}
+                            </p>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">{order.total}</TableCell>
+                      <TableCell>{getStatusBadge(order.status)}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(order.date).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Printer className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
@@ -215,7 +216,7 @@ export function AdminOrders() {
               <Button variant="outline" size="sm" disabled>
                 Previous
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" disabled>
                 Next
               </Button>
             </div>

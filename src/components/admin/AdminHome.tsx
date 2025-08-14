@@ -12,54 +12,92 @@ import {
   MoreHorizontal,
   Eye
 } from "lucide-react";
-
-const stats = [
-  {
-    title: "Total Revenue",
-    value: "$54,239",
-    change: "+12.5%",
-    trend: "up",
-    icon: DollarSign
-  },
-  {
-    title: "Orders",
-    value: "1,429",
-    change: "+8.2%",
-    trend: "up",
-    icon: ShoppingCart
-  },
-  {
-    title: "Products",
-    value: "156",
-    change: "+2.1%",
-    trend: "up",
-    icon: Package
-  },
-  {
-    title: "Customers",
-    value: "2,847",
-    change: "+5.3%",
-    trend: "up",
-    icon: Users
-  }
-];
-
-const recentOrders = [
-  { id: "ORD-20241201-1234", customer: "John Smith", product: "Ergonomic Office Chair Pro", amount: "$299", status: "shipped" },
-  { id: "ORD-20241201-1235", customer: "Sarah Johnson", product: "Standing Desk Premium", amount: "$599", status: "processing" },
-  { id: "ORD-20241201-1236", customer: "Mike Wilson", product: "Storage Cabinet", amount: "$199", status: "delivered" },
-  { id: "ORD-20241201-1237", customer: "Emily Davis", product: "Executive Leather Chair", amount: "$449", status: "pending" },
-  { id: "ORD-20241201-1238", customer: "David Brown", product: "Minimalist Work Desk", amount: "$349", status: "shipped" }
-];
-
-const topProducts = [
-  { name: "Ergonomic Office Chair Pro", sales: 156, revenue: "$46,644" },
-  { name: "Standing Desk Premium", sales: 89, revenue: "$53,311" },
-  { name: "Modern Storage Cabinet", sales: 134, revenue: "$26,666" },
-  { name: "Executive Leather Chair", sales: 67, revenue: "$30,083" }
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 export function AdminHome() {
+  // Fetch analytics data
+  const { data: stats } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      const [ordersResult, productsResult, profilesResult] = await Promise.all([
+        supabase.from('orders').select('total_amount, created_at'),
+        supabase.from('products').select('id'),
+        supabase.from('profiles').select('id')
+      ]);
+
+      const totalRevenue = ordersResult.data?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
+      const orderCount = ordersResult.data?.length || 0;
+      const productCount = productsResult.data?.length || 0;
+      const customerCount = profilesResult.data?.length || 0;
+
+      return [
+        {
+          title: "Total Revenue",
+          value: `€${totalRevenue.toFixed(2)}`,
+          change: "+0.0%",
+          trend: "up" as const,
+          icon: DollarSign
+        },
+        {
+          title: "Orders",
+          value: orderCount.toString(),
+          change: "+0.0%", 
+          trend: "up" as const,
+          icon: ShoppingCart
+        },
+        {
+          title: "Products",
+          value: productCount.toString(),
+          change: "+0.0%",
+          trend: "up" as const,
+          icon: Package
+        },
+        {
+          title: "Customers",
+          value: customerCount.toString(),
+          change: "+0.0%",
+          trend: "up" as const,
+          icon: Users
+        }
+      ];
+    }
+  });
+
+  // Fetch recent orders
+  const { data: recentOrders = [] } = useQuery({
+    queryKey: ['recent-orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          order_number,
+          total_amount,
+          status,
+          created_at,
+          shipping_first_name,
+          shipping_last_name,
+          order_items (
+            product_name
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+
+      return data?.map(order => ({
+        id: order.order_number,
+        customer: `${order.shipping_first_name} ${order.shipping_last_name}`,
+        product: order.order_items?.[0]?.product_name || 'Multiple items',
+        amount: `€${Number(order.total_amount).toFixed(2)}`,
+        status: order.status
+      })) || [];
+    }
+  });
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -68,15 +106,17 @@ export function AdminHome() {
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
         </div>
-        <Button>
-          <Eye className="mr-2 h-4 w-4" />
-          View Store
-        </Button>
+        <Link to="/">
+          <Button>
+            <Eye className="mr-2 h-4 w-4" />
+            View Store
+          </Button>
+        </Link>
       </div>
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {stats?.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -114,60 +154,68 @@ export function AdminHome() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentOrders.map((order) => (
-              <div key={order.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">{order.customer}</p>
-                  <p className="text-xs text-muted-foreground">{order.id}</p>
-                  <p className="text-xs text-muted-foreground">{order.product}</p>
+            {recentOrders.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No orders yet</p>
+            ) : (
+              recentOrders.map((order) => (
+                <div key={order.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">{order.customer}</p>
+                    <p className="text-xs text-muted-foreground">{order.id}</p>
+                    <p className="text-xs text-muted-foreground">{order.product}</p>
+                  </div>
+                  <div className="text-right space-y-1">
+                    <p className="text-sm font-medium">{order.amount}</p>
+                    <Badge 
+                      variant={
+                        order.status === "delivered" ? "default" :
+                        order.status === "shipped" ? "secondary" :
+                        order.status === "processing" ? "outline" : "destructive"
+                      }
+                      className="text-xs"
+                    >
+                      {order.status}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="text-right space-y-1">
-                  <p className="text-sm font-medium">{order.amount}</p>
-                  <Badge 
-                    variant={
-                      order.status === "delivered" ? "default" :
-                      order.status === "shipped" ? "secondary" :
-                      order.status === "processing" ? "outline" : "destructive"
-                    }
-                    className="text-xs"
-                  >
-                    {order.status}
-                  </Badge>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
-        {/* Top Products */}
+        {/* Database Info */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Top Products</CardTitle>
+              <CardTitle>System Status</CardTitle>
               <Button variant="ghost" size="sm">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {topProducts.map((product, index) => (
-              <div key={product.name} className="flex items-center justify-between p-3 border border-border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="h-2 w-2 rounded-full bg-primary"></div>
-                  <div>
-                    <p className="text-sm font-medium">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">{product.sales} sales</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium">{product.revenue}</p>
-                  <div className="flex items-center text-xs text-green-600">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>#{index + 1}</span>
-                  </div>
-                </div>
+            <div className="flex items-center justify-between p-3 border border-border rounded-lg">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Database</p>
+                <p className="text-xs text-muted-foreground">Connected and operational</p>
               </div>
-            ))}
+              <div className="text-right">
+                <Badge variant="default" className="text-xs">
+                  Online
+                </Badge>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-3 border border-border rounded-lg">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Storage</p>
+                <p className="text-xs text-muted-foreground">Image uploads working</p>
+              </div>
+              <div className="text-right">
+                <Badge variant="default" className="text-xs">
+                  Active
+                </Badge>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

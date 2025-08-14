@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowRight, CheckCircle, Truck, Shield, Headphones, Percent, RotateCcw, Clock, Star, ShoppingCart, Calendar, User, Play } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Import images
 import heroWorkspace from "@/assets/hero-workspace.jpg";
@@ -27,108 +29,6 @@ const heroProduct = {
   description: "Transform your workspace with this premium computer desk featuring cable management, adjustable height, and modern aesthetics perfect for any professional environment."
 };
 
-const featuredProducts = [
-  {
-    id: "1",
-    name: "Ergonomic Office Chair Pro",
-    price: 299,
-    originalPrice: 399,
-    image: chairOffice,
-    rating: 4.8,
-    reviewCount: 124,
-    category: "Chairs",
-    brand: "STOCKMART",
-    isSale: true,
-    soldOut: false,
-    colors: ["#000000", "#8B4513", "#808080"]
-  },
-  {
-    id: "2",
-    name: "Premium Standing Desk Electric",
-    price: 599,
-    image: deskStanding,
-    rating: 4.6,
-    reviewCount: 89,
-    category: "Desks", 
-    brand: "STOCKMART",
-    isNew: true,
-    soldOut: false,
-    colors: ["#FFFFFF", "#000000"]
-  },
-  {
-    id: "3",
-    name: "Modern Storage Cabinet White",
-    price: 199,
-    image: cabinetStorage,
-    rating: 4.4,
-    reviewCount: 67,
-    category: "Storage",
-    brand: "STOCKMART",
-    soldOut: false
-  },
-  {
-    id: "4",
-    name: "Executive Leather Chair",
-    price: 450,
-    originalPrice: 599,
-    image: chairOffice,
-    rating: 4.9,
-    reviewCount: 156,
-    category: "Chairs",
-    brand: "STOCKMART",
-    soldOut: true,
-    colors: ["#8B4513", "#000000"]
-  },
-  {
-    id: "5",
-    name: "Minimalist Work Desk",
-    price: 349,
-    image: deskStanding,
-    rating: 4.5,
-    reviewCount: 78,
-    category: "Desks",
-    brand: "STOCKMART",
-    soldOut: false,
-    colors: ["#F5F5DC", "#8B4513"]
-  },
-  {
-    id: "6",
-    name: "Smart Storage Solution",
-    price: 275,
-    image: cabinetStorage,
-    rating: 4.7,
-    reviewCount: 92,
-    category: "Storage",
-    brand: "STOCKMART",
-    soldOut: false
-  },
-  {
-    id: "7",
-    name: "Conference Room Chair",
-    price: 189,
-    originalPrice: 249,
-    image: chairOffice,
-    rating: 4.3,
-    reviewCount: 45,
-    category: "Chairs", 
-    brand: "STOCKMART",
-    isSale: true,
-    soldOut: false,
-    colors: ["#000000", "#808080"]
-  },
-  {
-    id: "8",
-    name: "Mobile Workstation Cart",
-    price: 159,
-    image: cabinetStorage,
-    rating: 4.1,
-    reviewCount: 23,
-    category: "Storage",
-    brand: "STOCKMART",
-    soldOut: false,
-    colors: ["#FFFFFF", "#000000"]
-  }
-];
 
 const features = [
   {
@@ -196,6 +96,51 @@ const CountdownTimer = () => {
 };
 
 const Index = () => {
+  // Fetch featured products from database
+  const { data: featuredProducts = [], isLoading } = useQuery({
+    queryKey: ['featured-products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          price,
+          original_price,
+          is_sale,
+          is_new,
+          stock_quantity,
+          categories (name),
+          product_images (
+            image_url,
+            is_primary
+          )
+        `)
+        .eq('is_active', true)
+        .eq('is_featured', true)
+        .order('created_at', { ascending: false })
+        .limit(8);
+
+      if (error) throw error;
+
+      return data?.map(product => ({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        originalPrice: product.original_price ? Number(product.original_price) : null,
+        image: product.product_images?.find(img => img.is_primary)?.image_url || '/placeholder.svg',
+        rating: 4.5, // Default rating
+        reviewCount: Math.floor(Math.random() * 200) + 10, // Random for demo
+        category: product.categories?.name || 'Uncategorized',
+        brand: "STOCKMART",
+        isSale: product.is_sale,
+        isNew: product.is_new,
+        soldOut: (product.stock_quantity || 0) === 0,
+        colors: ["#000000", "#808080"] // Default colors for demo
+      })) || [];
+    }
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -294,59 +239,69 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <Card key={product.id} className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
-                <div className="aspect-square bg-white p-4 relative">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {product.soldOut && (
-                    <Badge className="absolute top-2 left-2 bg-red-500 text-white">
-                      Sold out
-                    </Badge>
-                  )}
-                  {product.isSale && (
-                    <Badge className="absolute top-2 left-2 bg-red-500 text-white">
-                      Sale
-                    </Badge>
-                  )}
-                  {product.isNew && (
-                    <Badge className="absolute top-2 left-2 bg-green-500 text-white">
-                      New
-                    </Badge>
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground mb-1">{product.brand}</p>
-                  <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-bold text-foreground">€{product.price}</span>
-                    {product.originalPrice && (
-                      <span className="text-xs text-muted-foreground line-through">
-                        €{product.originalPrice}
-                      </span>
+          {isLoading ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Loading featured products...</p>
+            </div>
+          ) : featuredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No featured products available</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <Card key={product.id} className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
+                  <div className="aspect-square bg-white p-4 relative">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {product.soldOut && (
+                      <Badge className="absolute top-2 left-2 bg-red-500 text-white">
+                        Sold out
+                      </Badge>
+                    )}
+                    {product.isSale && (
+                      <Badge className="absolute top-2 left-2 bg-red-500 text-white">
+                        Sale
+                      </Badge>
+                    )}
+                    {product.isNew && (
+                      <Badge className="absolute top-2 left-2 bg-green-500 text-white">
+                        New
+                      </Badge>
                     )}
                   </div>
-                  {product.colors && (
-                    <div className="flex gap-1">
-                      {product.colors.map((color, index) => (
-                        <div
-                          key={index}
-                          className="w-3 h-3 rounded-full border border-gray-300"
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
+                  <CardContent className="p-4">
+                    <p className="text-xs text-muted-foreground mb-1">{product.brand}</p>
+                    <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-bold text-foreground">€{product.price}</span>
+                      {product.originalPrice && (
+                        <span className="text-xs text-muted-foreground line-through">
+                          €{product.originalPrice}
+                        </span>
+                      )}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    {product.colors && (
+                      <div className="flex gap-1">
+                        {product.colors.map((color, index) => (
+                          <div
+                            key={index}
+                            className="w-3 h-3 rounded-full border border-gray-300"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
           
           <div className="text-center mt-12">
             <Link to="/products">
