@@ -15,51 +15,51 @@ import cabinetStorage from "@/assets/cabinet-storage.jpg";
 const featuredProducts = [
   {
     id: "1",
-    name: "Ergonomische Kantoorstoel Pro",
+    name: "Ergonomic Office Chair Pro",
     price: 299,
     originalPrice: 399,
     image: chairOffice,
     rating: 4.8,
     reviewCount: 124,
-    category: "Stoelen",
+    category: "Chairs",
     isSale: true,
   },
   {
     id: "2",
-    name: "Verstelbare Sta-Bureau Premium",
+    name: "Adjustable Standing Desk Premium",
     price: 599,
     image: deskStanding,
     rating: 4.6,
     reviewCount: 89,
-    category: "Bureaus",
+    category: "Desks",
     isNew: true,
   },
   {
     id: "3",
-    name: "Moderne Opbergkast wit",
+    name: "Modern Storage Cabinet White",
     price: 199,
     image: cabinetStorage,
     rating: 4.4,
     reviewCount: 67,
-    category: "Opslag",
+    category: "Storage",
   },
 ];
 
 const features = [
   {
     icon: Truck,
-    title: "Gratis Verzending",
-    description: "Bij bestellingen boven €100"
+    title: "Free Shipping",
+    description: "On orders over €100"
   },
   {
     icon: Shield,
-    title: "2 Jaar Garantie",
-    description: "Op alle kantoormeubelen"
+    title: "2 Year Warranty",
+    description: "On all office furniture"
   },
   {
     icon: Headphones,
     title: "24/7 Support",
-    description: "Expert advies wanneer je wilt"
+    description: "Expert advice when you need it"
   },
 ];
 
@@ -74,37 +74,37 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
-                <Badge className="w-fit">Nieuwe Collectie 2024</Badge>
+                <Badge className="w-fit">New Collection 2024</Badge>
                 <h1 className="text-4xl lg:text-6xl font-bold text-foreground leading-tight">
-                  Moderne Werkplek,
-                  <span className="text-primary"> Maximale Productiviteit</span>
+                  Modern Workspace,
+                  <span className="text-primary"> Maximum Productivity</span>
                 </h1>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Ontdek onze premium collectie kantoormeubelen. Van ergonomische stoelen 
-                  tot hoogwaardige bureaus - alles voor de perfecte werkplek.
+                  Discover our premium collection of office furniture. From ergonomic chairs 
+                  to high-quality desks - everything for the perfect workplace.
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/products">
                   <Button size="lg" className="w-full sm:w-auto">
-                    Shop Nu
+                    Shop Now
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
                 <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  Bekijk Catalogus
+                  View Catalog
                 </Button>
               </div>
 
               <div className="flex items-center gap-8 pt-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-foreground">1000+</p>
-                  <p className="text-sm text-muted-foreground">Tevreden Klanten</p>
+                  <p className="text-sm text-muted-foreground">Satisfied Customers</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-foreground">500+</p>
-                  <p className="text-sm text-muted-foreground">Producten</p>
+                  <p className="text-sm text-muted-foreground">Products</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-foreground">24/7</p>
@@ -117,7 +117,7 @@ const Index = () => {
               <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-large">
                 <img
                   src={heroWorkspace}
-                  alt="Moderne werkplek setup"
+                  alt="Modern workspace setup"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -125,8 +125,8 @@ const Index = () => {
                 <div className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500" />
                   <div>
-                    <p className="font-semibold text-sm">Premium Kwaliteit</p>
-                    <p className="text-xs text-muted-foreground">2 jaar garantie</p>
+                    <p className="font-semibold text-sm">Premium Quality</p>
+                    <p className="text-xs text-muted-foreground">2 year warranty</p>
                   </div>
                 </div>
               </div>
@@ -159,10 +159,10 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Uitgelichte Producten
+              Featured Products
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Ontdek onze meest populaire kantoormeubelen, gekozen door onze experts
+              Discover our most popular office furniture, chosen by our experts
             </p>
           </div>
           
@@ -175,7 +175,7 @@ const Index = () => {
           <div className="text-center mt-12">
             <Link to="/products">
               <Button variant="outline" size="lg">
-                Bekijk Alle Producten
+                View All Products
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -187,11 +187,11 @@ const Index = () => {
       <section className="py-16 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-            Klaar om je werkplek te transformeren?
+            Ready to transform your workspace?
           </h2>
           <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-            Begin vandaag nog met het creëren van je ideale werkplek. 
-            Gratis verzending en professioneel advies inbegrepen.
+            Start creating your ideal workplace today. 
+            Free shipping and professional advice included.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/products">
@@ -200,7 +200,7 @@ const Index = () => {
               </Button>
             </Link>
             <Button variant="outline" size="lg" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-              Neem Contact Op
+              Contact Us
             </Button>
           </div>
         </div>
@@ -218,43 +218,43 @@ const Index = () => {
                 <span className="text-xl font-bold text-foreground">FurniStore</span>
               </div>
               <p className="text-muted-foreground text-sm">
-                Premium kantoormeubelen voor de moderne werkplek. 
-                Kwaliteit en comfort in één.
+                Premium office furniture for the modern workplace. 
+                Quality and comfort in one.
               </p>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Producten</h4>
+              <h4 className="font-semibold mb-4">Products</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/products" className="hover:text-primary">Stoelen</Link></li>
-                <li><Link to="/products" className="hover:text-primary">Bureaus</Link></li>
-                <li><Link to="/products" className="hover:text-primary">Opslag</Link></li>
-                <li><Link to="/products" className="hover:text-primary">Accessoires</Link></li>
+                <li><Link to="/products" className="hover:text-primary">Chairs</Link></li>
+                <li><Link to="/products" className="hover:text-primary">Desks</Link></li>
+                <li><Link to="/products" className="hover:text-primary">Storage</Link></li>
+                <li><Link to="/products" className="hover:text-primary">Accessories</Link></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4">Service</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">Klantenservice</a></li>
-                <li><a href="#" className="hover:text-primary">Verzending</a></li>
-                <li><a href="#" className="hover:text-primary">Retourneren</a></li>
-                <li><a href="#" className="hover:text-primary">Garantie</a></li>
+                <li><a href="#" className="hover:text-primary">Customer Service</a></li>
+                <li><a href="#" className="hover:text-primary">Shipping</a></li>
+                <li><a href="#" className="hover:text-primary">Returns</a></li>
+                <li><a href="#" className="hover:text-primary">Warranty</a></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>info@furnistore.nl</li>
-                <li>+31 20 123 4567</li>
-                <li>Ma-Vr: 9:00-17:00</li>
+                <li>info@furnistore.com</li>
+                <li>+1 555 123 4567</li>
+                <li>Mon-Fri: 9:00-17:00</li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 FurniStore. Alle rechten voorbehouden.</p>
+            <p>&copy; 2024 FurniStore. All rights reserved.</p>
           </div>
         </div>
       </footer>

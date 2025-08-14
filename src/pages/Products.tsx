@@ -15,83 +15,83 @@ import cabinetStorage from "@/assets/cabinet-storage.jpg";
 const products = [
   {
     id: "1",
-    name: "Ergonomische Kantoorstoel Pro",
+    name: "Ergonomic Office Chair Pro",
     price: 299,
     originalPrice: 399,
     image: chairOffice,
     rating: 4.8,
     reviewCount: 124,
-    category: "Stoelen",
+    category: "Chairs",
     isSale: true,
   },
   {
     id: "2",
-    name: "Verstelbare Sta-Bureau Premium",
+    name: "Adjustable Standing Desk Premium",
     price: 599,
     image: deskStanding,
     rating: 4.6,
     reviewCount: 89,
-    category: "Bureaus",
+    category: "Desks",
     isNew: true,
   },
   {
     id: "3",
-    name: "Moderne Opbergkast wit",
+    name: "Modern Storage Cabinet White",
     price: 199,
     image: cabinetStorage,
     rating: 4.4,
     reviewCount: 67,
-    category: "Opslag",
+    category: "Storage",
   },
   {
     id: "4",
-    name: "Executive Lederen Stoel",
+    name: "Executive Leather Chair",
     price: 449,
     originalPrice: 549,
     image: chairOffice,
     rating: 4.9,
     reviewCount: 156,
-    category: "Stoelen",
+    category: "Chairs",
     isSale: true,
   },
   {
     id: "5",
-    name: "Minimalist Werkblad",
+    name: "Minimalist Work Desk",
     price: 349,
     image: deskStanding,
     rating: 4.5,
     reviewCount: 78,
-    category: "Bureaus",
+    category: "Desks",
   },
   {
     id: "6",
-    name: "Modulaire Opbergunit",
+    name: "Modular Storage Unit",
     price: 279,
     image: cabinetStorage,
     rating: 4.3,
     reviewCount: 43,
-    category: "Opslag",
+    category: "Storage",
     isNew: true,
   },
 ];
 
-const categories = ["Alle", "Stoelen", "Bureaus", "Opslag", "Verlichting"];
+const categories = ["All", "Chairs", "Desks", "Storage", "Lighting"];
 const sortOptions = [
-  { value: "name", label: "Naam" },
-  { value: "price-low", label: "Prijs: Laag naar Hoog" },
-  { value: "price-high", label: "Prijs: Hoog naar Laag" },
-  { value: "rating", label: "Beoordeling" },
+  { value: "name", label: "Name" },
+  { value: "price-low", label: "Price: Low to High" },
+  { value: "price-high", label: "Price: High to Low" },
+  { value: "rating", label: "Rating" },
 ];
 
 export default function Products() {
-  const [selectedCategory, setSelectedCategory] = useState("Alle");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredProducts = products
     .filter((product) => {
-      const matchesCategory = selectedCategory === "Alle" || product.category === selectedCategory;
+      const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     })
@@ -115,9 +115,9 @@ export default function Products() {
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Onze Producten</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Our Products</h1>
           <p className="text-muted-foreground">
-            Ontdek onze collectie van hoogwaardige kantoormeubelen
+            Discover our collection of high-quality office furniture
           </p>
         </div>
 
@@ -128,7 +128,7 @@ export default function Products() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Zoek producten..."
+                placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -138,7 +138,7 @@ export default function Products() {
             {/* Sort */}
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger>
-                <SelectValue placeholder="Sorteer op" />
+                <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
                 {sortOptions.map((option) => (
@@ -192,7 +192,7 @@ export default function Products() {
         {/* Results Count */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-sm text-muted-foreground">
-            {filteredProducts.length} van {products.length} producten
+            {filteredProducts.length} of {products.length} products
           </p>
         </div>
 
@@ -210,7 +210,7 @@ export default function Products() {
         {/* Load More */}
         <div className="flex justify-center mt-12">
           <Button variant="outline" size="lg">
-            Meer Producten Laden
+            Load More Products
           </Button>
         </div>
       </main>

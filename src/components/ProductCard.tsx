@@ -43,7 +43,7 @@ export function ProductCard({
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1">
           {isNew && (
-            <Badge className="bg-primary text-primary-foreground">Nieuw</Badge>
+            <Badge className="bg-primary text-primary-foreground">New</Badge>
           )}
           {isSale && (
             <Badge variant="destructive">Sale</Badge>
@@ -64,7 +64,7 @@ export function ProductCard({
         <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <Link to={`/products/${id}`}>
             <Button variant="secondary" size="sm" className="shadow-large">
-              Bekijk Details
+              View Details
             </Button>
           </Link>
         </div>
