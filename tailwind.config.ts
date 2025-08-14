@@ -74,7 +74,10 @@ export default {
 			fontFamily: {
 				sans: 'var(--font-sans)',
 				serif: 'var(--font-serif)',
-				mono: 'var(--font-mono)'
+				mono: 'var(--font-mono)',
+				heading: 'var(--font-heading)',
+				body: 'var(--font-body)',
+				button: 'var(--font-button)'
 			},
 			backgroundImage: {
 				'hero-gradient': 'var(--hero-gradient)',
