@@ -2,39 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Modern Furniture Store Design System - Professional & Clean */
 
 @layer base {
   :root {
+    /* Core neutral palette */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 224 15% 11%;
 
+    /* Card and surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 224 15% 11%;
 
+    /* Interactive surfaces */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 224 15% 11%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Brand colors - sophisticated dark */
+    --primary: 224 15% 11%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - warm neutral */
+    --secondary: 40 8% 96%;
+    --secondary-foreground: 224 15% 11%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted elements */
+    --muted: 220 8% 96%;
+    --muted-foreground: 224 8% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - warm subtle */
+    --accent: 36 32% 94%;
+    --accent-foreground: 224 15% 11%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive states */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders and inputs */
+    --border: 220 8% 90%;
+    --input: 220 8% 90%;
+    --ring: 224 15% 11%;
+
+    /* Custom tokens for furniture store */
+    --hero-gradient: linear-gradient(135deg, hsl(36 32% 98%) 0%, hsl(220 8% 96%) 100%);
+    --card-hover: 0 0% 98%;
+    --shadow-soft: 0 2px 8px -2px hsl(224 15% 11% / 0.08);
+    --shadow-medium: 0 4px 16px -4px hsl(224 15% 11% / 0.12);
+    --shadow-large: 0 8px 32px -8px hsl(224 15% 11% / 0.16);
+    
+    /* Professional transitions */
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     --radius: 0.5rem;
 
