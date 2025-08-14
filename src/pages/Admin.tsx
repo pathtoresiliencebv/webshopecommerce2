@@ -7,12 +7,14 @@ import { AdminCustomers } from "@/components/admin/AdminCustomers";
 import { AdminDiscountCodes } from "@/components/admin/AdminDiscountCodes";
 import { AdminOnlineStore } from "@/components/admin/AdminOnlineStore";
 import { AdminSettings } from "@/components/admin/AdminSettings";
+import { AdminCollections } from "@/components/admin/AdminCollections";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export type AdminSection = 
   | "home" 
   | "orders" 
   | "products" 
+  | "collections"
   | "customers" 
   | "discount-codes" 
   | "online-store" 
@@ -29,6 +31,8 @@ const Admin = () => {
         return <AdminOrders />;
       case "products":
         return <AdminProducts />;
+      case "collections":
+        return <AdminCollections />;
       case "customers":
         return <AdminCustomers />;
       case "discount-codes":
