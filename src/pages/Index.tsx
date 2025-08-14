@@ -3,8 +3,10 @@ import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, CheckCircle, Truck, Shield, Headphones, Percent, RotateCcw } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowRight, CheckCircle, Truck, Shield, Headphones, Percent, RotateCcw, Clock, Star, ShoppingCart, Calendar, User, Play } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 // Import images
 import heroWorkspace from "@/assets/hero-workspace.jpg";
@@ -150,6 +152,48 @@ const features = [
     description: "Exclusive member discounts"
   }
 ];
+
+// Countdown Timer Component
+const CountdownTimer = () => {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 5,
+    hours: 12,
+    minutes: 30,
+    seconds: 45
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev.seconds > 0) {
+          return { ...prev, seconds: prev.seconds - 1 };
+        } else if (prev.minutes > 0) {
+          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        } else if (prev.hours > 0) {
+          return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        } else if (prev.days > 0) {
+          return { ...prev, days: prev.days - 1, hours: 23, minutes: 59, seconds: 59 };
+        }
+        return prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex justify-center gap-6 my-6">
+      {Object.entries(timeLeft).map(([unit, value]) => (
+        <div key={unit} className="text-center">
+          <div className="bg-white text-black rounded-lg p-3 min-w-[60px]">
+            <div className="text-2xl font-bold">{value.toString().padStart(2, '0')}</div>
+          </div>
+          <div className="text-sm mt-1 capitalize">{unit}</div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const Index = () => {
   return (
@@ -311,6 +355,337 @@ const Index = () => {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Countdown Timer Section */}
+      <section className="py-12 bg-red-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-red-500 text-white rounded-lg p-8 text-center">
+            <h2 className="text-2xl lg:text-3xl font-bold mb-4">
+              Limited Stock with 18% Off Modern Storage Cabinets - Order Now!
+            </h2>
+            <CountdownTimer />
+            <Button variant="secondary" size="lg" className="mt-4">
+              Shop Now
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Two-Column Banner Section */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-8">
+            <Card className="overflow-hidden">
+              <div className="aspect-[4/3] bg-gradient-to-br from-blue-100 to-blue-200 p-8 flex flex-col justify-center">
+                <h3 className="text-2xl font-bold mb-4">Everything for a Well-Equipped and Functional Office</h3>
+                <p className="text-muted-foreground mb-6">Transform your workspace with premium solutions designed for productivity and comfort.</p>
+                <div className="flex gap-4">
+                  <Button>Shop Now</Button>
+                  <Button variant="outline">Read More</Button>
+                </div>
+              </div>
+            </Card>
+            <Card className="overflow-hidden">
+              <div className="aspect-[4/3] bg-gradient-to-br from-green-100 to-green-200 p-8 flex flex-col justify-center">
+                <h3 className="text-2xl font-bold mb-4">Additional Services</h3>
+                <p className="text-muted-foreground mb-6">Professional installation, setup assistance, and ongoing support for all your office needs.</p>
+                <div className="flex gap-4">
+                  <Button>Shop Now</Button>
+                  <Button variant="outline">Read More</Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Product How-To Banners */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-8">
+            <Card className="overflow-hidden">
+              <div className="grid md:grid-cols-2">
+                <div className="p-8 flex flex-col justify-center">
+                  <Badge className="w-fit mb-2">HOW TO</Badge>
+                  <h3 className="text-xl font-bold mb-4">Maximize Your Productivity</h3>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-4 h-4 rounded-full bg-black"></div>
+                    <div className="w-4 h-4 rounded-full bg-gray-400"></div>
+                    <div className="w-4 h-4 rounded-full bg-brown-400"></div>
+                  </div>
+                  <Button variant="outline" size="sm">Shop More</Button>
+                </div>
+                <div className="aspect-square bg-gray-100">
+                  <img src={deskStanding} alt="Desk" className="w-full h-full object-cover" />
+                </div>
+              </div>
+            </Card>
+            <Card className="overflow-hidden">
+              <div className="grid md:grid-cols-2">
+                <div className="p-8 flex flex-col justify-center">
+                  <Badge className="w-fit mb-2">HOW TO</Badge>
+                  <h3 className="text-xl font-bold mb-4">Take Comfort to the Next Level</h3>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-4 h-4 rounded-full bg-black"></div>
+                    <div className="w-4 h-4 rounded-full bg-gray-400"></div>
+                    <div className="w-4 h-4 rounded-full bg-red-500"></div>
+                  </div>
+                  <Button variant="outline" size="sm">Shop More</Button>
+                </div>
+                <div className="aspect-square bg-gray-100">
+                  <img src={chairOffice} alt="Chair" className="w-full h-full object-cover" />
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Video Banner Section */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="overflow-hidden">
+            <div className="relative aspect-[21/9] bg-gray-900">
+              <img 
+                src="//stockmart-minimal.myshopify.com/cdn/shop/files/preview_images/121cc68758a744b0ba30d1f30070e1fe.thumbnail.0000000000_1100x.jpg?v=1684151164" 
+                alt="Video Banner" 
+                className="w-full h-full object-cover opacity-80"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Button size="lg" className="bg-white/20 hover:bg-white/30 backdrop-blur-sm">
+                  <Play className="mr-2 h-6 w-6" />
+                  Watch Video
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      {/* Recommended Products Grid */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-4">Recommended for You</h2>
+          </div>
+          
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="grid w-full grid-cols-6 mb-8">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="cabinets">Cabinets and Shelves</TabsTrigger>
+              <TabsTrigger value="chairs">Chairs</TabsTrigger>
+              <TabsTrigger value="printers">Printers</TabsTrigger>
+              <TabsTrigger value="projectors">Projectors</TabsTrigger>
+              <TabsTrigger value="stationery">Stationery</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {featuredProducts.slice(0, 8).map((product) => (
+                  <ProductCard key={product.id} {...product} />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="cabinets">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {featuredProducts.filter(p => p.category === "Storage").map((product) => (
+                  <ProductCard key={product.id} {...product} />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="chairs">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {featuredProducts.filter(p => p.category === "Chairs").map((product) => (
+                  <ProductCard key={product.id} {...product} />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="printers">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="text-center py-12 col-span-full text-muted-foreground">
+                  Printer products coming soon...
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="projectors">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="text-center py-12 col-span-full text-muted-foreground">
+                  Projector products coming soon...
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="stationery">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="text-center py-12 col-span-full text-muted-foreground">
+                  Stationery products coming soon...
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
+
+      {/* Office Tables Banner */}
+      <section className="py-16 bg-slate-900 text-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-4xl mx-auto">
+            <h2 className="text-4xl font-bold mb-6">OFFICE TABLES - Upgrade Your Workspace</h2>
+            <p className="text-lg mb-8 opacity-90">
+              Discover our collection of modern, ergonomic office tables designed to enhance productivity 
+              and bring style to your workspace. From adjustable standing desks to executive workstations.
+            </p>
+            <Button size="lg" variant="secondary">
+              Shop Now
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Popular Categories */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Popular Categories</h2>
+            <p className="text-muted-foreground">Shop by category to find exactly what you need</p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {[
+              { name: "Working Tables", image: deskStanding },
+              { name: "Printers", image: cabinetStorage },
+              { name: "Cabinets and Shelves", image: cabinetStorage },
+              { name: "Chairs", image: chairOffice },
+              { name: "Projectors", image: deskStanding },
+              { name: "Stationery", image: cabinetStorage }
+            ].map((category, index) => (
+              <Card key={index} className="group cursor-pointer hover:shadow-lg transition-all">
+                <CardContent className="p-4 text-center">
+                  <div className="aspect-square bg-gray-100 rounded-lg mb-4 overflow-hidden">
+                    <img 
+                      src={category.image} 
+                      alt={category.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+                  <h3 className="font-medium text-sm">{category.name}</h3>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Guides Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">HOW TO - Guides for Everything You Need</h2>
+            <p className="text-muted-foreground">Expert tips and guides to help you make the most of your workspace</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              "How to Choose the Perfect Office Chair",
+              "Setting Up an Ergonomic Workspace",
+              "Maximizing Storage in Small Offices",
+              "Lighting Tips for Better Productivity",
+              "Cable Management Solutions",
+              "Creating a Comfortable Home Office"
+            ].map((guide, index) => (
+              <Card key={index} className="group cursor-pointer hover:shadow-lg transition-all">
+                <CardContent className="p-6">
+                  <div className="aspect-[4/3] bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg mb-4"></div>
+                  <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">{guide}</h3>
+                  <Button variant="outline" size="sm">Read More</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Top Quality Equipment Banner */}
+      <section className="py-16 bg-primary text-primary-foreground">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <Badge className="mb-4 bg-white text-primary">IN STOCK NOW</Badge>
+            <h2 className="text-4xl font-bold mb-6">
+              Top-Quality Equipment & Electronics for Productivity
+            </h2>
+            <p className="text-lg mb-8 opacity-90 max-w-3xl mx-auto">
+              Discover our premium selection of office equipment designed to boost your productivity 
+              and streamline your workflow.
+            </p>
+            <Button size="lg" variant="secondary">
+              Shop More
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest News & Blog */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Latest News & Blog</h2>
+            <p className="text-muted-foreground">Stay updated with the latest trends and tips</p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-8">
+            <Card className="overflow-hidden">
+              <div className="aspect-[16/10] bg-gradient-to-br from-blue-100 to-blue-200"></div>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                  <User className="h-4 w-4" />
+                  <span>Admin</span>
+                  <Calendar className="h-4 w-4 ml-2" />
+                  <span>December 14, 2024</span>
+                </div>
+                <h3 className="text-xl font-bold mb-3">
+                  The Future of Office Design: Trends for 2025
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Explore the latest trends in office design that are shaping the way we work...
+                </p>
+                <Button variant="outline">Read More</Button>
+              </CardContent>
+            </Card>
+            
+            <div className="space-y-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                    <User className="h-4 w-4" />
+                    <span>Admin</span>
+                    <Calendar className="h-4 w-4 ml-2" />
+                    <span>December 12, 2024</span>
+                  </div>
+                  <h3 className="font-bold mb-2">Ergonomic Workspace Setup Guide</h3>
+                  <p className="text-sm text-muted-foreground">Tips for creating a healthy workspace...</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                    <User className="h-4 w-4" />
+                    <span>Admin</span>
+                    <Calendar className="h-4 w-4 ml-2" />
+                    <span>December 10, 2024</span>
+                  </div>
+                  <h3 className="font-bold mb-2">Best Office Chairs of 2024</h3>
+                  <p className="text-sm text-muted-foreground">Our top picks for comfort and style...</p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
