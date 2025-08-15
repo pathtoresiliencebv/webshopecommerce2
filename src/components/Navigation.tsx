@@ -5,72 +5,57 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  ShoppingCart, 
-  Search, 
-  Menu, 
-  X, 
-  User,
-  Heart,
-  LayoutDashboard,
-  Phone,
-  ChevronDown,
-  Globe,
-  Moon,
-  Sun
-} from "lucide-react";
-
+import { ShoppingCart, Search, Menu, X, User, Heart, LayoutDashboard, Phone, ChevronDown, Globe, Moon, Sun } from "lucide-react";
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
 
   // Fetch collections from database
-  const { data: collections = [] } = useQuery({
+  const {
+    data: collections = []
+  } = useQuery({
     queryKey: ['navigation-collections'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('collections')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('collections').select(`
           id, name, slug,
           product_collections!left (
             product_id
           )
-        `)
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true });
-
+        `).eq('is_active', true).order('sort_order', {
+        ascending: true
+      });
       if (error) {
         console.error('Error fetching collections:', error);
         return [];
       }
 
       // Only return collections that have products
-      return data?.filter(collection => 
-        collection.product_collections && collection.product_collections.length > 0
-      ) || [];
+      return data?.filter(collection => collection.product_collections && collection.product_collections.length > 0) || [];
     }
   });
-
-  const navItems = [
-    { name: "Home", href: "/" },
-    { name: "All Products", href: "/products" },
-    ...collections.map(collection => ({
-      name: collection.name,
-      href: `/collections/${collection.slug}`
-    })),
-    { name: "About", href: "/about" },
-  ];
-
+  const navItems = [{
+    name: "Home",
+    href: "/"
+  }, {
+    name: "All Products",
+    href: "/products"
+  }, ...collections.map(collection => ({
+    name: collection.name,
+    href: `/collections/${collection.slug}`
+  })), {
+    name: "About",
+    href: "/about"
+  }];
   const isActive = (path: string) => location.pathname === path;
-
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
   };
-
-  return (
-    <>
+  return <>
       {/* Promo Banner */}
       <div className="bg-black text-white py-2 text-center text-sm font-body">
         <div className="container mx-auto px-4">
@@ -97,15 +82,8 @@ export function Navigation() {
             <div className="hidden md:flex flex-1 max-w-2xl mx-8">
               <div className="relative w-full">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  className="w-full pl-12 pr-4 h-12 rounded-none border-2 border-border focus:border-primary font-body"
-                  placeholder="Search for office furniture, chairs, desks..."
-                />
-                <Button 
-                  variant="luxury" 
-                  size="sm" 
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8"
-                >
+                <Input className="w-full pl-12 pr-4 h-12 rounded-none border-2 border-border focus:border-primary font-body" placeholder="Search for office furniture, chairs, desks..." />
+                <Button variant="luxury" size="sm" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8">
                   Search
                 </Button>
               </div>
@@ -144,9 +122,7 @@ export function Navigation() {
               </Button>
 
               <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
-                  <LayoutDashboard className="h-4 w-4" />
-                </Button>
+                
               </Link>
 
               <Button variant="ghost" size="sm">
@@ -154,12 +130,7 @@ export function Navigation() {
               </Button>
 
               {/* Mobile menu button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
+              <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
                 {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </Button>
             </div>
@@ -168,18 +139,11 @@ export function Navigation() {
           {/* Navigation Menu - Desktop */}
           <div className="hidden lg:block border-t border-border">
             <nav className="flex items-center justify-center py-4 space-x-8">
-              {navItems.map((item) => (
-                <div key={item.name} className="relative group">
-                  <Link
-                    to={item.href}
-                    className={`flex items-center text-sm font-heading font-medium transition-colors hover:text-primary ${
-                      isActive(item.href) ? "text-primary" : "text-muted-foreground"
-                    }`}
-                  >
+              {navItems.map(item => <div key={item.name} className="relative group">
+                  <Link to={item.href} className={`flex items-center text-sm font-heading font-medium transition-colors hover:text-primary ${isActive(item.href) ? "text-primary" : "text-muted-foreground"}`}>
                     {item.name}
                   </Link>
-                </div>
-              ))}
+                </div>)}
             </nav>
           </div>
         </div>
@@ -188,40 +152,22 @@ export function Navigation() {
         <div className="md:hidden border-t border-border px-4 py-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              className="w-full pl-10 pr-4 h-10 rounded-none border border-border font-body"
-              placeholder="Search furniture..."
-            />
+            <Input className="w-full pl-10 pr-4 h-10 rounded-none border border-border font-body" placeholder="Search furniture..." />
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="lg:hidden border-t border-border bg-background">
+        {isMenuOpen && <div className="lg:hidden border-t border-border bg-background">
             <nav className="px-4 py-4 space-y-2">
-              {navItems.map((item) => (
-                <div key={item.name}>
-                  <Link
-                    to={item.href}
-                    className={`block px-3 py-3 text-sm font-heading font-medium rounded-none transition-colors ${
-                      isActive(item.href)
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-primary hover:bg-muted"
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+              {navItems.map(item => <div key={item.name}>
+                  <Link to={item.href} className={`block px-3 py-3 text-sm font-heading font-medium rounded-none transition-colors ${isActive(item.href) ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted"}`} onClick={() => setIsMenuOpen(false)}>
                     {item.name}
                   </Link>
-                </div>
-              ))}
+                </div>)}
               
               {/* Mobile Actions */}
               <div className="pt-4 border-t border-border space-y-2">
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start font-body"
-                  onClick={toggleDarkMode}
-                >
+                <Button variant="ghost" className="w-full justify-start font-body" onClick={toggleDarkMode}>
                   {isDarkMode ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
                   {isDarkMode ? 'Light Mode' : 'Dark Mode'}
                 </Button>
@@ -232,9 +178,7 @@ export function Navigation() {
                 </div>
               </div>
             </nav>
-          </div>
-        )}
+          </div>}
       </header>
-    </>
-  );
+    </>;
 }
