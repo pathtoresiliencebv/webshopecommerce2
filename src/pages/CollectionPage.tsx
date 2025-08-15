@@ -1,26 +1,21 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/Navigation";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductSidebar } from "@/components/shared/ProductSidebar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Slider } from "@/components/ui/slider";
-import { Checkbox } from "@/components/ui/checkbox";
 import { 
-  Search, 
-  Filter, 
   Grid3X3, 
   List, 
-  X, 
-  ChevronDown,
-  SlidersHorizontal
+  SlidersHorizontal,
+  ChevronRight
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface Product {
   id: string;
@@ -153,6 +148,10 @@ export default function CollectionPage() {
     colors: [...new Set(products.map(p => 
       p.product_attributes?.find(attr => attr.attribute_type === "color")?.value
     ).filter(Boolean))],
+    minPrice: Math.min(...products.map(p => p.price), 0),
+    maxPrice: Math.max(...products.map(p => p.price), 1000),
+    inStockCount: products.filter(p => p.stock_quantity > 0).length,
+    outOfStockCount: products.filter(p => p.stock_quantity === 0).length,
   };
 
   // Filter and sort products
@@ -245,175 +244,24 @@ export default function CollectionPage() {
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
-          {/* Filters Sidebar */}
-          <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-80 space-y-6`}>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold">Filters</h3>
-                  {activeFiltersCount > 0 && (
-                    <Button variant="ghost" size="sm" onClick={clearFilters}>
-                      Clear all ({activeFiltersCount})
-                    </Button>
-                  )}
-                </div>
-
-                {/* Search */}
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search products..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-
-                  <Separator />
-
-                  {/* Availability Filter */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Availability</h4>
-                    <div className="space-y-2">
-                      {[
-                        { id: "in-stock", label: `In Stock (${products.filter(p => p.stock_quantity > 0).length})` },
-                        { id: "out-of-stock", label: `Out of Stock (${products.filter(p => p.stock_quantity === 0).length})` },
-                      ].map((option) => (
-                        <div key={option.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={option.id}
-                            checked={selectedAvailability.includes(option.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedAvailability([...selectedAvailability, option.id]);
-                              } else {
-                                setSelectedAvailability(selectedAvailability.filter(id => id !== option.id));
-                              }
-                            }}
-                          />
-                          <label htmlFor={option.id} className="text-sm font-medium">
-                            {option.label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Brand Filter */}
-                  {filterOptions.brands.length > 0 && (
-                    <>
-                      <div className="space-y-3">
-                        <h4 className="font-medium">Brand</h4>
-                        <div className="space-y-2 max-h-32 overflow-y-auto">
-                          {filterOptions.brands.map((brand) => (
-                            <div key={brand} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`brand-${brand}`}
-                                checked={selectedBrands.includes(brand)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedBrands([...selectedBrands, brand]);
-                                  } else {
-                                    setSelectedBrands(selectedBrands.filter(b => b !== brand));
-                                  }
-                                }}
-                              />
-                              <label htmlFor={`brand-${brand}`} className="text-sm font-medium">
-                                {brand}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <Separator />
-                    </>
-                  )}
-
-                  {/* Product Type Filter */}
-                  {filterOptions.types.length > 0 && (
-                    <>
-                      <div className="space-y-3">
-                        <h4 className="font-medium">Product Type</h4>
-                        <div className="space-y-2 max-h-32 overflow-y-auto">
-                          {filterOptions.types.map((type) => (
-                            <div key={type} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`type-${type}`}
-                                checked={selectedTypes.includes(type)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedTypes([...selectedTypes, type]);
-                                  } else {
-                                    setSelectedTypes(selectedTypes.filter(t => t !== type));
-                                  }
-                                }}
-                              />
-                              <label htmlFor={`type-${type}`} className="text-sm font-medium">
-                                {type}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <Separator />
-                    </>
-                  )}
-
-                  {/* Color Filter */}
-                  {filterOptions.colors.length > 0 && (
-                    <>
-                      <div className="space-y-3">
-                        <h4 className="font-medium">Color</h4>
-                        <div className="space-y-2 max-h-32 overflow-y-auto">
-                          {filterOptions.colors.map((color) => (
-                            <div key={color} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`color-${color}`}
-                                checked={selectedColors.includes(color)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedColors([...selectedColors, color]);
-                                  } else {
-                                    setSelectedColors(selectedColors.filter(c => c !== color));
-                                  }
-                                }}
-                              />
-                              <label htmlFor={`color-${color}`} className="text-sm font-medium">
-                                {color}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <Separator />
-                    </>
-                  )}
-
-                  {/* Price Range Filter */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Price Range</h4>
-                    <div className="px-2">
-                      <Slider
-                        value={priceRange}
-                        onValueChange={setPriceRange}
-                        max={1000}
-                        min={0}
-                        step={10}
-                        className="mb-4"
-                      />
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>€{priceRange[0]}</span>
-                        <span>€{priceRange[1]}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </aside>
+          {/* Enhanced Sidebar with Collections Navigation */}
+          <ProductSidebar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedBrands={selectedBrands}
+            onBrandsChange={setSelectedBrands}
+            selectedAvailability={selectedAvailability}
+            onAvailabilityChange={setSelectedAvailability}
+            selectedTypes={selectedTypes}
+            onTypesChange={setSelectedTypes}
+            selectedColors={selectedColors}
+            onColorsChange={setSelectedColors}
+            priceRange={priceRange as [number, number]}
+            onPriceRangeChange={setPriceRange}
+            onClearFilters={clearFilters}
+            filterOptions={filterOptions}
+            className={`${showFilters ? 'block' : 'hidden'} lg:block`}
+          />
 
           {/* Products Section */}
           <div className="flex-1">
