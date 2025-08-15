@@ -68,14 +68,12 @@ export function Navigation() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between gap-8">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-3 flex-shrink-0">
-              <div className="h-10 w-10 bg-primary rounded-none flex items-center justify-center">
-                <span className="text-primary-foreground font-heading font-bold text-lg">W</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-heading font-bold text-foreground">Aurora Living</span>
-                <span className="text-xs font-body text-muted-foreground tracking-wider">LUXURY OFFICE</span>
-              </div>
+            <Link to="/" className="flex items-center flex-shrink-0">
+              <img 
+                src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
+                alt="Aurora Living" 
+                className="h-12 w-auto"
+              />
             </Link>
 
             {/* Search Bar - Desktop */}

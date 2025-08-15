@@ -643,11 +643,12 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">F</span>
-                </div>
-                <span className="text-xl font-bold text-foreground">FurniStore</span>
+              <div className="flex items-center mb-4">
+                <img 
+                  src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
+                  alt="Aurora Living" 
+                  className="h-10 w-auto"
+                />
               </div>
               <p className="text-muted-foreground text-sm">
                 Premium office furniture for the modern workplace. 
