@@ -118,7 +118,6 @@ const Index = () => {
           )
         `)
         .eq('is_active', true)
-        .eq('is_featured', true)
         .order('created_at', { ascending: false })
         .limit(8);
 
@@ -311,6 +310,47 @@ const Index = () => {
             collectionSlug={collection.slug}
           />
         ))}
+      </section>
+
+      {/* Featured Products Section */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">Featured Products</h2>
+          <p className="text-slate-600 max-w-2xl mx-auto">
+            Discover our handpicked selection of premium office furniture
+          </p>
+        </div>
+        
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="aspect-square bg-gray-200 rounded-lg mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                originalPrice={product.originalPrice}
+                image={product.image}
+                rating={product.rating}
+                reviewCount={product.reviewCount}
+                category={product.category}
+                isNew={product.isNew}
+                isSale={product.isSale}
+                colors={product.colors}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Countdown Timer Section */}
