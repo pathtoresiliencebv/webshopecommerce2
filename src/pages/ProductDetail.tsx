@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
+import { useCart } from "@/contexts/CartContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,69 +31,185 @@ import chairOffice from "@/assets/chair-office.jpg";
 import deskStanding from "@/assets/desk-standing.jpg";
 import cabinetStorage from "@/assets/cabinet-storage.jpg";
 
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  original_price?: number;
+  sku?: string;
+  description?: string;
+  short_description?: string;
+  stock_quantity?: number;
+  is_active: boolean;
+  product_images: {
+    image_url: string;
+    alt_text?: string;
+    is_primary: boolean;
+  }[];
+}
+
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { addItem } = useCart();
+  const { toast } = useToast();
+  
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [addingToCart, setAddingToCart] = useState(false);
 
-  // Scroll to top when component mounts to fix scroll issue
+  // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // In a real app, this would fetch from an API
-  const product = {
-    id: "1",
-    name: "FlexiDesk Zit-Sta Tafel",
-    price: 538.95,
-    originalPrice: null,
-    sku: "WS-FLEX-001",
-    images: [deskStanding, chairOffice, cabinetStorage, deskStanding],
-    rating: 5.0,
-    reviewCount: 7,
-    category: "Bureaus",
-    isSale: false,
-    inStock: true,
-    stockLevel: "2 Op Voorraad Nu",
-    shortDescription: "Transformeer uw werkruimte naar een centrum van productiviteit met onze hoogwaardige kantoortafels - Of u nu op zoek bent naar een klassieke...",
-    description: `Voorraad Uitgerust voor Succes
+  // Fetch product data
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select(`
+            id,
+            name,
+            price,
+            original_price,
+            sku,
+            description,
+            short_description,
+            stock_quantity,
+            is_active,
+            product_images (
+              image_url,
+              alt_text,
+              is_primary,
+              sort_order
+            )
+          `)
+          .eq('id', id)
+          .eq('is_active', true)
+          .single();
 
-We slaan alles op van werktafels en printers tot kasten en planken, stoelen, projectoren en briefpapier. Of u nu een nieuw kantoor inricht of uw huidige werkruimte upgradet, wij hebben alles wat u nodig heeft om de klus te klaren.
+        if (error) throw error;
+        
+        if (data) {
+          // Sort images by primary first, then by sort_order
+          const sortedImages = data.product_images?.sort((a, b) => {
+            if (a.is_primary && !b.is_primary) return -1;
+            if (!a.is_primary && b.is_primary) return 1;
+            return (a.sort_order || 0) - (b.sort_order || 0);
+          }) || [];
+          
+          setProduct({
+            ...data,
+            product_images: sortedImages
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setError('Product niet gevonden');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-Onze werktafels zijn ontworpen om een stevige en functionele werkruimte te bieden. We bieden een verscheidenheid aan maten en stijlen om aan uw behoeften en budget te voldoen, van eenvoudige tafels tot meer uitgebreide bureaus met ingebouwde opslag en organisatie.
+    fetchProduct();
+  }, [id]);
 
-Print documenten en presentaties met gemak met onze selectie printers. We bieden printers voor elke behoefte, van eenvoudige inkjetprinters tot krachtige laserprinters. Onze printers zijn ontworpen om hoogwaardige afdrukken en efficiënte prestaties te leveren.
-
-Organiseer uw werkruimte met onze selectie kasten en planken. Onze kasten en planken zijn ontworpen om voldoende opslagruimte te bieden voor bestanden, documenten en andere kantoorbenodigdheden. We bieden een verscheidenheid aan stijlen en maten om in elke werkruimte te passen.
-
-Zorg voor comfort en productiviteit met onze selectie stoelen. We bieden ergonomische stoelen die zijn ontworpen om ondersteuning en comfort te bieden tijdens lange werkuren. Onze stoelen zijn verstelbaar en verkrijgbaar in verschillende maten en stijlen om in elke werkruimte te passen.
-
-Maak presentaties en vergaderingen dynamischer met onze projectoren. Onze projectoren zijn ontworpen om hoogwaardige beeldprojectie en helderheid te bieden, waardoor ze ideaal zijn voor presentaties en trainingsessies.
-
-Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van pennen en potloden tot notitieblokken en bestandsmappen. Ons briefpapier is ontworpen om hoogwaardige en betrouwbare prestaties te leveren.`,
-    features: [
-      "Hoogteverstelbaar mechanisme",
-      "Premium kwaliteitsmaterialen", 
-      "Eenvoudige montage in 15 minuten",
-      "2 jaar fabrieksgarantie",
-      "Ergonomisch ontwerp gecertificeerd",
-      "Duurzame materialen gebruikt"
-    ],
-    specifications: {
-      "Materiaal": "Stalen frame met gelamineerd houten blad",
-      "Afmetingen": "120 x 60 x 72-122 cm",
-      "Gewichtscapaciteit": "80 kg",
-      "Hoogtebereik": "72-122 cm",
-      "Kleur": "Zwart/Hout",
-      "Montage Tijd": "15 minuten"
-    },
-    shipping: {
-      freeShipping: true,
-      fastDelivery: true,
-      returns: "Gratis retour binnen 30 dagen",
-      warranty: "2 jaar garantie"
+  const handleAddToCart = async () => {
+    if (!product) return;
+    
+    setAddingToCart(true);
+    try {
+      await addItem(product.id, quantity);
+      toast({
+        title: "Toegevoegd aan winkelwagen",
+        description: `${quantity}x ${product.name} toegevoegd aan uw winkelwagen`,
+      });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
+      setAddingToCart(false);
     }
   };
+
+  const handleBuyNow = async () => {
+    if (!product) return;
+    
+    setAddingToCart(true);
+    try {
+      await addItem(product.id, quantity);
+      navigate('/checkout');
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Fout",
+        description: "Kon product niet toevoegen aan winkelwagen",
+        variant: "destructive"
+      });
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid lg:grid-cols-3 gap-12">
+            <div className="lg:col-span-2 space-y-4">
+              <Skeleton className="aspect-square w-full" />
+              <div className="grid grid-cols-4 gap-2">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="aspect-square" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-16">
+            <h1 className="text-2xl font-bold mb-4">Product niet gevonden</h1>
+            <p className="text-muted-foreground mb-6">Het product dat u zoekt bestaat niet of is niet beschikbaar.</p>
+            <Button asChild>
+              <Link to="/products">Terug naar producten</Link>
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Format price helper
+  const formatPrice = (price: number) => `€${price.toLocaleString()}`;
+
+  // Check if product has images
+  const productImages = product.product_images?.length > 0 
+    ? product.product_images 
+    : [{ image_url: deskStanding, alt_text: product.name, is_primary: true }];
 
   const relatedProducts = [
     {
@@ -179,9 +299,9 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
           <Link to="/" className="hover:text-primary">Startpagina</Link>
           <ChevronLeft className="h-4 w-4 rotate-180" />
-          <Link to="/products" className="hover:text-primary">Werktafels</Link>
+          <Link to="/products" className="hover:text-primary">Producten</Link>
           <ChevronLeft className="h-4 w-4 rotate-180" />
-          <span className="text-foreground">FlexiDesk Zit-Sta Tafel</span>
+          <span className="text-foreground">{product.name}</span>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-12 mb-16">
@@ -189,30 +309,32 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
           <div className="lg:col-span-2 space-y-4">
             <div className="aspect-square rounded-lg overflow-hidden bg-accent border">
               <img
-                src={product.images[selectedImage]}
-                alt={product.name}
+                src={productImages[selectedImage]?.image_url}
+                alt={productImages[selectedImage]?.alt_text || product.name}
                 className="w-full h-full object-cover"
               />
             </div>
             
             {/* Thumbnail images */}
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.map((image, i) => (
-                <div 
-                  key={i} 
-                  className={`aspect-square rounded-lg overflow-hidden bg-accent/50 border-2 cursor-pointer transition-colors ${
-                    selectedImage === i ? 'border-primary' : 'border-transparent hover:border-border'
-                  }`}
-                  onClick={() => setSelectedImage(i)}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.name} ${i + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+            {productImages.length > 1 && (
+              <div className="grid grid-cols-4 gap-2">
+                {productImages.map((image, i) => (
+                  <div 
+                    key={i} 
+                    className={`aspect-square rounded-lg overflow-hidden bg-accent/50 border-2 cursor-pointer transition-colors ${
+                      selectedImage === i ? 'border-primary' : 'border-transparent hover:border-border'
+                    }`}
+                    onClick={() => setSelectedImage(i)}
+                  >
+                    <img
+                      src={image.image_url}
+                      alt={image.alt_text || `${product.name} ${i + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info - Right Column - Sticky */}
@@ -226,18 +348,22 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
                 {product.name}
               </h1>
               
-              <div className="text-2xl font-bold text-foreground mb-2">
-                €{product.price}
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-2xl font-bold text-foreground">
+                  {formatPrice(product.price)}
+                </div>
+                {product.original_price && product.original_price > product.price && (
+                  <div className="text-lg text-muted-foreground line-through">
+                    {formatPrice(product.original_price)}
+                  </div>
+                )}
               </div>
               <div className="text-xs text-muted-foreground mb-6">
-                Btw inbegrepen.
+                Btw inbegrepen. {product.sku && `SKU: ${product.sku}`}
               </div>
 
               <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                {product.shortDescription}{" "}
-                <button className="text-primary hover:underline text-sm">
-                  Lees meer
-                </button>
+                {product.short_description || "Hoogwaardige kantooruitrusting voor uw werkplek."}
               </p>
 
               {/* Quantity Selector */}
@@ -261,6 +387,7 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
                       size="sm"
                       onClick={() => setQuantity(quantity + 1)}
                       className="rounded-l-none px-3"
+                      disabled={product.stock_quantity ? quantity >= product.stock_quantity : false}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -270,11 +397,22 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
 
               {/* Action Buttons */}
               <div className="space-y-3 mb-6">
-                <Button className="w-full text-white" size="lg">
-                  Voeg toe aan Winkelwagen
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  onClick={handleAddToCart}
+                  disabled={addingToCart || (product.stock_quantity !== null && product.stock_quantity <= 0)}
+                >
+                  {addingToCart ? "Bezig..." : "Voeg toe aan Winkelwagen"}
                 </Button>
-                <Button variant="outline" className="w-full" size="lg">
-                  Koop het Nu
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  size="lg"
+                  onClick={handleBuyNow}
+                  disabled={addingToCart || (product.stock_quantity !== null && product.stock_quantity <= 0)}
+                >
+                  {addingToCart ? "Bezig..." : "Koop het Nu"}
                 </Button>
               </div>
 
@@ -284,7 +422,12 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
                   <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center">
                     <div className="w-2 h-2 bg-white rounded-full"></div>
                   </div>
-                  <span className="font-medium text-red-600">{product.stockLevel}</span>
+                  <span className="font-medium text-red-600">
+                    {product.stock_quantity !== null 
+                      ? `${product.stock_quantity} Op Voorraad` 
+                      : "Op Voorraad"
+                    }
+                  </span>
                 </div>
                 <p className="text-muted-foreground text-xs">
                   Handel snel om uw aankoop veilig te stellen — slechts beperkte items op voorraad bij onze online zakelijke uitrusting...{" "}
@@ -346,21 +489,18 @@ Voorraad kantoorbenodigdheden met onze selectie briefpapier. We bieden alles van
             </TabsList>
             <TabsContent value="description" className="mt-6">
               <div className="grid lg:grid-cols-2 gap-12 items-start">
-                <div>
-                  <h3 className="text-xl font-semibold mb-4">Voorraad Uitgerust voor Succes</h3>
-                  <div className="space-y-4 text-muted-foreground text-sm leading-relaxed">
-                    <p>
-                      We slaan alles op van werktafels en printers tot kasten en planken, stoelen, projectoren en briefpapier. Of u nu een nieuw kantoor inricht of uw huidige werkruimte upgradet, wij hebben alles wat u nodig heeft om de klus te klaren.
-                    </p>
-                    <p>
-                      Onze werktafels zijn ontworpen om een stevige en functionele werkruimte te bieden. We bieden een verscheidenheid aan maten en stijlen om aan uw behoeften en budget te voldoen, van eenvoudige tafels tot meer uitgebreide bureaus met ingebouwde opslag en organisatie.
-                    </p>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-4">{product.name}</h3>
+                    <div className="space-y-4 text-muted-foreground text-sm leading-relaxed">
+                      <p>
+                        {product.description || "Hoogwaardige kantooruitrusting ontworpen voor uw werkplek. Gemaakt met premium materialen en zorgvuldige aandacht voor detail."}
+                      </p>
+                    </div>
                   </div>
-                </div>
                 <div className="aspect-video rounded-lg overflow-hidden">
                   <img
-                    src={deskStanding}
-                    alt="Kantoor werkruimte"
+                    src={productImages[0]?.image_url}
+                    alt={productImages[0]?.alt_text || product.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
