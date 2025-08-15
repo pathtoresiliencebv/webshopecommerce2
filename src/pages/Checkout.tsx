@@ -26,7 +26,7 @@ import {
   Plus,
   Minus
 } from "lucide-react";
-import auroraLogo from "@/assets/aurora-logo.png";
+
 
 const checkoutSchema = z.object({
   email: z.string().email("Valid email is required"),
@@ -161,7 +161,7 @@ export default function Checkout() {
       <div className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <img src={auroraLogo} alt="AURORA AMSTERDAM" className="h-8" />
+            <div className="text-2xl font-bold text-black">AURORA AMSTERDAM</div>
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
               <span className="font-medium">{items.length}</span>
