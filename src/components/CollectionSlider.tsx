@@ -73,7 +73,7 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
     }
   });
 
-  const itemsPerPage = 4;
+  const itemsPerPage = 6;
   const totalPages = Math.ceil(products.length / itemsPerPage);
   const canGoLeft = currentIndex > 0;
   const canGoRight = currentIndex < totalPages - 1;
@@ -96,8 +96,8 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-2xl font-bold">{collectionName}</h3>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-muted animate-pulse h-64 rounded-lg" />
           ))}
         </div>
@@ -147,7 +147,7 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
         </div>
       </div>
       
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
         {currentProducts.map((product) => (
           <ProductCard key={product.id} {...product} />
         ))}

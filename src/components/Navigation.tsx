@@ -88,7 +88,7 @@ export function Navigation() {
                 <span className="text-primary-foreground font-heading font-bold text-lg">W</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-heading font-bold text-foreground">WORKSPACE</span>
+                <span className="text-xl font-heading font-bold text-foreground">Aurora Living</span>
                 <span className="text-xs font-body text-muted-foreground tracking-wider">LUXURY OFFICE</span>
               </div>
             </Link>
