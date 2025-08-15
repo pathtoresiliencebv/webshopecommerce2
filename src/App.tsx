@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import CollectionPage from "./pages/CollectionPage";
 import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/collections/:slug" element={<CollectionPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/checkout/success" element={<CheckoutSuccess />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
