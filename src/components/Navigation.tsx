@@ -5,11 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Search, Menu, X, User, Heart, LayoutDashboard, Phone, ChevronDown, Globe, Moon, Sun } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ShoppingCart, Search, Menu, X, User, Heart, LayoutDashboard, Phone, ChevronDown, Globe, Moon, Sun, LogOut, Settings } from "lucide-react";
+import { ShoppingCartDrawer } from "@/components/ShoppingCartDrawer";
+import { useAuth } from "@/contexts/AuthContext";
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   // Fetch collections from database
   const {
@@ -112,20 +116,57 @@ export function Navigation() {
                 <Heart className="h-4 w-4" />
               </Button>
 
-              <Button variant="ghost" size="sm" className="relative">
-                <ShoppingCart className="h-4 w-4" />
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs font-body">
-                  3
-                </Badge>
-              </Button>
+              <ShoppingCartDrawer />
 
-              <Link to="/dashboard">
-                
-              </Link>
-
-              <Button variant="ghost" size="sm">
-                <User className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <User className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {user ? (
+                    <>
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                        {user.email}
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/dashboard">
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/dashboard">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Settings
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => signOut()}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/login">
+                          <User className="mr-2 h-4 w-4" />
+                          Sign In
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/login">
+                          <User className="mr-2 h-4 w-4" />
+                          Create Account
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Mobile menu button */}
               <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>

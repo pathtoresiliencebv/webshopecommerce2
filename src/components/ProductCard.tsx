@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useCart } from "@/contexts/CartContext";
 
 interface ProductCardProps {
   id: string;
@@ -32,6 +33,13 @@ export function ProductCard({
   colors = [],
 }: ProductCardProps) {
   const formatPrice = (price: number) => `€${price.toLocaleString()}`;
+  const { addItem } = useCart();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem(id, 1);
+  };
 
   return (
     <Card className="group relative overflow-hidden border-0 shadow-soft hover:shadow-medium transition-all duration-300 hover:scale-[1.02]">
@@ -57,7 +65,12 @@ export function ProductCard({
           <Button size="sm" variant="secondary" className="h-8 w-8 p-0 shadow-medium">
             <Heart className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="secondary" className="h-8 w-8 p-0 shadow-medium">
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            className="h-8 w-8 p-0 shadow-medium"
+            onClick={handleAddToCart}
+          >
             <ShoppingCart className="h-4 w-4" />
           </Button>
         </div>
