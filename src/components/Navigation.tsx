@@ -9,29 +9,36 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ShoppingCart, Search, Menu, X, User, Heart, LayoutDashboard, Phone, ChevronDown, Globe, Moon, Sun, LogOut, Settings } from "lucide-react";
 import { ShoppingCartDrawer } from "@/components/ShoppingCartDrawer";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStore } from "@/contexts/StoreContext";
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { store, loading: storeLoading } = useStore();
 
   // Fetch collections from database
   const {
     data: collections = []
   } = useQuery({
-    queryKey: ['navigation-collections'],
+    queryKey: ['navigation-collections', store?.id],
     queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from('collections').select(`
+      let query = supabase.from('collections').select(`
           id, name, slug,
           product_collections!left (
             product_id
           )
-        `).eq('is_active', true).order('sort_order', {
+        `).eq('is_active', true);
+      
+      // Filter by organization if we're in a store context
+      if (store?.id) {
+        query = query.eq('organization_id', store.id);
+      }
+      
+      const { data, error } = await query.order('sort_order', {
         ascending: true
       });
+      
       if (error) {
         console.error('Error fetching collections:', error);
         return [];
@@ -39,20 +46,24 @@ export function Navigation() {
 
       // Only return collections that have products
       return data?.filter(collection => collection.product_collections && collection.product_collections.length > 0) || [];
-    }
+    },
+    enabled: !storeLoading // Only run query when store loading is complete
   });
+  // Create store-aware navigation items
+  const getStorePrefix = () => store?.slug ? `/store/${store.slug}` : '';
+  
   const navItems = [{
     name: "Home",
-    href: "/"
+    href: store?.slug ? `/store/${store.slug}` : "/"
   }, {
     name: "All Products",
-    href: "/products"
+    href: `${getStorePrefix()}/products`
   }, ...collections.map(collection => ({
     name: collection.name,
-    href: `/collections/${collection.slug}`
+    href: `${getStorePrefix()}/collections/${collection.slug}`
   })), {
     name: "About",
-    href: "/about"
+    href: `${getStorePrefix()}/about`
   }];
   const isActive = (path: string) => location.pathname === path;
   const toggleDarkMode = () => {
@@ -72,12 +83,20 @@ export function Navigation() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between gap-8">
             {/* Logo */}
-            <Link to="/" className="flex items-center flex-shrink-0">
-              <img 
-                src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
-                alt="Aurora Living" 
-                className="h-12 w-auto"
-              />
+            <Link to={store?.slug ? `/store/${store.slug}` : "/"} className="flex items-center flex-shrink-0">
+              {store?.logo_url ? (
+                <img 
+                  src={store.logo_url} 
+                  alt={store.name || "Store Logo"} 
+                  className="h-12 w-auto"
+                />
+              ) : (
+                <img 
+                  src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
+                  alt="Aurora Living" 
+                  className="h-12 w-auto"
+                />
+              )}
             </Link>
 
             {/* Search Bar - Desktop */}
