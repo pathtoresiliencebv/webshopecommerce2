@@ -9,13 +9,25 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ShoppingCart, Search, Menu, X, User, Heart, LayoutDashboard, Phone, ChevronDown, Globe, Moon, Sun, LogOut, Settings } from "lucide-react";
 import { ShoppingCartDrawer } from "@/components/ShoppingCartDrawer";
 import { useAuth } from "@/contexts/AuthContext";
-import { useStore } from "@/contexts/StoreContext";
+
+// Create a safe hook that doesn't throw when StoreProvider is missing
+const useSafeStore = () => {
+  try {
+    const { useStore } = require("@/contexts/StoreContext");
+    return useStore();
+  } catch {
+    return { store: null, loading: false, error: null };
+  }
+};
+
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { store, loading: storeLoading } = useStore();
+  
+  // Use safe store hook that won't throw if context is missing
+  const { store, loading: storeLoading } = useSafeStore();
 
   // Fetch collections from database
   const {
@@ -49,6 +61,7 @@ export function Navigation() {
     },
     enabled: !storeLoading // Only run query when store loading is complete
   });
+
   // Create store-aware navigation items
   const getStorePrefix = () => store?.slug ? `/store/${store.slug}` : '';
   
