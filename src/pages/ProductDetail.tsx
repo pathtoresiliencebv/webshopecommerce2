@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { useCart } from "@/contexts/CartContext";
+import { useStore } from "@/contexts/StoreContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -53,6 +54,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { toast } = useToast();
+  const { store, loading: storeLoading, error: storeError } = useStore();
   
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +71,7 @@ export default function ProductDetail() {
   // Fetch product data
   useEffect(() => {
     const fetchProduct = async () => {
-      if (!id) return;
+      if (!id || !store) return;
       
       setLoading(true);
       try {
@@ -85,6 +87,7 @@ export default function ProductDetail() {
             short_description,
             stock_quantity,
             is_active,
+            organization_id,
             product_images (
               image_url,
               alt_text,
@@ -93,8 +96,9 @@ export default function ProductDetail() {
             )
           `)
           .eq('id', id)
+          .eq('organization_id', store.id)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         
@@ -120,7 +124,7 @@ export default function ProductDetail() {
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, store]);
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -158,7 +162,7 @@ export default function ProductDetail() {
     }
   };
 
-  if (loading) {
+  if (loading || storeLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
@@ -186,14 +190,20 @@ export default function ProductDetail() {
     );
   }
 
-  if (error || !product) {
+  if (error || storeError || !product || !store) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
         <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-16">
-            <h1 className="text-2xl font-bold mb-4">Product niet gevonden</h1>
-            <p className="text-muted-foreground mb-6">Het product dat u zoekt bestaat niet of is niet beschikbaar.</p>
+            <h1 className="text-2xl font-bold mb-4">
+              {storeError ? 'Store niet gevonden' : 'Product niet gevonden'}
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              {storeError 
+                ? 'De store die u zoekt bestaat niet of is niet beschikbaar.' 
+                : 'Het product dat u zoekt bestaat niet of is niet beschikbaar in deze store.'}
+            </p>
             <Button asChild>
               <Link to="/products">Terug naar producten</Link>
             </Button>
@@ -340,7 +350,7 @@ export default function ProductDetail() {
           {/* Product Info - Right Column - Sticky */}
           <div className="lg:sticky lg:top-8 lg:self-start space-y-6">
             <div className="text-xs text-muted-foreground uppercase tracking-wide">
-              STOCKMART door Stockmart
+              {store.name.toUpperCase()} door {store.name}
             </div>
             
             <div>

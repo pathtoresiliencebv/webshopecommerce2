@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { StoreProvider } from "@/contexts/StoreContext";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -15,6 +16,7 @@ import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import CustomerStorefront from "./components/store/CustomerStorefront";
 
 const queryClient = new QueryClient();
 
@@ -25,20 +27,62 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="/collections/:slug" element={<CollectionPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/checkout/success" element={<CheckoutSuccess />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* Admin routes - no store context needed */}
           <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/admin" element={
             <AdminProtectedRoute>
               <Admin />
             </AdminProtectedRoute>
           } />
+          <Route path="/dashboard" element={<Dashboard />} />
+          
+          {/* Store-specific routes */}
+          <Route path="/store/:storeSlug" element={
+            <StoreProvider>
+              <CustomerStorefront />
+            </StoreProvider>
+          } />
+          <Route path="/store/:storeSlug/products" element={
+            <StoreProvider>
+              <Products />
+            </StoreProvider>
+          } />
+          <Route path="/store/:storeSlug/products/:id" element={
+            <StoreProvider>
+              <ProductDetail />
+            </StoreProvider>
+          } />
+          <Route path="/store/:storeSlug/collections/:slug" element={
+            <StoreProvider>
+              <CollectionPage />
+            </StoreProvider>
+          } />
+          
+          {/* Default routes (with potential subdomain detection) */}
+          <Route path="/" element={
+            <StoreProvider>
+              <Index />
+            </StoreProvider>
+          } />
+          <Route path="/products" element={
+            <StoreProvider>
+              <Products />
+            </StoreProvider>
+          } />
+          <Route path="/products/:id" element={
+            <StoreProvider>
+              <ProductDetail />
+            </StoreProvider>
+          } />
+          <Route path="/collections/:slug" element={
+            <StoreProvider>
+              <CollectionPage />
+            </StoreProvider>
+          } />
+          <Route path="/login" element={<Login />} />
+          <Route path="/checkout/success" element={<CheckoutSuccess />} />
+          <Route path="/checkout" element={<Checkout />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
