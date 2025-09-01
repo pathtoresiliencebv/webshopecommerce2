@@ -14,16 +14,21 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { Link } from "react-router-dom";
 
 export function AdminHome() {
+  const { currentOrganization } = useOrganization();
+
   // Fetch analytics data
   const { data: stats } = useQuery({
-    queryKey: ['admin-stats'],
+    queryKey: ['admin-stats', currentOrganization?.id],
     queryFn: async () => {
+      if (!currentOrganization) return [];
+      
       const [ordersResult, productsResult, profilesResult] = await Promise.all([
-        supabase.from('orders').select('total_amount, created_at'),
-        supabase.from('products').select('id'),
+        supabase.from('orders').select('total_amount, created_at').eq('organization_id', currentOrganization.id),
+        supabase.from('products').select('id').eq('organization_id', currentOrganization.id),
         supabase.from('profiles').select('id')
       ]);
 
@@ -62,13 +67,16 @@ export function AdminHome() {
           icon: Users
         }
       ];
-    }
+    },
+    enabled: !!currentOrganization
   });
 
   // Fetch recent orders
   const { data: recentOrders = [] } = useQuery({
-    queryKey: ['recent-orders'],
+    queryKey: ['recent-orders', currentOrganization?.id],
     queryFn: async () => {
+      if (!currentOrganization) return [];
+      
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -83,6 +91,7 @@ export function AdminHome() {
             product_name
           )
         `)
+        .eq('organization_id', currentOrganization.id)
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -95,7 +104,8 @@ export function AdminHome() {
         amount: `€${Number(order.total_amount).toFixed(2)}`,
         status: order.status
       })) || [];
-    }
+    },
+    enabled: !!currentOrganization
   });
 
   return (
@@ -103,8 +113,12 @@ export function AdminHome() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
+          <h1 className="text-3xl font-bold text-foreground">
+            {currentOrganization?.name || 'Store Dashboard'}
+          </h1>
+          <p className="text-muted-foreground">
+            Welcome back! Here's your {currentOrganization?.name || 'business'} overview.
+          </p>
         </div>
         <Link to="/">
           <Button>

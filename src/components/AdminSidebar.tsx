@@ -8,9 +8,12 @@ import {
   Store, 
   Settings,
   Menu,
-  ChevronDown
+  ChevronDown,
+  Building2,
+  CreditCard
 } from "lucide-react";
 import { AdminSection } from "@/pages/Admin";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import {
   Sidebar,
   SidebarContent,
@@ -42,8 +45,14 @@ const menuItems = [
   { id: "settings" as AdminSection, label: "Settings", icon: Settings },
 ];
 
+const multiStoreItems = [
+  { id: "stores" as AdminSection, label: "Store Manager", icon: Building2 },
+  { id: "subscription" as AdminSection, label: "Abonnement", icon: CreditCard },
+];
+
 export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarProps) {
   const { open } = useSidebar();
+  const { currentOrganization } = useOrganization();
 
   return (
     <Sidebar className={!open ? "w-14" : "w-64"} collapsible="icon">
@@ -51,18 +60,26 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
         {open && (
           <div className="flex items-center space-x-2">
             <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">A</span>
+              <span className="text-primary-foreground font-bold text-sm">
+                {currentOrganization?.name?.charAt(0) || 'S'}
+              </span>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">Admin Panel</h2>
-              <p className="text-xs text-muted-foreground">FurniStore Management</p>
+              <h2 className="text-lg font-bold text-foreground">
+                {currentOrganization?.name || 'Store Admin'}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {currentOrganization?.description || 'Store Management'}
+              </p>
             </div>
           </div>
         )}
         {!open && (
           <div className="flex justify-center">
             <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">A</span>
+              <span className="text-primary-foreground font-bold text-sm">
+                {currentOrganization?.name?.charAt(0) || 'S'}
+              </span>
             </div>
           </div>
         )}
@@ -70,10 +87,30 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupLabel>Store Management</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => onSectionChange(item.id)}
+                    isActive={activeSection === item.id}
+                    className="w-full justify-start"
+                  >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {open && <span>{item.label}</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Multi-Store</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {multiStoreItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onSectionChange(item.id)}
