@@ -8,6 +8,7 @@ import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 import { ProductForm } from "./ProductForm";
 import { ProductScraper } from "./ProductScraper";
 import { supabase } from "@/integrations/supabase/client";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { useToast } from "@/components/ui/use-toast";
 
 export function AdminProducts() {
@@ -17,20 +18,26 @@ export function AdminProducts() {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { currentOrganization } = useOrganization();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (currentOrganization) {
+      fetchProducts();
+    }
+  }, [currentOrganization]);
 
   const fetchProducts = async () => {
+    if (!currentOrganization) return;
+    
     try {
       setLoading(true);
       
-      // First get all products
+      // First get all products for current organization
       const { data: products, error: productsError } = await supabase
         .from('products')
         .select('*')
+        .eq('organization_id', currentOrganization.id)
         .order('created_at', { ascending: false });
 
       if (productsError) throw productsError;
@@ -181,7 +188,8 @@ export function AdminProducts() {
             dimensions_length: parseFloat(productData.dimensions.length) || null,
             dimensions_width: parseFloat(productData.dimensions.width) || null,
             dimensions_height: parseFloat(productData.dimensions.height) || null,
-            slug: productData.name.toLowerCase().replace(/[^a-z0-9]/g, '-')
+            slug: productData.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+            organization_id: currentOrganization?.id
           })
           .select()
           .single();

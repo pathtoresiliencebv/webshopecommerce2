@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ interface ProductFormProps {
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [availableTags, setAvailableTags] = useState<any[]>([]);
   const [availableCollections, setAvailableCollections] = useState<any[]>([]);
+  const { currentOrganization } = useOrganization();
   
   const [formData, setFormData] = useState({
     name: product?.name || "",
@@ -64,14 +66,18 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [newCollection, setNewCollection] = useState("");
 
   useEffect(() => {
-    fetchTagsAndCollections();
-  }, []);
+    if (currentOrganization) {
+      fetchTagsAndCollections();
+    }
+  }, [currentOrganization]);
 
   const fetchTagsAndCollections = async () => {
+    if (!currentOrganization) return;
+    
     try {
       const [tagsResponse, collectionsResponse] = await Promise.all([
-        supabase.from('tags').select('*').order('name'),
-        supabase.from('collections').select('*').eq('is_active', true).order('name')
+        supabase.from('tags').select('*').eq('organization_id', currentOrganization.id).order('name'),
+        supabase.from('collections').select('*').eq('is_active', true).eq('organization_id', currentOrganization.id).order('name')
       ]);
 
       if (tagsResponse.data) setAvailableTags(tagsResponse.data);
@@ -82,7 +88,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   };
 
   const handleAddTag = async (tagName: string) => {
-    if (!tagName || formData.tags.includes(tagName)) return;
+    if (!tagName || formData.tags.includes(tagName) || !currentOrganization) return;
 
     try {
       // Check if tag exists, if not create it
@@ -93,7 +99,8 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           .from('tags')
           .insert({
             name: tagName,
-            slug: tagName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+            slug: tagName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+            organization_id: currentOrganization.id
           })
           .select()
           .single();
@@ -121,7 +128,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   };
 
   const handleAddCollection = async (collectionName: string) => {
-    if (!collectionName || formData.collections.includes(collectionName)) return;
+    if (!collectionName || formData.collections.includes(collectionName) || !currentOrganization) return;
 
     try {
       // Check if collection exists, if not create it
@@ -132,7 +139,8 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           .from('collections')
           .insert({
             name: collectionName,
-            slug: collectionName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+            slug: collectionName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+            organization_id: currentOrganization.id
           })
           .select()
           .single();

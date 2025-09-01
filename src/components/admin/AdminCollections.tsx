@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Search, Edit, Trash2, Eye, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { CollectionForm } from "./CollectionForm";
 
 interface Collection {
@@ -44,11 +45,14 @@ export function AdminCollections() {
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { currentOrganization } = useOrganization();
 
   // Fetch collections with product counts
   const { data: collections = [], isLoading } = useQuery({
-    queryKey: ["admin-collections"],
+    queryKey: ["admin-collections", currentOrganization?.id],
     queryFn: async () => {
+      if (!currentOrganization) return [];
+      
       const { data, error } = await supabase
         .from("collections")
         .select(`
@@ -57,6 +61,7 @@ export function AdminCollections() {
             product_id
           )
         `)
+        .eq("organization_id", currentOrganization.id)
         .order("sort_order", { ascending: true });
       
       if (error) throw error;
@@ -66,6 +71,7 @@ export function AdminCollections() {
         product_count: collection.product_collections?.length || 0
       })) as (Collection & { product_count: number })[];
     },
+    enabled: !!currentOrganization,
   });
 
   // Delete collection mutation
@@ -103,6 +109,8 @@ export function AdminCollections() {
   };
 
   const handleSaveCollection = async (collectionData: any) => {
+    if (!currentOrganization) return;
+    
     try {
       if (editingCollection) {
         // Update existing collection
@@ -131,6 +139,7 @@ export function AdminCollections() {
             image_url: collectionData.image_url,
             is_active: collectionData.is_active,
             sort_order: collectionData.sort_order,
+            organization_id: currentOrganization.id,
           });
 
         if (error) throw error;

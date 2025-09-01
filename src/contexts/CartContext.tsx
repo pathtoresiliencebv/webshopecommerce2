@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { useOrganization } from './OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 
 interface CartItem {
@@ -37,21 +38,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
+  const { currentOrganization } = useOrganization();
 
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
   const total = items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
 
-  // Fetch cart items when user changes
+  // Fetch cart items when user or organization changes
   useEffect(() => {
-    if (user) {
+    if (user && currentOrganization) {
       fetchCartItems();
     } else {
       setItems([]);
     }
-  }, [user]);
+  }, [user, currentOrganization]);
 
   const fetchCartItems = async () => {
-    if (!user) return;
+    if (!user || !currentOrganization) return;
     
     setLoading(true);
     try {
@@ -72,7 +74,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             )
           )
         `)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('organization_id', currentOrganization.id);
 
       if (error) throw error;
 
@@ -104,7 +107,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addItem = async (productId: string, quantity = 1) => {
-    if (!user) {
+    if (!user || !currentOrganization) {
       toast({
         title: "Please log in",
         description: "You need to be logged in to add items to cart",
@@ -128,7 +131,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .insert({
             user_id: user.id,
             product_id: productId,
-            quantity
+            quantity,
+            organization_id: currentOrganization.id
           });
 
         if (error) throw error;
@@ -209,14 +213,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearCart = async () => {
-    if (!user) return;
+    if (!user || !currentOrganization) return;
     
     setLoading(true);
     try {
       const { error } = await supabase
         .from('shopping_cart')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('organization_id', currentOrganization.id);
 
       if (error) throw error;
       
