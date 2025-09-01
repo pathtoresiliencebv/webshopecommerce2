@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
+import { useStore } from "@/contexts/StoreContext";
 
 interface ProductCardProps {
   id: string;
@@ -34,6 +35,14 @@ export function ProductCard({
 }: ProductCardProps) {
   const formatPrice = (price: number) => `€${price.toLocaleString()}`;
   const { addItem } = useCart();
+  const { store } = useStore();
+
+  const getProductUrl = () => {
+    if (store) {
+      return `/store/${store.slug}/products/${id}`;
+    }
+    return `/products/${id}`;
+  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -77,7 +86,7 @@ export function ProductCard({
 
         {/* Quick View Overlay */}
         <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <Link to={`/products/${id}`}>
+          <Link to={getProductUrl()}>
             <Button variant="secondary" size="sm" className="shadow-large">
               View Details
             </Button>
@@ -90,7 +99,7 @@ export function ProductCard({
           <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
             {category}
           </p>
-          <Link to={`/products/${id}`}>
+          <Link to={getProductUrl()}>
             <h3 className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-2">
               {name}
             </h3>

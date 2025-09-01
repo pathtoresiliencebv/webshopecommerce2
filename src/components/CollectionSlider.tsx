@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { useStore } from "@/contexts/StoreContext";
 
 interface Product {
   id: string;
@@ -25,6 +26,7 @@ interface CollectionSliderProps {
 
 export function CollectionSlider({ collectionId, collectionName, collectionSlug }: CollectionSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { store, loading: storeLoading } = useStore();
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['collection-products', collectionId],
@@ -42,7 +44,7 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
       const productIds = productCollections.map(pc => pc.product_id);
 
       // Then get the products with those IDs
-      const { data, error } = await supabase
+      let query = supabase
         .from('products')
         .select(`
           id, name, price, original_price, is_sale, is_new, slug,
@@ -53,6 +55,13 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
         .in('id', productIds)
         .eq('is_active', true)
         .limit(8);
+
+      // Filter by organization if we have a store context
+      if (store?.id) {
+        query = query.eq('organization_id', store.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching collection products:', error);
@@ -69,8 +78,9 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
         slug: product.slug,
         image: product.product_images?.find(img => img.is_primary)?.image_url || product.product_images?.[0]?.image_url || '/placeholder.svg',
         category: 'Kantoormeubel'
-      })) || [];
-    }
+        })) || [];
+    },
+    enabled: !storeLoading && !!store?.id
   });
 
   const itemsPerPage = 6;
@@ -90,7 +100,7 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
     }
   };
 
-  if (isLoading) {
+  if (storeLoading || isLoading) {
     return (
       <div className="py-8">
         <div className="flex items-center justify-between mb-6">
@@ -139,7 +149,7 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          <Link to={`/collections/${collectionSlug}`}>
+          <Link to={store ? `/store/${store.slug}/collections/${collectionSlug}` : `/collections/${collectionSlug}`}>
             <Button variant="outline" size="sm">
               Bekijk alle
             </Button>
