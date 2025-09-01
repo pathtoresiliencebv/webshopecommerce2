@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useStore } from "@/contexts/StoreContext";
 
 // Import images
 import heroWorkspace from "@/assets/hero-workspace.jpg";
@@ -97,10 +98,14 @@ const CountdownTimer = () => {
 };
 
 const Index = () => {
-  // Fetch featured products from database
+  const { store, loading: storeLoading, error: storeError } = useStore();
+  
+  // Fetch featured products from database (store-aware)
   const { data: featuredProducts = [], isLoading } = useQuery({
-    queryKey: ['featured-products'],
+    queryKey: ['featured-products', store?.id],
     queryFn: async () => {
+      if (!store?.id) return [];
+
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -118,6 +123,7 @@ const Index = () => {
           )
         `)
         .eq('is_active', true)
+        .eq('organization_id', store.id)
         .order('created_at', { ascending: false })
         .limit(8);
 
@@ -132,24 +138,28 @@ const Index = () => {
         rating: 4.5, // Default rating
         reviewCount: Math.floor(Math.random() * 200) + 10, // Random for demo
         category: product.categories?.name || 'Uncategorized',
-        brand: "STOCKMART",
+        brand: store.name || "Store",
         isSale: product.is_sale,
         isNew: product.is_new,
         soldOut: (product.stock_quantity || 0) === 0,
         colors: ["#000000", "#808080"] // Default colors for demo
       })) || [];
-    }
+    },
+    enabled: !storeLoading && !!store?.id
   });
 
-  // Fetch collections with products for the sliders
+  // Fetch collections with products for the sliders (store-aware)
   const { data: collections = [] } = useQuery({
-    queryKey: ['homepage-collections'],
+    queryKey: ['homepage-collections', store?.id],
     queryFn: async () => {
-      // First get all active collections
+      if (!store?.id) return [];
+
+      // First get all active collections for this store
       const { data: collectionsData, error: collectionsError } = await supabase
         .from('collections')
         .select('id, name, slug')
         .eq('is_active', true)
+        .eq('organization_id', store.id)
         .order('sort_order');
 
       if (collectionsError) {
@@ -173,17 +183,21 @@ const Index = () => {
       }
 
       return collectionsWithProducts;
-    }
+    },
+    enabled: !storeLoading && !!store?.id
   });
 
-  // Fetch collections with images for Popular Categories
+  // Fetch collections with images for Popular Categories (store-aware)
   const { data: collectionsWithImages = [] } = useQuery({
-    queryKey: ['collections-with-images'],
+    queryKey: ['collections-with-images', store?.id],
     queryFn: async () => {
+      if (!store?.id) return [];
+
       const { data: collectionsData, error: collectionsError } = await supabase
         .from('collections')
         .select('id, name, slug, image_url')
         .eq('is_active', true)
+        .eq('organization_id', store.id)
         .not('image_url', 'is', null)
         .order('sort_order');
 
@@ -209,8 +223,39 @@ const Index = () => {
       }
 
       return collectionsWithCounts;
-    }
+    },
+    enabled: !storeLoading && !!store?.id
   });
+
+  // Handle store loading
+  if (storeLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-muted rounded w-1/3"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle store not found
+  if (storeError || !store) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-2xl font-bold">Store not found</h1>
+          <p className="text-muted-foreground mt-2">
+            The store you're looking for doesn't exist or is no longer available.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

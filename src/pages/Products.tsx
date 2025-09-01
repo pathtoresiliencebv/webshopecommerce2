@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Grid3X3, List, SlidersHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useStore } from "@/contexts/StoreContext";
 
 const sortOptions = [
   { value: "name", label: "Name" },
@@ -17,6 +18,7 @@ const sortOptions = [
 ];
 
 export default function Products() {
+  const { store, loading: storeLoading, error: storeError } = useStore();
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,10 +31,12 @@ export default function Products() {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0, 1000]);
 
-  // Fetch products from database
+  // Fetch products from database (store-aware)
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['products'],
+    queryKey: ['products', store?.id],
     queryFn: async () => {
+      if (!store?.id) return [];
+
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -43,6 +47,7 @@ export default function Products() {
           reviews (rating)
         `)
         .eq('is_active', true)
+        .eq('organization_id', store.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -62,7 +67,8 @@ export default function Products() {
         product_attributes: product.product_attributes || [],
         reviews: product.reviews || []
       })) || [];
-    }
+    },
+    enabled: !storeLoading && !!store?.id
   });
 
   // Get unique filter options from products
@@ -124,6 +130,36 @@ export default function Products() {
 
   const activeFiltersCount = selectedBrands.length + selectedAvailability.length + selectedTypes.length + selectedColors.length + (priceRange[0] > filterOptions.minPrice || priceRange[1] < filterOptions.maxPrice ? 1 : 0);
 
+  // Handle store loading
+  if (storeLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-muted rounded w-1/3"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle store not found
+  if (storeError || !store) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-2xl font-bold">Store not found</h1>
+          <p className="text-muted-foreground mt-2">
+            The store you're looking for doesn't exist or is no longer available.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -131,9 +167,9 @@ export default function Products() {
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Our Products</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{store.name} Products</h1>
           <p className="text-muted-foreground">
-            Discover our collection of high-quality office furniture
+            Discover our collection of high-quality products
           </p>
         </div>
 

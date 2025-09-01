@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/contexts/StoreContext";
 
 interface Product {
   id: string;
@@ -67,6 +68,7 @@ const sortOptions = [
 
 export default function CollectionPage() {
   const { slug } = useParams<{ slug: string }>();
+  const { store, loading: storeLoading, error: storeError } = useStore();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("best-selling");
@@ -79,28 +81,31 @@ export default function CollectionPage() {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0, 1000]);
 
-  // Fetch collection data
+  // Fetch collection data (store-aware)
   const { data: collection, isLoading: collectionLoading } = useQuery({
-    queryKey: ["collection", slug],
+    queryKey: ["collection", slug, store?.id],
     queryFn: async () => {
+      if (!store?.id || !slug) return null;
+
       const { data, error } = await supabase
         .from("collections")
         .select("*")
         .eq("slug", slug)
         .eq("is_active", true)
-        .single();
+        .eq("organization_id", store.id)
+        .maybeSingle();
       
       if (error) throw error;
-      return data as Collection;
+      return data as Collection | null;
     },
-    enabled: !!slug,
+    enabled: !!slug && !storeLoading && !!store?.id,
   });
 
-  // Fetch products in collection
+  // Fetch products in collection (store-aware)
   const { data: products = [], isLoading: productsLoading } = useQuery({
-    queryKey: ["collection-products", collection?.id],
+    queryKey: ["collection-products", collection?.id, store?.id],
     queryFn: async () => {
-      if (!collection?.id) return [];
+      if (!collection?.id || !store?.id) return [];
       
       // First get product IDs from the collection
       const { data: productCollections, error: pcError } = await supabase
@@ -114,7 +119,7 @@ export default function CollectionPage() {
 
       const productIds = productCollections.map(pc => pc.product_id);
 
-      // Then get the products with those IDs
+      // Then get the products with those IDs, filtered by organization
       const { data, error } = await supabase
         .from("products")
         .select(`
@@ -124,7 +129,8 @@ export default function CollectionPage() {
           reviews(rating)
         `)
         .in("id", productIds)
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .eq("organization_id", store.id);
       
       if (error) throw error;
       return (data || []).map(product => ({
@@ -134,7 +140,7 @@ export default function CollectionPage() {
         reviews: product.reviews || []
       })) as Product[];
     },
-    enabled: !!collection?.id,
+    enabled: !!collection?.id && !!store?.id,
   });
 
   // Get unique filter options from products
@@ -201,7 +207,8 @@ export default function CollectionPage() {
 
   const activeFiltersCount = selectedBrands.length + selectedAvailability.length + selectedTypes.length + selectedColors.length + (priceRange[0] > 0 || priceRange[1] < 1000 ? 1 : 0);
 
-  if (collectionLoading) {
+  // Handle store loading
+  if (storeLoading || collectionLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
@@ -215,12 +222,20 @@ export default function CollectionPage() {
     );
   }
 
-  if (!collection) {
+  // Handle store or collection not found
+  if (storeError || !store || !collection) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold">Collection not found</h1>
+          <h1 className="text-2xl font-bold">
+            {!store ? 'Store not found' : 'Collection not found'}
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            {!store 
+              ? 'The store you\'re looking for doesn\'t exist.' 
+              : 'This collection doesn\'t exist in this store.'}
+          </p>
         </div>
       </div>
     );
