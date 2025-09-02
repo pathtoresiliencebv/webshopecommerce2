@@ -35,10 +35,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const hostname = window.location.hostname;
     const parts = hostname.split('.');
     
-    // Check if we have a subdomain (more than 2 parts and not localhost)
+    // Check if we have a valid custom subdomain
+    // Ignore localhost, Lovable sandbox hostnames (UUID pattern), and direct domain access
     if (parts.length > 2 && hostname !== 'localhost') {
-      setSubdomain(parts[0]);
+      const potentialSubdomain = parts[0];
+      
+      // Check if it's a Lovable sandbox hostname (UUID-like pattern)
+      const isLovableSandbox = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(potentialSubdomain);
+      
+      if (!isLovableSandbox) {
+        console.log('🏪 Detected custom subdomain:', potentialSubdomain);
+        setSubdomain(potentialSubdomain);
+      } else {
+        console.log('🔧 Ignoring Lovable sandbox hostname:', hostname);
+        setSubdomain(null);
+      }
     } else {
+      console.log('🏠 No custom subdomain detected, will use default store');
       setSubdomain(null);
     }
   }, []);
@@ -56,11 +69,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         // Filter by subdomain, slug, or fallback to default store
         if (subdomain) {
+          console.log('🔍 Looking for store with subdomain:', subdomain);
           query = query.eq('subdomain', subdomain);
         } else if (storeSlug) {
+          console.log('🔍 Looking for store with slug:', storeSlug);
           query = query.eq('slug', storeSlug);
         } else {
           // Fallback to default store when no subdomain or slug
+          console.log('🔍 Using fallback: looking for default-store');
           query = query.eq('slug', 'default-store');
         }
 
