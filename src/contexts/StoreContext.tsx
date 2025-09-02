@@ -46,13 +46,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Fetch store data when storeSlug or subdomain changes
   useEffect(() => {
     const fetchStore = async () => {
-      // Skip if we don't have either storeSlug or subdomain
-      if (!storeSlug && !subdomain) {
-        setStore(null);
-        setLoading(false);
-        return;
-      }
-
       setLoading(true);
       setError(null);
 
@@ -61,11 +54,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .from('organizations')
           .select('id, name, slug, description, logo_url, subdomain, domain');
 
-        // Filter by subdomain or slug
+        // Filter by subdomain, slug, or fallback to default store
         if (subdomain) {
           query = query.eq('subdomain', subdomain);
         } else if (storeSlug) {
           query = query.eq('slug', storeSlug);
+        } else {
+          // Fallback to default store when no subdomain or slug
+          query = query.eq('slug', 'default-store');
         }
 
         const { data, error: fetchError } = await query.maybeSingle();
