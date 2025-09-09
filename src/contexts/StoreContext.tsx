@@ -40,8 +40,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (parts.length > 2 && hostname !== 'localhost') {
       const potentialSubdomain = parts[0];
       
-      // Check if it's a Lovable sandbox hostname (UUID-like pattern)
-      const isLovableSandbox = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(potentialSubdomain);
+      // Check if it's a Lovable sandbox hostname (UUID pattern or id-preview pattern)
+      const isLovableSandbox = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|id-preview--[0-9a-f-]+)$/i.test(potentialSubdomain);
       
       if (!isLovableSandbox) {
         console.log('🏪 Detected custom subdomain:', potentialSubdomain);
