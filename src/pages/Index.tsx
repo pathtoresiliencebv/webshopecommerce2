@@ -242,8 +242,8 @@ const Index = () => {
     );
   }
 
-  // Handle store not found
-  if (storeError || !store) {
+  // Handle store not found (only show error if not loading)
+  if (!storeLoading && (storeError || !store)) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
