@@ -82,11 +82,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           searchType = 'slug';
           searchValue = storeSlug;
         } else {
-          // Fallback to default store when no subdomain or slug
-          console.log('🔍 Using fallback: looking for default-store');
-          query = query.eq('slug', 'default-store');
+          // Fallback to aurello-living store when no subdomain or slug
+          console.log('🔍 Using fallback: looking for aurello-living');
+          query = query.eq('slug', 'aurello-living');
           searchType = 'fallback';
-          searchValue = 'default-store';
+          searchValue = 'aurello-living';
         }
 
         const { data, error: fetchError } = await query.maybeSingle();
@@ -99,13 +99,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!data) {
           console.warn(`⚠️ No store found for ${searchType}: ${searchValue}`);
           
-          // If we're not already trying the fallback, try default-store
+          // If we're not already trying the fallback, try aurello-living
           if (searchType !== 'fallback') {
-            console.log('🔄 Attempting fallback to default-store');
+            console.log('🔄 Attempting fallback to aurello-living');
             const fallbackQuery = supabase
               .from('organizations')
               .select('id, name, slug, description, logo_url, subdomain, domain')
-              .eq('slug', 'default-store');
+              .eq('slug', 'aurello-living');
 
             const { data: fallbackData, error: fallbackError } = await fallbackQuery.maybeSingle();
             
@@ -136,13 +136,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } catch (err) {
         console.error('💥 Critical error in store fetching:', err);
         
-        // Last resort: try to load default-store
+        // Last resort: try to load aurello-living
         try {
-          console.log('🚨 Attempting emergency fallback to default-store');
+          console.log('🚨 Attempting emergency fallback to aurello-living');
           const emergencyQuery = supabase
             .from('organizations')
             .select('id, name, slug, description, logo_url, subdomain, domain')
-            .eq('slug', 'default-store');
+            .eq('slug', 'aurello-living');
             
           const { data: emergencyData } = await emergencyQuery.maybeSingle();
           
