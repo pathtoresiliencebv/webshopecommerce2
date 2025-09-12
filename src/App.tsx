@@ -17,24 +17,30 @@ import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import CustomerStorefront from "./components/store/CustomerStorefront";
+import { AuthProvider } from "./contexts/AuthContext";
+import { OrganizationProvider } from "./contexts/OrganizationContext";
+import StoreManagerRoute from "./components/StoreManagerRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Admin routes - no store context needed */}
-          <Route path="/admin/auth" element={<AdminAuth />} />
-          <Route path="/admin" element={
-            <AdminProtectedRoute>
-              <Admin />
-            </AdminProtectedRoute>
-          } />
-          <Route path="/dashboard" element={<Dashboard />} />
+    <AuthProvider>
+      <OrganizationProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Admin routes - with auth and organization context */}
+              <Route path="/admin/auth" element={<AdminAuth />} />
+              <Route path="/admin" element={
+                <AdminProtectedRoute>
+                  <Admin />
+                </AdminProtectedRoute>
+              } />
+              <Route path="/admin/stores" element={<StoreManagerRoute />} />
+              <Route path="/dashboard" element={<Dashboard />} />
           
           {/* Store-specific routes */}
           <Route path="/store/:storeSlug" element={
@@ -85,9 +91,11 @@ const App = () => (
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </OrganizationProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

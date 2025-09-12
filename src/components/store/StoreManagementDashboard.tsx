@@ -12,10 +12,14 @@ import {
   MoreHorizontal,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  DollarSign,
+  Activity
 } from 'lucide-react';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import StoreCreationWizard from './StoreCreationWizard';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface StoreStats {
   revenue: number;
@@ -40,23 +44,82 @@ export default function StoreManagementDashboard() {
   const [showCreateWizard, setShowCreateWizard] = useState(false);
   const { userOrganizations, switchOrganization, currentOrganization } = useOrganization();
 
-  // Mock data - in real app this would come from API
-  const mockStores: StoreCard[] = userOrganizations.map(orgUser => ({
-    id: orgUser.organization.id,
-    name: orgUser.organization.name,
-    slug: orgUser.organization.slug,
-    domain: orgUser.organization.domain,
-    subdomain: orgUser.organization.subdomain,
-    status: orgUser.organization.subscription_status === 'active' ? 'active' : 'setup',
-    plan: orgUser.organization.subscription_plan as any,
-    stats: {
-      revenue: Math.floor(Math.random() * 10000),
-      orders: Math.floor(Math.random() * 100),
-      products: Math.floor(Math.random() * 50),
-      visitors: Math.floor(Math.random() * 1000)
+  // Fetch real store statistics
+  const { data: storeStats } = useQuery({
+    queryKey: ['store-stats', userOrganizations],
+    queryFn: async () => {
+      if (!userOrganizations?.length) return null;
+
+      const allOrgIds = userOrganizations.map(orgUser => orgUser.organization.id);
+      
+      const [ordersResult, productsResult, profilesResult] = await Promise.all([
+        supabase.from('orders').select('total_amount, organization_id').in('organization_id', allOrgIds),
+        supabase.from('products').select('id, organization_id').in('organization_id', allOrgIds),
+        supabase.from('profiles').select('id')
+      ]);
+
+      const totalRevenue = ordersResult.data?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
+      const totalStores = userOrganizations.length;
+      const activeStores = userOrganizations.filter(orgUser => orgUser.organization.subscription_status === 'active').length;
+
+      return {
+        totalStores,
+        totalRevenue,
+        activeStores,
+        teamMembers: userOrganizations.reduce((sum, org) => sum + 1, 0) // Could be expanded to count organization_users
+      };
     },
-    lastActivity: '2 uur geleden'
-  }));
+    enabled: !!userOrganizations?.length
+  });
+
+  // Fetch detailed store data
+  const { data: storeData = [] } = useQuery({
+    queryKey: ['user-stores-detailed', userOrganizations],
+    queryFn: async () => {
+      if (!userOrganizations?.length) return [];
+
+      const storeCards = await Promise.all(
+        userOrganizations.map(async (orgUser) => {
+          const org = orgUser.organization;
+          const [ordersResult, productsResult] = await Promise.all([
+            supabase.from('orders').select('total_amount, id').eq('organization_id', org.id),
+            supabase.from('products').select('id').eq('organization_id', org.id)
+          ]);
+
+          const revenue = ordersResult.data?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
+          const orders = ordersResult.data?.length || 0;
+          const products = productsResult.data?.length || 0;
+
+          return {
+            id: org.id,
+            name: org.name,
+            slug: org.slug,
+            domain: org.domain,
+            subdomain: org.subdomain,
+            status: org.subscription_status === 'active' ? 'active' : 'inactive',
+            plan: org.subscription_plan || 'starter',
+            stats: {
+              revenue,
+              orders,
+              products,
+              visitors: Math.floor(Math.random() * 5000) // Could be implemented with analytics
+            },
+            lastActivity: "Recent"
+          } as StoreCard;
+        })
+      );
+
+      return storeCards;
+    },
+    enabled: !!userOrganizations?.length
+  });
+
+  const stats = storeStats || {
+    totalStores: 0,
+    totalRevenue: 0,
+    activeStores: 0,
+    teamMembers: 0
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -100,9 +163,9 @@ export default function StoreManagementDashboard() {
             <Store className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockStores.length}</div>
+            <div className="text-2xl font-bold">{stats.totalStores}</div>
             <p className="text-xs text-muted-foreground">
-              +1 deze maand
+              Alle actieve stores
             </p>
           </CardContent>
         </Card>
@@ -114,10 +177,10 @@ export default function StoreManagementDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              €{mockStores.reduce((sum, store) => sum + store.stats.revenue, 0).toLocaleString()}
+              €{stats.totalRevenue.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              +12% t.o.v. vorige maand
+              Totale omzet alle stores
             </p>
           </CardContent>
         </Card>
@@ -129,10 +192,10 @@ export default function StoreManagementDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {mockStores.filter(s => s.status === 'active').length}
+              {stats.activeStores}
             </div>
             <p className="text-xs text-muted-foreground">
-              van {mockStores.length} stores
+              van {stats.totalStores} stores
             </p>
           </CardContent>
         </Card>
@@ -143,9 +206,9 @@ export default function StoreManagementDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
+            <div className="text-2xl font-bold">{stats.teamMembers}</div>
             <p className="text-xs text-muted-foreground">
-              over alle stores
+              beheerders actief
             </p>
           </CardContent>
         </Card>
@@ -157,13 +220,13 @@ export default function StoreManagementDashboard() {
           <h2 className="text-xl font-semibold">Jouw Stores</h2>
           <div className="flex gap-2">
             <Badge variant="outline" className="text-xs">
-              {mockStores.length} stores
+              {storeData.length} stores
             </Badge>
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {mockStores.map((store) => (
+          {storeData.map((store) => (
             <Card key={store.id} className="group hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">

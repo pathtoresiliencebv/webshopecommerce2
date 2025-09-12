@@ -164,9 +164,9 @@ export function Navigation() {
                       </div>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link to="/dashboard">
+                        <Link to="/admin">
                           <LayoutDashboard className="mr-2 h-4 w-4" />
-                          Dashboard
+                          Admin Panel
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
