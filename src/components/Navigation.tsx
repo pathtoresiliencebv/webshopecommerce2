@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ShoppingCart, Search, Menu, X, User, Heart, LayoutDashboard, Phone, ChevronDown, Globe, Moon, Sun, LogOut, Settings } from "lucide-react";
 import { ShoppingCartDrawer } from "@/components/ShoppingCartDrawer";
 import { useAuth } from "@/contexts/AuthContext";
+import StoreDropdown from "@/components/StoreDropdown";
 
 // Create a safe hook that doesn't throw when StoreProvider is missing
 const useSafeStore = () => {
@@ -95,22 +96,8 @@ export function Navigation() {
       <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between gap-8">
-            {/* Logo */}
-            <Link to={store?.slug ? `/store/${store.slug}` : "/"} className="flex items-center flex-shrink-0">
-              {store?.logo_url ? (
-                <img 
-                  src={store.logo_url} 
-                  alt={store.name || "Store Logo"} 
-                  className="h-12 w-auto"
-                />
-              ) : (
-                <img 
-                  src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
-                  alt="Aurora Living" 
-                  className="h-12 w-auto"
-                />
-              )}
-            </Link>
+            {/* Store Dropdown */}
+            <StoreDropdown />
 
             {/* Search Bar - Desktop */}
             <div className="hidden md:flex flex-1 max-w-2xl mx-8">
