@@ -24,11 +24,20 @@ const AdminAuth = () => {
     }
 
     setLoading(true);
+    console.log('Attempting to sign in with:', email);
     const { error } = await signIn(email, password);
     
     if (error) {
-      toast.error(error.message || 'Inloggen mislukt');
+      console.error('Sign in error:', error);
+      if (error.message.includes('Invalid login credentials')) {
+        toast.error('Onjuiste email of wachtwoord');
+      } else if (error.message.includes('Email not confirmed')) {
+        toast.error('Email nog niet bevestigd. Check je inbox.');
+      } else {
+        toast.error(error.message || 'Inloggen mislukt');
+      }
     } else {
+      console.log('Sign in successful');
       toast.success('Succesvol ingelogd');
       navigate('/admin');
     }
@@ -48,15 +57,18 @@ const AdminAuth = () => {
     }
 
     setLoading(true);
+    console.log('Attempting to sign up with:', email);
     const { error } = await signUp(email, password);
     
     if (error) {
-      if (error.message.includes('already registered')) {
+      console.error('Sign up error:', error);
+      if (error.message.includes('already registered') || error.message.includes('already been registered')) {
         toast.error('Dit emailadres is al geregistreerd. Probeer in te loggen.');
       } else {
         toast.error(error.message || 'Registratie mislukt');
       }
     } else {
+      console.log('Sign up successful');
       toast.success('Account aangemaakt! Je bent automatisch ingelogd.');
       navigate('/admin');
     }
