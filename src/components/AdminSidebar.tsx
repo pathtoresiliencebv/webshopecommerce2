@@ -18,7 +18,8 @@ import {
   Boxes,
   ArrowLeftRight,
   Gift,
-  Images
+  Images,
+  BarChart3
 } from "lucide-react";
 import { AdminSection } from "@/pages/Admin";
 import { useOrganization } from "@/contexts/OrganizationContext";
@@ -44,11 +45,12 @@ interface AdminSidebarProps {
   onSectionChange: (section: AdminSection) => void;
 }
 
-const mainMenuItems = [
-  { id: "home" as AdminSection, label: "Home", icon: Home },
-  { id: "orders" as AdminSection, label: "Orders", icon: ShoppingCart },
-  { id: "content" as AdminSection, label: "Content", icon: Images },
-];
+  const mainMenuItems = [
+    { id: "home" as AdminSection, label: "Home", icon: Home },
+    { id: "orders" as AdminSection, label: "Orders", icon: ShoppingCart },
+    { id: "content" as AdminSection, label: "Content", icon: Images },
+    { id: "analytics" as AdminSection, label: "Analytics", icon: BarChart3 },
+  ];
 
 const productMenuItems = [
   { id: "products" as AdminSection, label: "All products", icon: Package },

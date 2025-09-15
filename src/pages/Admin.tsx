@@ -9,6 +9,7 @@ import { AdminTheme } from "@/components/admin/AdminTheme";
 import { AdminStoreSettings } from "@/components/admin/AdminStoreSettings";
 import { AdminThemeCustomize } from "@/components/admin/AdminThemeCustomize";
 import { AdminCollections } from "@/components/admin/AdminCollections";
+import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { AdminContent } from "@/components/admin/AdminContent";
 import { AdminCustomerService } from "@/components/admin/AdminCustomerService";
 import { AdminInventory } from "@/components/admin/AdminInventory";
@@ -30,6 +31,7 @@ export type AdminSection =
   | "home" 
   | "orders"
   | "content"
+  | "analytics"
   | "products" 
   | "collections"
   | "inventory"
@@ -64,6 +66,8 @@ const Admin = () => {
         return <AdminOrders />;
       case "content":
         return <AdminContent />;
+      case "analytics":
+        return <AdminAnalytics />;
       case "products":
         return <AdminProducts />;
       case "collections":
