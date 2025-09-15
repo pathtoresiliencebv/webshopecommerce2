@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, Package } from "lucide-react";
 import { ProductForm } from "./ProductForm";
 import { ProductScraper } from "./ProductScraper";
 import { supabase } from "@/integrations/supabase/client";
@@ -354,20 +354,19 @@ export function AdminProducts() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Product</TableHead>
                   <TableHead>SKU</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Stock</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Tags</TableHead>
+                  <TableHead>Inventory</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Vendor</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredProducts.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       No products found. Try scraping or adding products manually.
                     </TableCell>
                   </TableRow>
@@ -375,57 +374,61 @@ export function AdminProducts() {
                   filteredProducts.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell>
-                        {product.image ? (
-                          <img 
-                            src={product.image} 
-                            alt={product.name}
-                            className="w-12 h-12 object-cover rounded"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
-                            <span className="text-xs">No img</span>
+                        <div className="flex items-center gap-3">
+                          {product.image ? (
+                            <img 
+                              src={product.image} 
+                              alt={product.name}
+                              className="w-10 h-10 object-cover rounded"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-medium">{product.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              €{product.price}
+                              {product.original_price && (
+                                <span className="ml-2 line-through">€{product.original_price}</span>
+                              )}
+                            </div>
                           </div>
-                        )}
+                        </div>
                       </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>{product.sku || '-'}</TableCell>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span>€{product.price}</span>
-                          {product.original_price && (
-                            <span className="text-sm text-muted-foreground line-through">
-                              €{product.original_price}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>{product.stock_quantity || 0}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {product.is_active && <Badge variant="default">Active</Badge>}
-                          {product.is_featured && <Badge variant="secondary">Featured</Badge>}
-                          {product.is_new && <Badge variant="outline">New</Badge>}
-                          {product.is_sale && <Badge variant="destructive">Sale</Badge>}
-                        </div>
+                        {product.is_active ? (
+                          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">Inactive</Badge>
+                        )}
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {product.tags.map((tag: string) => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
+                        {product.stock_quantity > 0 ? (
+                          <span className="font-medium">{product.stock_quantity} in stock</span>
+                        ) : (
+                          <span className="text-muted-foreground">Inventory not tracked</span>
+                        )}
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                        <span className="text-muted-foreground">-</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-muted-foreground">-</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleEditProduct(product)}>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleEditProduct(product)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleDeleteProduct(product.id)}>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDeleteProduct(product.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>

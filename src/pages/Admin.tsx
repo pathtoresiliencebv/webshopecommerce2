@@ -11,6 +11,9 @@ import { AdminShoppingFeeds } from "@/components/admin/AdminShoppingFeeds";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminCollections } from "@/components/admin/AdminCollections";
 import { AdminCustomerService } from "@/components/admin/AdminCustomerService";
+import { AdminInventory } from "@/components/admin/AdminInventory";
+import { AdminTransfers } from "@/components/admin/AdminTransfers";
+import { AdminGiftCards } from "@/components/admin/AdminGiftCards";
 import StoreManagementDashboard from "@/components/store/StoreManagementDashboard";
 import SubscriptionManager from "@/components/billing/SubscriptionManager";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -26,6 +29,9 @@ export type AdminSection =
   | "orders" 
   | "products" 
   | "collections"
+  | "inventory"
+  | "transfers"
+  | "gift-cards"
   | "customers" 
   | "discount-codes" 
   | "online-store" 
@@ -56,6 +62,12 @@ const Admin = () => {
         return <AdminProducts />;
       case "collections":
         return <AdminCollections />;
+      case "inventory":
+        return <AdminInventory />;
+      case "transfers":
+        return <AdminTransfers />;
+      case "gift-cards":
+        return <AdminGiftCards />;
       case "customers":
         return <AdminCustomers />;
       case "discount-codes":
