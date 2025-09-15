@@ -171,6 +171,334 @@ export type Database = {
           },
         ]
       }
+      email_campaigns: {
+        Row: {
+          created_at: string
+          delay_hours: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          sequence_order: number | null
+          subject: string
+          template_id: string | null
+          updated_at: string
+          workflow_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          delay_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          sequence_order?: number | null
+          subject: string
+          template_id?: string | null
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          delay_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          sequence_order?: number | null
+          subject?: string
+          template_id?: string | null
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_campaigns_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "email_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          send_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          send_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          send_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_events_send_id_fkey"
+            columns: ["send_id"]
+            isOneToOne: false
+            referencedRelation: "email_sends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_segments: {
+        Row: {
+          conditions: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          conditions: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          conditions?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_sends: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          delivered_at: string | null
+          id: string
+          organization_id: string
+          resend_email_id: string | null
+          sent_at: string
+          status: string | null
+          subject: string
+          subscriber_id: string
+          template_id: string | null
+          workflow_id: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          organization_id: string
+          resend_email_id?: string | null
+          sent_at?: string
+          status?: string | null
+          subject: string
+          subscriber_id: string
+          template_id?: string | null
+          workflow_id?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          organization_id?: string
+          resend_email_id?: string | null
+          sent_at?: string
+          status?: string | null
+          subject?: string
+          subscriber_id?: string
+          template_id?: string | null
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sends_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_sends_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "email_subscribers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_sends_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_sends_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "email_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_subscribers: {
+        Row: {
+          created_at: string
+          custom_fields: Json | null
+          email: string
+          first_name: string | null
+          id: string
+          is_active: boolean | null
+          last_name: string | null
+          organization_id: string
+          phone: string | null
+          subscribed_at: string
+          subscription_source: string | null
+          tags: string[] | null
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_fields?: Json | null
+          email: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_name?: string | null
+          organization_id: string
+          phone?: string | null
+          subscribed_at?: string
+          subscription_source?: string | null
+          tags?: string[] | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_name?: string | null
+          organization_id?: string
+          phone?: string | null
+          subscribed_at?: string
+          subscription_source?: string | null
+          tags?: string[] | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          content: Json
+          created_at: string
+          html_content: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          subject: string
+          template_type: string
+          updated_at: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          subject: string
+          template_type?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          subject?: string
+          template_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_workflows: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          trigger_conditions: Json | null
+          trigger_event: string
+          updated_at: string
+          workflow_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          trigger_conditions?: Json | null
+          trigger_event: string
+          updated_at?: string
+          workflow_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          trigger_conditions?: Json | null
+          trigger_event?: string
+          updated_at?: string
+          workflow_type?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -959,6 +1287,63 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_triggers: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: number | null
+          id: string
+          is_active: boolean | null
+          next_send_at: string | null
+          organization_id: string
+          started_at: string
+          subscriber_id: string
+          trigger_data: Json | null
+          workflow_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number | null
+          id?: string
+          is_active?: boolean | null
+          next_send_at?: string | null
+          organization_id: string
+          started_at?: string
+          subscriber_id: string
+          trigger_data?: Json | null
+          workflow_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number | null
+          id?: string
+          is_active?: boolean | null
+          next_send_at?: string | null
+          organization_id?: string
+          started_at?: string
+          subscriber_id?: string
+          trigger_data?: Json | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_triggers_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "email_subscribers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_triggers_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "email_workflows"
             referencedColumns: ["id"]
           },
         ]
