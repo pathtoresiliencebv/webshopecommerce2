@@ -14,6 +14,7 @@ import { AdminCustomerService } from "@/components/admin/AdminCustomerService";
 import { AdminInventory } from "@/components/admin/AdminInventory";
 import { AdminTransfers } from "@/components/admin/AdminTransfers";
 import { AdminGiftCards } from "@/components/admin/AdminGiftCards";
+import { AdminEmailMarketing } from "@/components/admin/AdminEmailMarketing";
 import StoreManagementDashboard from "@/components/store/StoreManagementDashboard";
 import SubscriptionManager from "@/components/billing/SubscriptionManager";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -81,7 +82,7 @@ const Admin = () => {
       case "theme-customize":
         return <AdminThemeCustomize onSectionChange={setActiveSection} />;
       case "email-marketing":
-        return <div>Email Marketing (Coming Soon)</div>;
+        return <AdminEmailMarketing />;
       case "shopping-feeds":
         return <div>Shopping Feeds (Coming Soon)</div>;
       case "store-settings":
