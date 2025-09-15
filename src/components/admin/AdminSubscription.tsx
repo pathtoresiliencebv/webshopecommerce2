@@ -174,23 +174,9 @@ export function AdminSubscription() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {[1, 2, 3].map((_, index) => (
-              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <p className="font-medium">
-                    {currentPlan.name} Plan - {new Date(Date.now() - index * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Betaald op {new Date(Date.now() - index * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('nl-NL')}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">{currentPlan.price.replace('Custom', '€49')}</p>
-                  <Badge variant="secondary">Betaald</Badge>
-                </div>
-              </div>
-            ))}
+          <div className="py-12 text-center text-muted-foreground">
+            <Calendar className="h-8 w-8 mx-auto mb-2" />
+            <p>Nog geen factuur geschiedenis beschikbaar</p>
           </div>
         </CardContent>
       </Card>

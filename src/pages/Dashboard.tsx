@@ -12,53 +12,43 @@ import {
   Eye,
   Plus,
   Edit,
-  Trash2
+  Trash2,
+  BarChart3
 } from "lucide-react";
 
 const stats = [
   {
     title: "Totale Verkopen",
-    value: "€12,345",
-    change: "+12%",
+    value: "€0",
+    change: "-",
     icon: Euro,
-    trend: "up"
+    trend: "neutral"
   },
   {
     title: "Bestellingen",
-    value: "143",
-    change: "+8%",
+    value: "0",
+    change: "-",
     icon: ShoppingCart,
-    trend: "up"
+    trend: "neutral"
   },
   {
     title: "Producten",
-    value: "64",
-    change: "+3",
+    value: "0",
+    change: "-",
     icon: Package,
-    trend: "up"
+    trend: "neutral"
   },
   {
     title: "Klanten",
-    value: "1,234",
-    change: "+24%",
+    value: "0",
+    change: "-",
     icon: Users,
-    trend: "up"
+    trend: "neutral"
   },
 ];
 
-const recentOrders = [
-  { id: "ORD-001", customer: "Jan van Dijk", product: "Ergonomische Stoel", amount: "€299", status: "Verzonden" },
-  { id: "ORD-002", customer: "Maria Jansen", product: "Sta-Bureau", amount: "€599", status: "Verwerkt" },
-  { id: "ORD-003", customer: "Piet de Vries", product: "Opbergkast", amount: "€199", status: "Nieuw" },
-  { id: "ORD-004", customer: "Anna Bakker", product: "Executive Stoel", amount: "€449", status: "Verzonden" },
-];
-
-const products = [
-  { id: "1", name: "Ergonomische Kantoorstoel Pro", price: "€299", stock: 24, status: "Actief" },
-  { id: "2", name: "Verstelbare Sta-Bureau Premium", price: "€599", stock: 12, status: "Actief" },
-  { id: "3", name: "Moderne Opbergkast wit", price: "€199", stock: 8, status: "Laag" },
-  { id: "4", name: "Executive Lederen Stoel", price: "€449", stock: 0, status: "Uitverkocht" },
-];
+const recentOrders: any[] = [];
+const products: any[] = [];
 
 export default function Dashboard() {
   return (
@@ -119,36 +109,44 @@ export default function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentOrders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div>
-                          <p className="font-medium text-foreground">{order.id}</p>
-                          <p className="text-sm text-muted-foreground">{order.customer}</p>
+                {recentOrders.length === 0 ? (
+                  <div className="py-20 text-center text-muted-foreground">
+                    <ShoppingCart className="h-12 w-12 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Nog geen bestellingen</h3>
+                    <p>Je eerste bestellingen verschijnen hier zodra klanten aankopen doen.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentOrders.map((order) => (
+                      <div key={order.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div>
+                            <p className="font-medium text-foreground">{order.id}</p>
+                            <p className="text-sm text-muted-foreground">{order.customer}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{order.product}</p>
+                            <p className="text-sm text-muted-foreground">{order.amount}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">{order.product}</p>
-                          <p className="text-sm text-muted-foreground">{order.amount}</p>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant={
+                              order.status === "Verzonden" ? "default" :
+                              order.status === "Verwerkt" ? "secondary" : 
+                              "outline"
+                            }
+                          >
+                            {order.status}
+                          </Badge>
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge 
-                          variant={
-                            order.status === "Verzonden" ? "default" :
-                            order.status === "Verwerkt" ? "secondary" : 
-                            "outline"
-                          }
-                        >
-                          {order.status}
-                        </Badge>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -169,41 +167,53 @@ export default function Dashboard() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {products.map((product) => (
-                    <div key={product.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="h-12 w-12 bg-accent rounded-lg"></div>
-                        <div>
-                          <p className="font-medium text-foreground">{product.name}</p>
-                          <p className="text-sm text-muted-foreground">{product.price}</p>
+                {products.length === 0 ? (
+                  <div className="py-20 text-center text-muted-foreground">
+                    <Package className="h-12 w-12 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Nog geen producten</h3>
+                    <p className="mb-4">Voeg producten toe aan je catalogus om te beginnen met verkopen.</p>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Eerste Product Toevoegen
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {products.map((product) => (
+                      <div key={product.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="h-12 w-12 bg-accent rounded-lg"></div>
+                          <div>
+                            <p className="font-medium text-foreground">{product.name}</p>
+                            <p className="text-sm text-muted-foreground">{product.price}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-right">
+                            <p className="text-sm font-medium">Voorraad: {product.stock}</p>
+                            <Badge 
+                              variant={
+                                product.status === "Actief" ? "default" :
+                                product.status === "Laag" ? "secondary" : 
+                                "destructive"
+                              }
+                            >
+                              {product.status}
+                            </Badge>
+                          </div>
+                          <div className="flex space-x-1">
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <p className="text-sm font-medium">Voorraad: {product.stock}</p>
-                          <Badge 
-                            variant={
-                              product.status === "Actief" ? "default" :
-                              product.status === "Laag" ? "secondary" : 
-                              "destructive"
-                            }
-                          >
-                            {product.status}
-                          </Badge>
-                        </div>
-                        <div className="flex space-x-1">
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -216,8 +226,11 @@ export default function Dashboard() {
                   <CardTitle>Verkoop Trend</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 bg-accent/50 rounded-lg flex items-center justify-center">
-                    <p className="text-muted-foreground">Grafiek komt hier</p>
+                  <div className="h-64 bg-accent/50 rounded-lg flex items-center justify-center border-2 border-dashed">
+                    <div className="text-center text-muted-foreground">
+                      <BarChart3 className="h-8 w-8 mx-auto mb-2" />
+                      <p>Nog geen verkoop data</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -227,8 +240,11 @@ export default function Dashboard() {
                   <CardTitle>Top Producten</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 bg-accent/50 rounded-lg flex items-center justify-center">
-                    <p className="text-muted-foreground">Grafiek komt hier</p>
+                  <div className="h-64 bg-accent/50 rounded-lg flex items-center justify-center border-2 border-dashed">
+                    <div className="text-center text-muted-foreground">
+                      <TrendingUp className="h-8 w-8 mx-auto mb-2" />
+                      <p>Nog geen product data</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

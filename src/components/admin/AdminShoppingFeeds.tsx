@@ -22,109 +22,9 @@ import {
   ExternalLink
 } from "lucide-react";
 
-const mockFeeds = [
-  {
-    id: 1,
-    name: "Google Shopping Feed",
-    platform: "Google Merchant Center",
-    status: "active",
-    products: 245,
-    lastSync: "2024-01-15 14:30",
-    syncFrequency: "Dagelijks",
-    url: "https://feeds.aurelio.nl/google-shopping.xml",
-    errors: 0,
-  },
-  {
-    id: 2,
-    name: "Facebook Catalog",
-    platform: "Meta Business",
-    status: "active", 
-    products: 198,
-    lastSync: "2024-01-15 12:15",
-    syncFrequency: "Elke 6 uur",
-    url: "https://feeds.aurelio.nl/facebook-catalog.xml",
-    errors: 3,
-  },
-  {
-    id: 3,
-    name: "Bol.com Feed",
-    platform: "Bol.com Partner",
-    status: "error",
-    products: 0,
-    lastSync: "2024-01-14 16:20",
-    syncFrequency: "Dagelijks",
-    url: "https://feeds.aurelio.nl/bol-com.xml",
-    errors: 12,
-  },
-  {
-    id: 4,
-    name: "Vergelijk.nl Feed",
-    platform: "Vergelijk.nl",
-    status: "paused",
-    products: 156,
-    lastSync: "2024-01-13 09:45",
-    syncFrequency: "Wekelijks",
-    url: "https://feeds.aurelio.nl/vergelijk.xml",
-    errors: 0,
-  },
-];
-
-const mockPlatforms = [
-  {
-    name: "Google Shopping",
-    description: "Toon producten in Google Shopping resultaten",
-    icon: Globe,
-    connected: true,
-    products: 245,
-    clicks: 1247,
-    impressions: 15690,
-  },
-  {
-    name: "Facebook Shop",
-    description: "Verkoop direct via Facebook en Instagram",
-    icon: ShoppingBag,
-    connected: true,
-    products: 198,
-    clicks: 589,
-    impressions: 8934,
-  },
-  {
-    name: "Bol.com",
-    description: "Verkoop op Nederland's grootste webshop",
-    icon: Zap,
-    connected: false,
-    products: 0,
-    clicks: 0,
-    impressions: 0,
-  },
-];
-
-const mockErrors = [
-  {
-    id: 1,
-    product: "Modern Velvet Sofa - Blauw",
-    feed: "Facebook Catalog",
-    error: "Ontbrekende productafbeelding",
-    severity: "warning",
-    date: "2024-01-15",
-  },
-  {
-    id: 2,
-    product: "Luxe Eettafel Set",
-    feed: "Facebook Catalog", 
-    error: "Prijs ontbreekt",
-    severity: "error",
-    date: "2024-01-15",
-  },
-  {
-    id: 3,
-    product: "Designer Lamp Collection",
-    feed: "Bol.com Feed",
-    error: "Ongeldige productcategorie",
-    severity: "error",
-    date: "2024-01-14",
-  },
-];
+const feeds: any[] = [];
+const platforms: any[] = [];
+const errors: any[] = [];
 
 export function AdminShoppingFeeds() {
   const [syncProgress, setSyncProgress] = useState(0);
@@ -227,8 +127,8 @@ export function AdminShoppingFeeds() {
             <Rss className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">van 4 totaal</p>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Geen feeds geconfigureerd</p>
           </CardContent>
         </Card>
 
@@ -238,8 +138,8 @@ export function AdminShoppingFeeds() {
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">599</div>
-            <p className="text-xs text-muted-foreground">Totaal geëxporteerd</p>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Geen producten geëxporteerd</p>
           </CardContent>
         </Card>
 
@@ -249,7 +149,7 @@ export function AdminShoppingFeeds() {
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24,624</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Afgelopen 30 dagen</p>
           </CardContent>
         </Card>
@@ -260,8 +160,8 @@ export function AdminShoppingFeeds() {
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">15</div>
-            <p className="text-xs text-destructive">Vereist aandacht</p>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Geen fouten</p>
           </CardContent>
         </Card>
       </div>
@@ -296,36 +196,44 @@ export function AdminShoppingFeeds() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockFeeds.map((feed) => (
-                    <TableRow key={feed.id}>
-                      <TableCell className="font-medium">{feed.name}</TableCell>
-                      <TableCell>{feed.platform}</TableCell>
-                      <TableCell>{getStatusBadge(feed.status)}</TableCell>
-                      <TableCell>{feed.products.toLocaleString()}</TableCell>
-                      <TableCell>{feed.lastSync}</TableCell>
-                      <TableCell>{feed.syncFrequency}</TableCell>
-                      <TableCell>
-                        {feed.errors > 0 ? (
-                          <Badge variant="destructive">{feed.errors}</Badge>
-                        ) : (
-                          <Badge variant="secondary">0</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </div>
+                  {feeds.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                        Geen shopping feeds geconfigureerd
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    feeds.map((feed) => (
+                      <TableRow key={feed.id}>
+                        <TableCell className="font-medium">{feed.name}</TableCell>
+                        <TableCell>{feed.platform}</TableCell>
+                        <TableCell>{getStatusBadge(feed.status)}</TableCell>
+                        <TableCell>{feed.products.toLocaleString()}</TableCell>
+                        <TableCell>{feed.lastSync}</TableCell>
+                        <TableCell>{feed.syncFrequency}</TableCell>
+                        <TableCell>
+                          {feed.errors > 0 ? (
+                            <Badge variant="destructive">{feed.errors}</Badge>
+                          ) : (
+                            <Badge variant="secondary">0</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm">
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -333,54 +241,70 @@ export function AdminShoppingFeeds() {
         </TabsContent>
 
         <TabsContent value="platforms" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {mockPlatforms.map((platform) => (
-              <Card key={platform.name}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <platform.icon className="h-5 w-5" />
-                      <CardTitle className="text-lg">{platform.name}</CardTitle>
-                    </div>
-                    <Switch checked={platform.connected} />
-                  </div>
-                  <CardDescription>{platform.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {platform.connected ? (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Producten:</span>
-                        <span className="font-medium">{platform.products}</span>
+          {platforms.length === 0 ? (
+            <Card>
+              <CardContent className="py-20 text-center">
+                <Globe className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-medium mb-2">Geen platform integraties</h3>
+                <p className="text-muted-foreground mb-4">
+                  Verbind met shopping platforms om je producten te promoten
+                </p>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Platform Verbinden
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {platforms.map((platform) => (
+                <Card key={platform.name}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <platform.icon className="h-5 w-5" />
+                        <CardTitle className="text-lg">{platform.name}</CardTitle>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Clicks:</span>
-                        <span className="font-medium">{platform.clicks.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Impressions:</span>
-                        <span className="font-medium">{platform.impressions.toLocaleString()}</span>
-                      </div>
-                      <Button variant="outline" size="sm" className="w-full mt-4">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Configureren
-                      </Button>
+                      <Switch checked={platform.connected} />
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">
-                        Nog niet verbonden
-                      </p>
-                      <Button size="sm" className="w-full">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Verbinden
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <CardDescription>{platform.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {platform.connected ? (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Producten:</span>
+                          <span className="font-medium">{platform.products}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Clicks:</span>
+                          <span className="font-medium">{platform.clicks.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Impressions:</span>
+                          <span className="font-medium">{platform.impressions.toLocaleString()}</span>
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full mt-4">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Configureren
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Nog niet verbonden
+                        </p>
+                        <Button size="sm" className="w-full">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Verbinden
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="errors" className="space-y-4">
@@ -402,25 +326,33 @@ export function AdminShoppingFeeds() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockErrors.map((error) => (
-                    <TableRow key={error.id}>
-                      <TableCell className="font-medium">{error.product}</TableCell>
-                      <TableCell>{error.feed}</TableCell>
-                      <TableCell>{error.error}</TableCell>
-                      <TableCell>{getSeverityBadge(error.severity)}</TableCell>
-                      <TableCell>{error.date}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            Oplossen
-                          </Button>
-                        </div>
+                  {errors.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                        Geen fouten gevonden
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    errors.map((error) => (
+                      <TableRow key={error.id}>
+                        <TableCell className="font-medium">{error.product}</TableCell>
+                        <TableCell>{error.feed}</TableCell>
+                        <TableCell>{error.error}</TableCell>
+                        <TableCell>{getSeverityBadge(error.severity)}</TableCell>
+                        <TableCell>{error.date}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm">
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              Oplossen
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

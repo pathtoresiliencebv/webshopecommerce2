@@ -47,29 +47,7 @@ export function AdminBilling() {
     return <div>Geen organisatie geselecteerd</div>;
   }
 
-  const recentInvoices = [
-    {
-      id: 'INV-2024-001',
-      date: '2024-01-15',
-      amount: '€49.00',
-      status: 'paid',
-      period: 'January 2024'
-    },
-    {
-      id: 'INV-2023-012',
-      date: '2023-12-15', 
-      amount: '€49.00',
-      status: 'paid',
-      period: 'December 2023'
-    },
-    {
-      id: 'INV-2023-011',
-      date: '2023-11-15',
-      amount: '€49.00', 
-      status: 'paid',
-      period: 'November 2023'
-    }
-  ];
+  const recentInvoices: any[] = [];
 
   const paymentMethods = [
     {
@@ -239,29 +217,37 @@ export function AdminBilling() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {recentInvoices.map((invoice) => (
-              <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium">{invoice.id}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {invoice.period} • {new Date(invoice.date).toLocaleDateString('nl-NL')}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="font-medium">{invoice.amount}</p>
-                    <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>
-                      {invoice.status === 'paid' ? 'Betaald' : 'Open'}
-                    </Badge>
+          {recentInvoices.length === 0 ? (
+            <div className="py-20 text-center text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Nog geen facturen</h3>
+              <p>Je facturen verschijnen hier zodra je een betaald abonnement hebt.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentInvoices.map((invoice) => (
+                <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <p className="font-medium">{invoice.id}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {invoice.period} • {new Date(invoice.date).toLocaleDateString('nl-NL')}
+                    </p>
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="font-medium">{invoice.amount}</p>
+                      <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>
+                        {invoice.status === 'paid' ? 'Betaald' : 'Open'}
+                      </Badge>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

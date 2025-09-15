@@ -24,123 +24,9 @@ import {
   MessageCircle
 } from "lucide-react";
 
-const mockTickets = [
-  {
-    id: "T-2024-001",
-    customer: "Maria van der Berg",
-    email: "maria@email.com",
-    store: "Aurelio Living",
-    subject: "Beschadigde levering - Eettafel Set",
-    status: "open",
-    priority: "high",
-    created: "2024-01-15 14:30",
-    lastResponse: "2024-01-15 16:45",
-    assignee: "Sarah Johnson",
-    category: "Levering",
-  },
-  {
-    id: "T-2024-002", 
-    customer: "Jan Janssen",
-    email: "jan@email.com",
-    store: "Modern Furniture Co.",
-    subject: "Vraag over retourbeleid",
-    status: "pending",
-    priority: "medium",
-    created: "2024-01-15 09:15",
-    lastResponse: "2024-01-15 11:30",
-    assignee: "Mike Chen",
-    category: "Retour",
-  },
-  {
-    id: "T-2024-003",
-    customer: "Lisa de Vries", 
-    email: "lisa@email.com",
-    store: "Aurelio Living",
-    subject: "Bestelling niet ontvangen",
-    status: "resolved",
-    priority: "high",
-    created: "2024-01-14 16:20",
-    lastResponse: "2024-01-15 08:45",
-    assignee: "Sarah Johnson",
-    category: "Levering",
-  },
-  {
-    id: "T-2024-004",
-    customer: "Tom Peters",
-    email: "tom@email.com", 
-    store: "Design Hub",
-    subject: "Product informatie aanvragen",
-    status: "open",
-    priority: "low",
-    created: "2024-01-14 11:10",
-    lastResponse: "2024-01-14 13:25",
-    assignee: "Emma Wilson",
-    category: "Informatie",
-  },
-];
-
-const mockKnowledgeBase = [
-  {
-    id: 1,
-    title: "Retourbeleid en procedure",
-    category: "Retour",
-    views: 245,
-    lastUpdated: "2024-01-10",
-    helpful: 89,
-  },
-  {
-    id: 2,
-    title: "Levertijden en verzendkosten",
-    category: "Levering", 
-    views: 189,
-    lastUpdated: "2024-01-08",
-    helpful: 156,
-  },
-  {
-    id: 3,
-    title: "Productgarantie voorwaarden",
-    category: "Garantie",
-    views: 134,
-    lastUpdated: "2024-01-05",
-    helpful: 98,
-  },
-];
-
-const mockTeamMembers = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    role: "Senior Support Agent",
-    email: "sarah@aurelio.nl",
-    activeTickets: 8,
-    resolvedToday: 12,
-    avgResponseTime: "1.2 uur",
-    satisfaction: 4.8,
-    status: "online",
-  },
-  {
-    id: 2,
-    name: "Mike Chen", 
-    role: "Support Agent",
-    email: "mike@aurelio.nl",
-    activeTickets: 5,
-    resolvedToday: 8,
-    avgResponseTime: "2.1 uur",
-    satisfaction: 4.6,
-    status: "online",
-  },
-  {
-    id: 3,
-    name: "Emma Wilson",
-    role: "Support Agent",
-    email: "emma@aurelio.nl", 
-    activeTickets: 3,
-    resolvedToday: 6,
-    avgResponseTime: "1.8 uur",
-    satisfaction: 4.7,
-    status: "away",
-  },
-];
+const tickets: any[] = [];
+const knowledgeBase: any[] = [];
+const teamMembers: any[] = [];
 
 export function AdminCustomerService() {
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
@@ -221,8 +107,8 @@ export function AdminCustomerService() {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">+3 vandaag</p>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Geen open tickets</p>
           </CardContent>
         </Card>
 
@@ -232,8 +118,8 @@ export function AdminCustomerService() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1.4u</div>
-            <p className="text-xs text-muted-foreground">-0.2u vs gisteren</p>
+            <div className="text-2xl font-bold">-</div>
+            <p className="text-xs text-muted-foreground">Geen data beschikbaar</p>
           </CardContent>
         </Card>
 
@@ -243,7 +129,7 @@ export function AdminCustomerService() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">189</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Deze maand</p>
           </CardContent>
         </Card>
@@ -254,8 +140,8 @@ export function AdminCustomerService() {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4.7</div>
-            <p className="text-xs text-muted-foreground">van 5 sterren</p>
+            <div className="text-2xl font-bold">-</div>
+            <p className="text-xs text-muted-foreground">Geen feedback nog</p>
           </CardContent>
         </Card>
       </div>
@@ -301,40 +187,48 @@ export function AdminCustomerService() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockTickets.map((ticket) => (
-                    <TableRow 
-                      key={ticket.id}
-                      className={selectedTicket === ticket.id ? "bg-muted/50" : ""}
-                    >
-                      <TableCell className="font-medium">{ticket.id}</TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{ticket.customer}</div>
-                          <div className="text-sm text-muted-foreground">{ticket.email}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{ticket.store}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{ticket.subject}</TableCell>
-                      <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                      <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
-                      <TableCell>{ticket.assignee}</TableCell>
-                      <TableCell>{ticket.created}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setSelectedTicket(ticket.id)}
-                          >
-                            <ArrowUpRight className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <MessageCircle className="h-4 w-4" />
-                          </Button>
-                        </div>
+                  {tickets.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
+                        Geen support tickets gevonden
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    tickets.map((ticket) => (
+                      <TableRow 
+                        key={ticket.id}
+                        className={selectedTicket === ticket.id ? "bg-muted/50" : ""}
+                      >
+                        <TableCell className="font-medium">{ticket.id}</TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{ticket.customer}</div>
+                            <div className="text-sm text-muted-foreground">{ticket.email}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{ticket.store}</TableCell>
+                        <TableCell className="max-w-[200px] truncate">{ticket.subject}</TableCell>
+                        <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                        <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
+                        <TableCell>{ticket.assignee}</TableCell>
+                        <TableCell>{ticket.created}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setSelectedTicket(ticket.id)}
+                            >
+                              <ArrowUpRight className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <MessageCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -342,62 +236,78 @@ export function AdminCustomerService() {
         </TabsContent>
 
         <TabsContent value="team" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {mockTeamMembers.map((member) => (
-              <Card key={member.id}>
-                <CardHeader>
-                  <div className="flex items-center space-x-3">
-                    <div className="relative">
-                      <Avatar>
-                        <AvatarImage src="" />
-                        <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -bottom-1 -right-1">
-                        {getStatusIndicator(member.status)}
+          {teamMembers.length === 0 ? (
+            <Card>
+              <CardContent className="py-20 text-center">
+                <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-medium mb-2">Geen team leden</h3>
+                <p className="text-muted-foreground mb-4">
+                  Voeg team leden toe om customer service te beheren
+                </p>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Team Lid Toevoegen
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {teamMembers.map((member) => (
+                <Card key={member.id}>
+                  <CardHeader>
+                    <div className="flex items-center space-x-3">
+                      <div className="relative">
+                        <Avatar>
+                          <AvatarImage src="" />
+                          <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -bottom-1 -right-1">
+                          {getStatusIndicator(member.status)}
+                        </div>
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{member.name}</CardTitle>
+                        <CardDescription>{member.role}</CardDescription>
                       </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{member.name}</CardTitle>
-                      <CardDescription>{member.role}</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span>Actieve tickets:</span>
-                      <span className="font-medium">{member.activeTickets}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Opgelost vandaag:</span>
-                      <span className="font-medium">{member.resolvedToday}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Gem. reactietijd:</span>
-                      <span className="font-medium">{member.avgResponseTime}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Tevredenheid:</span>
-                      <div className="flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-current text-yellow-500" />
-                        <span className="font-medium">{member.satisfaction}</span>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span>Actieve tickets:</span>
+                        <span className="font-medium">{member.activeTickets}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Opgelost vandaag:</span>
+                        <span className="font-medium">{member.resolvedToday}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Gem. reactietijd:</span>
+                        <span className="font-medium">{member.avgResponseTime}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Tevredenheid:</span>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3 w-3 fill-current text-yellow-500" />
+                          <span className="font-medium">{member.satisfaction}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Chat
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <Mail className="h-4 w-4 mr-1" />
+                          E-mail
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex gap-2 pt-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <MessageCircle className="h-4 w-4 mr-1" />
-                        Chat
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Mail className="h-4 w-4 mr-1" />
-                        E-mail
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="knowledge" className="space-y-4">
@@ -436,32 +346,40 @@ export function AdminCustomerService() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mockKnowledgeBase.map((article) => (
-                      <TableRow key={article.id}>
-                        <TableCell className="font-medium">{article.title}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{article.category}</Badge>
-                        </TableCell>
-                        <TableCell>{article.views}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 text-yellow-500" />
-                            {article.helpful}
-                          </div>
-                        </TableCell>
-                        <TableCell>{article.lastUpdated}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
-                              Bewerk
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              Bekijk
-                            </Button>
-                          </div>
+                    {knowledgeBase.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                          Geen knowledge base artikelen gevonden
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      knowledgeBase.map((article) => (
+                        <TableRow key={article.id}>
+                          <TableCell className="font-medium">{article.title}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{article.category}</Badge>
+                          </TableCell>
+                          <TableCell>{article.views}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 text-yellow-500" />
+                              {article.helpful}
+                            </div>
+                          </TableCell>
+                          <TableCell>{article.lastUpdated}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="sm">
+                                Bewerk
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                Bekijk
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -477,8 +395,8 @@ export function AdminCustomerService() {
                 <CardDescription>Aantal tickets per dag (afgelopen 30 dagen)</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[200px] flex items-center justify-center text-muted-foreground">
-                  [Chart: Ticket volume over tijd]
+                <div className="h-[200px] flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                  Nog geen data beschikbaar voor analytics
                 </div>
               </CardContent>
             </Card>

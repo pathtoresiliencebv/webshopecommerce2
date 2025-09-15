@@ -141,25 +141,25 @@ export function AdminDiscountCodes() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Total Codes</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">5</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Active Codes</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">1,035</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Total Uses</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">$12,450</div>
+            <div className="text-2xl font-bold">€0</div>
             <p className="text-xs text-muted-foreground">Discount Given</p>
           </CardContent>
         </Card>
