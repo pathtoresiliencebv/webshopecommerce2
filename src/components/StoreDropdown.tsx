@@ -38,7 +38,7 @@ const StoreDropdown: React.FC = () => {
     loading: false 
   };
 
-  // For non-logged in users, show current store or fallback
+  // Always ensure "Aurello Living" is available, prioritize current organization
   const displayStore = currentOrganization || store || { 
     id: 'aurello-living', 
     name: 'Aurello Living', 
@@ -151,10 +151,10 @@ const StoreDropdown: React.FC = () => {
           )}
         </DropdownMenuItem>
         
-        {user && userOrganizations.length > 1 && (
+        {user && userOrganizations.length > 0 && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel>Wissel van Winkel</DropdownMenuLabel>
+            <DropdownMenuLabel>Beschikbare Winkels</DropdownMenuLabel>
             {userOrganizations
               .filter(orgUser => orgUser.organization_id !== currentOrganization?.id)
               .map((orgUser) => (
