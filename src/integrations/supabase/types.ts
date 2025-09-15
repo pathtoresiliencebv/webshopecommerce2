@@ -532,6 +532,65 @@ export type Database = {
         }
         Relationships: []
       }
+      media_library: {
+        Row: {
+          alt_text: string | null
+          bucket_name: string
+          caption: string | null
+          category: string | null
+          created_at: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          filename: string
+          id: string
+          organization_id: string
+          original_filename: string | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          alt_text?: string | null
+          bucket_name: string
+          caption?: string | null
+          category?: string | null
+          created_at?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          filename: string
+          id?: string
+          organization_id: string
+          original_filename?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          alt_text?: string | null
+          bucket_name?: string
+          caption?: string | null
+          category?: string | null
+          created_at?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          filename?: string
+          id?: string
+          organization_id?: string
+          original_filename?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_library_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string

@@ -9,6 +9,7 @@ import { AdminTheme } from "@/components/admin/AdminTheme";
 import { AdminStoreSettings } from "@/components/admin/AdminStoreSettings";
 import { AdminThemeCustomize } from "@/components/admin/AdminThemeCustomize";
 import { AdminCollections } from "@/components/admin/AdminCollections";
+import { AdminContent } from "@/components/admin/AdminContent";
 import { AdminCustomerService } from "@/components/admin/AdminCustomerService";
 import { AdminInventory } from "@/components/admin/AdminInventory";
 import { AdminTransfers } from "@/components/admin/AdminTransfers";
@@ -25,7 +26,8 @@ import { LogOut, Plus } from "lucide-react";
 
 export type AdminSection = 
   | "home" 
-  | "orders" 
+  | "orders"
+  | "content"
   | "products" 
   | "collections"
   | "inventory"
@@ -58,6 +60,8 @@ const Admin = () => {
         return <AdminHome />;
       case "orders":
         return <AdminOrders />;
+      case "content":
+        return <AdminContent />;
       case "products":
         return <AdminProducts />;
       case "collections":

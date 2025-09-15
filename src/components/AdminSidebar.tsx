@@ -17,7 +17,8 @@ import {
   Headphones,
   Boxes,
   ArrowLeftRight,
-  Gift
+  Gift,
+  Images
 } from "lucide-react";
 import { AdminSection } from "@/pages/Admin";
 import { useOrganization } from "@/contexts/OrganizationContext";
@@ -45,6 +46,7 @@ interface AdminSidebarProps {
 const mainMenuItems = [
   { id: "home" as AdminSection, label: "Home", icon: Home },
   { id: "orders" as AdminSection, label: "Orders", icon: ShoppingCart },
+  { id: "content" as AdminSection, label: "Content", icon: Images },
 ];
 
 const productMenuItems = [
