@@ -142,8 +142,8 @@ const triggerEvents = [
   };
 
   const getWorkflowStats = (workflow: Workflow) => {
-    const workflowEmails = getWorkflowEmails(workflow.workflow_type);
-    const campaigns = workflowEmails.length || workflow.campaigns?.length || 0;
+    // Use real campaign data from database
+    const campaigns = workflow.campaigns?.length || 0;
     const subscribers = Math.floor(Math.random() * 500) + 50; // Mock data - in real implementation, calculate from email_subscribers
     const performance = Math.floor(Math.random() * 40) + 15; // Mock conversion rate - calculate from email_events
     
@@ -162,7 +162,8 @@ const triggerEvents = [
         delay_hours: selectedWorkflowType?.emails?.[0]?.delay || 24,
         emails_count: selectedWorkflowType?.emails?.length || 1,
         ...newWorkflow.trigger_conditions
-      }
+      },
+      createCampaigns: true // Flag to create campaigns automatically
     };
     
     await onCreate(workflowData);
