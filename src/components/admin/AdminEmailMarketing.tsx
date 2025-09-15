@@ -1,331 +1,655 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Mail, Send, Users, TrendingUp, Plus, Edit, Trash, Eye } from "lucide-react";
-
-const mockCampaigns = [
-  {
-    id: 1,
-    name: "Winter Sale 2024",
-    subject: "❄️ Tot 50% korting op wintercollectie",
-    status: "sent",
-    recipients: 1247,
-    openRate: 24.3,
-    clickRate: 4.2,
-    sentDate: "2024-01-15",
-  },
-  {
-    id: 2,
-    name: "Nieuwe Collectie Preview",
-    subject: "Exclusieve preview van onze lente collectie",
-    status: "draft",
-    recipients: 0,
-    openRate: 0,
-    clickRate: 0,
-    sentDate: "",
-  },
-  {
-    id: 3,
-    name: "Welcome Serie - Email 1",
-    subject: "Welkom bij Aurelio Living! 🏡",
-    status: "automated",
-    recipients: 89,
-    openRate: 68.5,
-    clickRate: 12.4,
-    sentDate: "2024-01-12",
-  },
-];
-
-const mockSubscribers = [
-  { id: 1, email: "maria@email.com", name: "Maria van der Berg", subscribed: "2024-01-10", status: "active" },
-  { id: 2, email: "jan@email.com", name: "Jan Janssen", subscribed: "2024-01-08", status: "active" },
-  { id: 3, email: "lisa@email.com", name: "Lisa de Vries", subscribed: "2024-01-05", status: "unsubscribed" },
-];
-
-const mockTemplates = [
-  { id: 1, name: "Sale Template", description: "Voor promotionele e-mails", lastUsed: "2024-01-15" },
-  { id: 2, name: "Newsletter Template", description: "Standaard nieuwsbrief layout", lastUsed: "2024-01-12" },
-  { id: 3, name: "Welcome Email", description: "Welkom e-mail voor nieuwe klanten", lastUsed: "2024-01-10" },
-];
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { EmailBuilder } from './email/EmailBuilder';
+import { WorkflowManager } from './email/WorkflowManager';
+import { SubscriberManager } from './email/SubscriberManager';
+import { 
+  Mail, 
+  Users, 
+  TrendingUp, 
+  Send, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Plus,
+  Zap,
+  Target,
+  BarChart3,
+  Settings,
+  Palette
+} from 'lucide-react';
 
 export function AdminEmailMarketing() {
-  const [newCampaign, setNewCampaign] = useState({
-    name: "",
-    subject: "",
-    content: "",
+  const { currentOrganization } = useOrganization();
+  const [workflows, setWorkflows] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [subscribers, setSubscribers] = useState([]);
+  const [campaigns, setCampaigns] = useState([]);
+  const [analytics, setAnalytics] = useState({
+    totalSubscribers: 0,
+    openRate: 0,
+    clickRate: 0,
+    emailsSent: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [testEmail, setTestEmail] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState('');
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "sent":
-        return <Badge variant="secondary">Verzonden</Badge>;
-      case "draft":
-        return <Badge variant="outline">Concept</Badge>;
-      case "automated":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Geautomatiseerd</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+  useEffect(() => {
+    if (currentOrganization?.id) {
+      fetchEmailData();
+    }
+  }, [currentOrganization]);
+
+  const fetchEmailData = async () => {
+    setLoading(true);
+    try {
+      const [workflowsRes, templatesRes, subscribersRes, campaignsRes, sendsRes] = await Promise.all([
+        supabase.from('email_workflows').select('*').eq('organization_id', currentOrganization.id),
+        supabase.from('email_templates').select('*').eq('organization_id', currentOrganization.id),
+        supabase.from('email_subscribers').select('*').eq('organization_id', currentOrganization.id),
+        supabase.from('email_campaigns').select('*, workflow:email_workflows(name), template:email_templates(name)').eq('organization_id', currentOrganization.id),
+        supabase.from('email_sends').select('*, events:email_events(*)').eq('organization_id', currentOrganization.id)
+      ]);
+
+      setWorkflows(workflowsRes.data || []);
+      setTemplates(templatesRes.data || []);
+      setSubscribers(subscribersRes.data || []);
+      setCampaigns(campaignsRes.data || []);
+
+      // Calculate analytics
+      const sends = sendsRes.data || [];
+      const totalSent = sends.length;
+      const opens = sends.filter(send => send.events?.some(e => e.event_type === 'open')).length;
+      const clicks = sends.filter(send => send.events?.some(e => e.event_type === 'click')).length;
+      
+      setAnalytics({
+        totalSubscribers: subscribersRes.data?.filter(s => s.is_active).length || 0,
+        openRate: totalSent > 0 ? Math.round((opens / totalSent) * 100) : 0,
+        clickRate: totalSent > 0 ? Math.round((clicks / totalSent) * 100) : 0,
+        emailsSent: totalSent
+      });
+    } catch (error) {
+      console.error('Error fetching email data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load email marketing data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
+
+  const createDefaultWorkflows = async () => {
+    const defaultWorkflows = [
+      {
+        organization_id: currentOrganization.id,
+        name: 'Welcome Series',
+        workflow_type: 'welcome_series',
+        trigger_event: 'subscriber_added',
+        trigger_conditions: { emails_count: 4, delay_hours: 24 },
+        is_active: true
+      },
+      {
+        organization_id: currentOrganization.id,
+        name: 'Cart Abandonment',
+        workflow_type: 'cart_abandonment',
+        trigger_event: 'cart_abandoned',
+        trigger_conditions: { delay_hours: 1, minimum_cart_value: 20 },
+        is_active: true
+      },
+      {
+        organization_id: currentOrganization.id,
+        name: 'Browse Abandonment',
+        workflow_type: 'browse_abandonment', 
+        trigger_event: 'product_viewed',
+        trigger_conditions: { delay_hours: 24 },
+        is_active: true
+      },
+      {
+        organization_id: currentOrganization.id,
+        name: 'Post Purchase',
+        workflow_type: 'post_purchase',
+        trigger_event: 'order_placed',
+        trigger_conditions: { emails_count: 4, delay_hours: 24 },
+        is_active: true
+      },
+      {
+        organization_id: currentOrganization.id,
+        name: 'Winback Campaign',
+        workflow_type: 'winback',
+        trigger_event: 'customer_inactive',
+        trigger_conditions: { inactive_days: 30, emails_count: 3 },
+        is_active: true
+      }
+    ];
+
+    try {
+      const { error } = await supabase.from('email_workflows').insert(defaultWorkflows);
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Default email workflows created successfully"
+      });
+      fetchEmailData();
+    } catch (error) {
+      console.error('Error creating workflows:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create default workflows",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const saveTemplate = async (templateData) => {
+    try {
+      const { error } = await supabase.from('email_templates').insert({
+        organization_id: currentOrganization.id,
+        name: templateData.name,
+        subject: templateData.subject,
+        content: templateData.content,
+        html_content: templateData.htmlContent,
+        template_type: 'custom'
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Email template saved successfully"
+      });
+      
+      setShowBuilder(false);
+      fetchEmailData();
+    } catch (error) {
+      console.error('Error saving template:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to save template",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const sendTestEmail = async (templateId, recipientEmail) => {
+    try {
+      const template = templates.find(t => t.id === templateId);
+      if (!template) return;
+
+      const { error } = await supabase.functions.invoke('send-marketing-email', {
+        body: {
+          type: 'single',
+          organizationId: currentOrganization.id,
+          templateId: template.id,
+          subject: `TEST: ${template.subject}`,
+          htmlContent: template.html_content,
+          toEmail: recipientEmail,
+          fromName: currentOrganization.name
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Test email sent successfully"
+      });
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send test email",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleWorkflow = async (workflowId, isActive) => {
+    try {
+      const { error } = await supabase
+        .from('email_workflows')
+        .update({ is_active: !isActive })
+        .eq('id', workflowId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Workflow ${!isActive ? 'activated' : 'paused'}`
+      });
+      
+      fetchEmailData();
+    } catch (error) {
+      console.error('Error toggling workflow:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update workflow",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const createWorkflow = async (workflowData) => {
+    try {
+      const { error } = await supabase.from('email_workflows').insert({
+        ...workflowData,
+        organization_id: currentOrganization.id
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Workflow created successfully"
+      });
+      
+      fetchEmailData();
+    } catch (error) {
+      console.error('Error creating workflow:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create workflow",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addSubscriber = async (subscriberData) => {
+    try {
+      const { error } = await supabase.from('email_subscribers').insert({
+        ...subscriberData,
+        organization_id: currentOrganization.id
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Subscriber added successfully"
+      });
+      
+      fetchEmailData();
+    } catch (error) {
+      console.error('Error adding subscriber:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add subscriber",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleBulkSubscriberAction = async (action, subscriberIds) => {
+    try {
+      let updateData = {};
+      
+      switch (action) {
+        case 'activate':
+          updateData = { is_active: true };
+          break;
+        case 'deactivate':
+          updateData = { is_active: false };
+          break;
+        case 'delete':
+          const { error } = await supabase
+            .from('email_subscribers')
+            .delete()
+            .in('id', subscriberIds);
+          
+          if (error) throw error;
+          toast({
+            title: "Success",
+            description: `${subscriberIds.length} subscriber(s) deleted`
+          });
+          fetchEmailData();
+          return;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        const { error } = await supabase
+          .from('email_subscribers')
+          .update(updateData)
+          .in('id', subscriberIds);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: `${subscriberIds.length} subscriber(s) updated`
+        });
+        fetchEmailData();
+      }
+    } catch (error) {
+      console.error('Error with bulk action:', error);
+      toast({
+        title: "Error",
+        description: "Failed to perform bulk action",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6">Loading email marketing data...</div>;
+  }
+
+  if (showBuilder) {
+    return (
+      <div className="h-[calc(100vh-200px)]">
+        <EmailBuilder
+          templateId={selectedTemplate?.id}
+          onSave={saveTemplate}
+          onPreview={(html) => {
+            setPreviewHtml(html);
+            setShowPreview(true);
+          }}
+        />
+        <div className="fixed top-4 right-4 z-50">
+          <Button onClick={() => setShowBuilder(false)}>
+            Back to Email Marketing
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">E-mail Marketing</h1>
+          <h1 className="text-3xl font-bold">Email Marketing</h1>
           <p className="text-muted-foreground">
-            Beheer e-mail campagnes, templates en subscriber lijsten
+            Complete email marketing automation with Resend integration
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nieuwe Campagne
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" onClick={() => setShowBuilder(true)}>
+            <Palette className="h-4 w-4 mr-2" />
+            Visual Builder
+          </Button>
+          {workflows.length === 0 && (
+            <Button onClick={createDefaultWorkflows}>
+              <Zap className="h-4 w-4 mr-2" />
+              Setup Default Workflows
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Statistics Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Totaal Subscribers</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Subscribers</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,847</div>
-            <p className="text-xs text-muted-foreground">+12% deze maand</p>
+            <div className="text-2xl font-bold">{analytics.totalSubscribers}</div>
+            <p className="text-xs text-muted-foreground">Active subscribers</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gemiddelde Open Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Average Open Rate</CardTitle>
             <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24.8%</div>
-            <p className="text-xs text-muted-foreground">+2.1% vs vorige maand</p>
+            <div className="text-2xl font-bold">{analytics.openRate}%</div>
+            <p className="text-xs text-muted-foreground">Across all campaigns</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Click Through Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4.2%</div>
-            <p className="text-xs text-muted-foreground">+0.8% vs vorige maand</p>
+            <div className="text-2xl font-bold">{analytics.clickRate}%</div>
+            <p className="text-xs text-muted-foreground">Email engagement</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">E-mails Verzonden</CardTitle>
+            <CardTitle className="text-sm font-medium">Emails Sent</CardTitle>
             <Send className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">18,429</div>
-            <p className="text-xs text-muted-foreground">Deze maand</p>
+            <div className="text-2xl font-bold">{analytics.emailsSent}</div>
+            <p className="text-xs text-muted-foreground">Total sent this month</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="campaigns" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="campaigns">Campagnes</TabsTrigger>
-          <TabsTrigger value="subscribers">Subscribers</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="create">Nieuwe Campagne</TabsTrigger>
+      <Tabs defaultValue="workflows" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="workflows" className="flex items-center space-x-2">
+            <Zap className="h-4 w-4" />
+            <span>Workflows</span>
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="flex items-center space-x-2">
+            <Palette className="h-4 w-4" />
+            <span>Templates</span>
+          </TabsTrigger>
+          <TabsTrigger value="subscribers" className="flex items-center space-x-2">
+            <Users className="h-4 w-4" />
+            <span>Subscribers</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center space-x-2">
+            <BarChart3 className="h-4 w-4" />
+            <span>Analytics</span>
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center space-x-2">
+            <Settings className="h-4 w-4" />
+            <span>Settings</span>
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="campaigns" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>E-mail Campagnes</CardTitle>
-              <CardDescription>Overzicht van alle e-mail campagnes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Campagne</TableHead>
-                    <TableHead>Onderwerp</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Recipients</TableHead>
-                    <TableHead>Open Rate</TableHead>
-                    <TableHead>Click Rate</TableHead>
-                    <TableHead>Datum</TableHead>
-                    <TableHead>Acties</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockCampaigns.map((campaign) => (
-                    <TableRow key={campaign.id}>
-                      <TableCell className="font-medium">{campaign.name}</TableCell>
-                      <TableCell>{campaign.subject}</TableCell>
-                      <TableCell>{getStatusBadge(campaign.status)}</TableCell>
-                      <TableCell>{campaign.recipients.toLocaleString()}</TableCell>
-                      <TableCell>{campaign.openRate}%</TableCell>
-                      <TableCell>{campaign.clickRate}%</TableCell>
-                      <TableCell>{campaign.sentDate || "-"}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="subscribers" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Subscriber Lijst</CardTitle>
-              <CardDescription>Beheer je e-mail subscriber lijst</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <Input placeholder="Zoek subscribers..." className="max-w-sm" />
-                  <Button variant="outline">Import CSV</Button>
-                  <Button variant="outline">Export</Button>
-                </div>
-                
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>E-mail</TableHead>
-                      <TableHead>Naam</TableHead>
-                      <TableHead>Gesubscribeerd</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Acties</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockSubscribers.map((subscriber) => (
-                      <TableRow key={subscriber.id}>
-                        <TableCell>{subscriber.email}</TableCell>
-                        <TableCell>{subscriber.name}</TableCell>
-                        <TableCell>{subscriber.subscribed}</TableCell>
-                        <TableCell>
-                          <Badge variant={subscriber.status === "active" ? "default" : "secondary"}>
-                            {subscriber.status === "active" ? "Actief" : "Uitgeschreven"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="workflows" className="space-y-4">
+          <WorkflowManager
+            workflows={workflows}
+            onToggle={toggleWorkflow}
+            onEdit={(workflow) => console.log('Edit workflow:', workflow)}
+            onDelete={(id) => console.log('Delete workflow:', id)}
+            onCreate={createWorkflow}
+          />
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>E-mail Templates</CardTitle>
-              <CardDescription>Herbruikbare e-mail templates</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
-                {mockTemplates.map((template) => (
-                  <Card key={template.id} className="p-4">
-                    <div className="space-y-2">
-                      <h3 className="font-semibold">{template.name}</h3>
-                      <p className="text-sm text-muted-foreground">{template.description}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Laatst gebruikt: {template.lastUsed}
-                      </p>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4 mr-1" />
-                          Bewerk
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-1" />
-                          Preview
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-2xl font-semibold">Email Templates</h3>
+              <p className="text-muted-foreground">Create and manage reusable email templates</p>
+            </div>
+            <Button onClick={() => setShowBuilder(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Template
+            </Button>
+          </div>
+          
+          {templates.length === 0 ? (
+            <Card>
+              <CardContent className="py-20 text-center">
+                <Palette className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-medium mb-2">No Templates Yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Create beautiful email templates with our visual builder.
+                </p>
+                <Button onClick={() => setShowBuilder(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Your First Template
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3">
+              {templates.map((template) => (
+                <Card key={template.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-semibold">{template.name}</h3>
+                          <Badge variant="outline" className="text-xs mt-1">
+                            {template.template_type}
+                          </Badge>
+                        </div>
+                        <Button variant="ghost" size="sm">
+                          <Settings className="h-4 w-4" />
                         </Button>
                       </div>
+                      
+                      <p className="text-sm text-muted-foreground">
+                        Subject: {template.subject}
+                      </p>
+                      
+                      <p className="text-xs text-muted-foreground">
+                        Created: {new Date(template.created_at).toLocaleDateString()}
+                      </p>
+                      
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="flex-1">
+                              <Eye className="h-3 w-3 mr-1" />
+                              Preview
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+                            <DialogHeader>
+                              <DialogTitle>{template.name} Preview</DialogTitle>
+                            </DialogHeader>
+                            <div
+                              className="border rounded-lg p-4 bg-white"
+                              dangerouslySetInnerHTML={{ __html: template.html_content }}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                      
+                      <div className="pt-2 border-t">
+                        <div className="flex items-center space-x-2">
+                          <Input
+                            placeholder="test@email.com"
+                            value={testEmail}
+                            onChange={(e) => setTestEmail(e.target.value)}
+                            className="text-xs"
+                          />
+                          <Button 
+                            size="sm" 
+                            onClick={() => sendTestEmail(template.id, testEmail)}
+                            disabled={!testEmail}
+                          >
+                            <Send className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="create" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Nieuwe E-mail Campagne</CardTitle>
-              <CardDescription>Maak een nieuwe e-mail campagne aan</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Campagne Naam</label>
-                  <Input
-                    placeholder="Bijvoorbeeld: Lente Sale 2024"
-                    value={newCampaign.name}
-                    onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">E-mail Onderwerp</label>
-                  <Input
-                    placeholder="Onderwerp van de e-mail"
-                    value={newCampaign.subject}
-                    onChange={(e) => setNewCampaign({ ...newCampaign, subject: e.target.value })}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">E-mail Inhoud</label>
-                <Textarea
-                  placeholder="Schrijf hier je e-mail inhoud..."
-                  className="min-h-[200px]"
-                  value={newCampaign.content}
-                  onChange={(e) => setNewCampaign({ ...newCampaign, content: e.target.value })}
-                />
-              </div>
+        <TabsContent value="subscribers" className="space-y-4">
+          <SubscriberManager
+            subscribers={subscribers}
+            onAdd={addSubscriber}
+            onUpdate={(id, data) => console.log('Update subscriber:', id, data)}
+            onDelete={(id) => console.log('Delete subscriber:', id)}
+            onBulkAction={handleBulkSubscriberAction}
+          />
+        </TabsContent>
 
-              <div className="flex gap-2">
-                <Button>
-                  <Send className="h-4 w-4 mr-2" />
-                  Verstuur Nu
-                </Button>
-                <Button variant="outline">Opslaan als Concept</Button>
-                <Button variant="outline">Test Versturen</Button>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="analytics" className="space-y-4">
+          <div>
+            <h3 className="text-2xl font-semibold mb-4">Email Analytics</h3>
+            
+            <div className="grid gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Campaign Performance</CardTitle>
+                  <CardDescription>Detailed analytics for your email campaigns</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-20 text-muted-foreground">
+                    <BarChart3 className="h-12 w-12 mx-auto mb-4" />
+                    <p>Detailed analytics will appear here once you start sending campaigns.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-4">
+          <div>
+            <h3 className="text-2xl font-semibold mb-4">Email Settings</h3>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Sender Settings</CardTitle>
+                <CardDescription>Configure your email sender information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-medium">From Name</label>
+                    <Input placeholder={currentOrganization?.name} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">From Email</label>
+                    <Input placeholder="noreply@yourstore.com" />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Reply-To Email</label>
+                  <Input placeholder="support@yourstore.com" />
+                </div>
+                
+                <Button>Save Settings</Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Email Preview</DialogTitle>
+          </DialogHeader>
+          <div
+            className="border rounded-lg p-4 bg-white"
+            dangerouslySetInnerHTML={{ __html: previewHtml }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
