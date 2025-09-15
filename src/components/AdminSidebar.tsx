@@ -6,11 +6,14 @@ import {
   Users, 
   Ticket, 
   Store, 
+  Mail,
+  Rss,
   Settings,
   Menu,
   ChevronDown,
   Building2,
-  CreditCard
+  CreditCard,
+  Headphones
 } from "lucide-react";
 import { AdminSection } from "@/pages/Admin";
 import { useOrganization } from "@/contexts/OrganizationContext";
@@ -42,12 +45,15 @@ const menuItems = [
   { id: "customers" as AdminSection, label: "Customers", icon: Users },
   { id: "discount-codes" as AdminSection, label: "Discount Codes", icon: Ticket },
   { id: "online-store" as AdminSection, label: "Online Store", icon: Store },
+  { id: "email-marketing" as AdminSection, label: "E-mail Marketing", icon: Mail },
+  { id: "shopping-feeds" as AdminSection, label: "Shopping Feeds", icon: Rss },
   { id: "settings" as AdminSection, label: "Settings", icon: Settings },
 ];
 
 const multiStoreItems = [
   { id: "stores" as AdminSection, label: "Store Manager", icon: Building2 },
   { id: "subscription" as AdminSection, label: "Abonnement", icon: CreditCard },
+  { id: "customer-service" as AdminSection, label: "Customer Service", icon: Headphones },
 ];
 
 export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarProps) {

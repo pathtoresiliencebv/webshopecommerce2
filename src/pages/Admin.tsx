@@ -6,8 +6,11 @@ import { AdminProducts } from "@/components/admin/AdminProducts";
 import { AdminCustomers } from "@/components/admin/AdminCustomers";
 import { AdminDiscountCodes } from "@/components/admin/AdminDiscountCodes";
 import { AdminOnlineStore } from "@/components/admin/AdminOnlineStore";
+import { AdminEmailMarketing } from "@/components/admin/AdminEmailMarketing";
+import { AdminShoppingFeeds } from "@/components/admin/AdminShoppingFeeds";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminCollections } from "@/components/admin/AdminCollections";
+import { AdminCustomerService } from "@/components/admin/AdminCustomerService";
 import StoreManagementDashboard from "@/components/store/StoreManagementDashboard";
 import SubscriptionManager from "@/components/billing/SubscriptionManager";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -26,9 +29,12 @@ export type AdminSection =
   | "customers" 
   | "discount-codes" 
   | "online-store" 
+  | "email-marketing"
+  | "shopping-feeds"
   | "settings"
   | "stores"
-  | "subscription";
+  | "subscription"
+  | "customer-service";
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState<AdminSection>("home");
@@ -56,12 +62,18 @@ const Admin = () => {
         return <AdminDiscountCodes />;
       case "online-store":
         return <AdminOnlineStore />;
+      case "email-marketing":
+        return <AdminEmailMarketing />;
+      case "shopping-feeds":
+        return <AdminShoppingFeeds />;
       case "settings":
         return <AdminSettings />;
       case "stores":
         return <StoreManagementDashboard />;
       case "subscription":
         return <SubscriptionManager />;
+      case "customer-service":
+        return <AdminCustomerService />;
       default:
         return <AdminHome />;
     }
