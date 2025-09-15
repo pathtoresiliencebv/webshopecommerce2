@@ -50,6 +50,7 @@ const mainMenuItems = [
   { id: "orders" as AdminSection, label: "Orders", icon: ShoppingCart },
   { id: "content" as AdminSection, label: "Content", icon: Images },
   { id: "analytics" as AdminSection, label: "Analytics", icon: BarChart3 },
+  { id: "chatwoot" as AdminSection, label: "Customer Service", icon: MessageCircle },
 ];
 
 const productMenuItems = [
