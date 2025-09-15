@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { 
@@ -53,6 +54,7 @@ export default function Checkout() {
   const [discountCode, setDiscountCode] = useState("");
   const { items, total, clearCart } = useCart();
   const { user } = useAuth();
+  const { currentOrganization } = useOrganization();
   const navigate = useNavigate();
 
   // Countdown timer
@@ -125,6 +127,7 @@ export default function Checkout() {
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           items: items,
+          organizationId: currentOrganization?.id,
           shippingInfo: {
             firstName: formData.shipping_first_name,
             lastName: formData.shipping_last_name,

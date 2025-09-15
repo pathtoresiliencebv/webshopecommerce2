@@ -4,11 +4,70 @@ import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Package, Truck, CreditCard } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface Order {
+  id: string;
+  order_number: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  order_items: {
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+  }[];
+}
 
 export default function CheckoutSuccess() {
   const [searchParams] = useSearchParams();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  
   const sessionId = searchParams.get('session_id');
   const orderId = searchParams.get('order');
+
+  useEffect(() => {
+    if (user) {
+      fetchLatestOrder();
+    }
+  }, [user]);
+
+  const fetchLatestOrder = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          order_number,
+          total_amount,
+          status,
+          created_at,
+          order_items (
+            product_name,
+            quantity,
+            unit_price
+          )
+        `)
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error('Error fetching order:', error);
+        return;
+      }
+
+      setOrder(data);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,16 +102,46 @@ export default function CheckoutSuccess() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {sessionId && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Betaling ID:</span>
-                  <span className="font-mono text-sm">{sessionId}</span>
+              {loading ? (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground">Bestellingsgegevens laden...</p>
                 </div>
-              )}
-              {orderId && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bestelnummer:</span>
-                  <span className="font-mono text-sm">{orderId}</span>
+              ) : order ? (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Bestelnummer:</span>
+                    <span className="font-mono text-sm">{order.order_number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Totaalbedrag:</span>
+                    <span className="font-semibold">€{order.total_amount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Status:</span>
+                    <span className="capitalize font-medium">{order.status}</span>
+                  </div>
+                  {sessionId && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Betaling ID:</span>
+                      <span className="font-mono text-sm">{sessionId}</span>
+                    </div>
+                  )}
+                  
+                  {order.order_items && order.order_items.length > 0 && (
+                    <div className="pt-4 border-t">
+                      <h4 className="font-medium mb-2">Bestelde artikelen:</h4>
+                      {order.order_items.map((item, index) => (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span>{item.quantity}x {item.product_name}</span>
+                          <span>€{(item.unit_price * item.quantity).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground">Geen bestellingsgegevens gevonden</p>
                 </div>
               )}
               

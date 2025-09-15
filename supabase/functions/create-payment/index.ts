@@ -21,6 +21,7 @@ interface CartItem {
 
 interface CheckoutData {
   items: CartItem[];
+  organizationId: string;
   shippingInfo: {
     firstName: string;
     lastName: string;
@@ -41,7 +42,7 @@ serve(async (req) => {
   }
 
   try {
-    const { items, shippingInfo, addInsurance }: CheckoutData = await req.json();
+    const { items, organizationId, shippingInfo, addInsurance }: CheckoutData = await req.json();
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -143,6 +144,7 @@ serve(async (req) => {
       billing_address_collection: "required",
       metadata: {
         user_id: user?.id || "",
+        organization_id: organizationId,
         subtotal: subtotal.toString(),
         insurance: addInsurance ? "true" : "false",
       }
@@ -158,6 +160,7 @@ serve(async (req) => {
 
       await supabaseService.from("orders").insert({
         user_id: user.id,
+        organization_id: organizationId,
         order_number: `ORD-${Date.now()}`,
         status: "pending",
         total_amount: total,
