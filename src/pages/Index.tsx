@@ -690,8 +690,8 @@ const Index = () => {
             <div>
               <div className="flex items-center mb-4">
                 <img 
-                  src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
-                  alt="Aurora Living" 
+                  src="/lovable-uploads/aurelio-living-logo-new.png" 
+                  alt="Aurelio Living" 
                   className="h-10 w-auto"
                 />
               </div>

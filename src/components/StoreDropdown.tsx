@@ -98,8 +98,8 @@ const StoreDropdown: React.FC = () => {
     return (
       <div className="flex items-center">
         <img 
-          src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
-          alt="Aurello Living" 
+          src="/lovable-uploads/aurelio-living-logo-new.png" 
+          alt="Aurelio Living" 
           className="h-8 w-auto"
         />
       </div>
@@ -120,8 +120,8 @@ const StoreDropdown: React.FC = () => {
               />
             ) : (
               <img 
-                src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
-                alt="Aurello Living" 
+                src="/lovable-uploads/aurelio-living-logo-new.png" 
+                alt="Aurelio Living" 
                 className="h-8 w-auto mr-2"
               />
             )}
