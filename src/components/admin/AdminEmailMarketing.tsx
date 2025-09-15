@@ -12,6 +12,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { EmailBuilder } from './email/EmailBuilder';
 import { WorkflowManager } from './email/WorkflowManager';
 import { SubscriberManager } from './email/SubscriberManager';
+import { WorkflowScheduler } from './email/WorkflowScheduler';
 import { 
   Mail, 
   Users, 
