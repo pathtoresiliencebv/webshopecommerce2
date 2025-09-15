@@ -1,7 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { supabase } from '@/integrations/supabase/client';
+
+// Local type interfaces for Chatwoot tables
+interface ChatwootAccount {
+  id: string;
+  organization_id: string;
+  chatwoot_account_id: number;
+  account_name: string;
+  account_status: string;
+  access_token: string;
+  website_token: string;
+  created_at: string;
+  updated_at: string;
+  sync_enabled?: boolean;
+  last_sync_at?: string;
+  sync_error?: string;
+  locale: string;
+}
+
+interface ChatwootWidgetEvent {
+  id: string;
+  organization_id: string;
+  user_id?: string;
+  session_id: string;
+  event_type: string;
+  event_data?: any;
+  created_at: string;
+}
 
 interface ChatwootWidgetProps {
   organizationId?: string;
@@ -13,10 +40,12 @@ interface ChatwootWidgetProps {
   };
 }
 
-interface ChatwootAccount {
-  website_token: string;
-  locale: string;
-  account_status: string;
+// Define ref interface
+export interface ChatwootWidgetRef {
+  openChat: () => void;
+  closeChat: () => void;
+  updateCustomAttributes: (attributes: any) => void;
+  identifyUser: () => Promise<void>;
 }
 
 // Extend window interface for Chatwoot
@@ -34,7 +63,8 @@ declare global {
   }
 }
 
-export function ChatwootWidget({ organizationId, customConfig }: ChatwootWidgetProps) {
+export const ChatwootWidget = forwardRef<ChatwootWidgetRef, ChatwootWidgetProps>((props, ref) => {
+  const { organizationId, customConfig } = props;
   const { user } = useAuth();
   const { currentOrganization } = useOrganization();
   const [chatwootAccount, setChatwootAccount] = useState<ChatwootAccount | null>(null);
@@ -45,7 +75,6 @@ export function ChatwootWidget({ organizationId, customConfig }: ChatwootWidgetP
 
   useEffect(() => {
     if (!orgId) return;
-
     fetchChatwootAccount();
   }, [orgId]);
 
@@ -77,8 +106,8 @@ export function ChatwootWidget({ organizationId, customConfig }: ChatwootWidgetP
 
     try {
       const { data, error } = await supabase
-        .from('chatwoot_accounts')
-        .select('website_token, locale, account_status')
+        .from('chatwoot_accounts' as any)
+        .select('*')
         .eq('organization_id', orgId)
         .eq('account_status', 'active')
         .single();
@@ -92,7 +121,7 @@ export function ChatwootWidget({ organizationId, customConfig }: ChatwootWidgetP
         throw error;
       }
 
-      setChatwootAccount(data);
+      setChatwootAccount(data ? (data as unknown as ChatwootAccount) : null);
     } catch (error: any) {
       console.error('Error fetching Chatwoot account:', error);
       setError('Failed to load chat widget');
@@ -144,18 +173,6 @@ export function ChatwootWidget({ organizationId, customConfig }: ChatwootWidgetP
 
       document.head.appendChild(script);
 
-      // Track widget load time
-      const startTime = performance.now();
-      script.onload = () => {
-        const loadTime = performance.now() - startTime;
-        trackWidgetEvent('widget_loaded', { load_time_ms: loadTime });
-        setIsLoaded(true);
-        
-        if (user) {
-          setTimeout(() => identifyUser(), 1000);
-        }
-      };
-
     } catch (error: any) {
       console.error('Error loading Chatwoot widget:', error);
       setError('Failed to initialize chat widget');
@@ -191,9 +208,9 @@ export function ChatwootWidget({ organizationId, customConfig }: ChatwootWidgetP
         .eq('organization_id', orgId);
 
       // Calculate customer stats
-      const totalSpent = orders?.reduce((sum, order) => sum + parseFloat(order.total_amount), 0) || 0;
+      const totalSpent = orders?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
       const cartValue = cart?.reduce((sum, item) => {
-        return sum + (parseFloat(item.products?.price || 0) * item.quantity);
+        return sum + (Number(item.products?.price || 0) * item.quantity);
       }, 0) || 0;
 
       const customerTier = totalSpent >= 5000 ? 'Platinum' : 
@@ -201,7 +218,7 @@ export function ChatwootWidget({ organizationId, customConfig }: ChatwootWidgetP
                           totalSpent >= 1000 ? 'Silver' : 'Bronze';
 
       // Set user in Chatwoot
-      window.$chatwoot.setUser(user.id, {
+      window.$chatwoot.setUser(user.id.toString(), {
         name: profile?.first_name && profile?.last_name 
           ? `${profile.first_name} ${profile.last_name}`
           : user.email?.split('@')[0] || 'Customer',
@@ -231,16 +248,18 @@ export function ChatwootWidget({ organizationId, customConfig }: ChatwootWidgetP
 
     try {
       await supabase
-        .from('chatwoot_widget_events')
+        .from('chatwoot_widget_events' as any)
         .insert({
           organization_id: orgId,
           event_type: eventType,
           session_id: generateSessionId(),
-          user_id: user?.id || null,
-          page_url: window.location.href,
-          user_agent: navigator.userAgent,
-          referrer: document.referrer,
-          event_data: eventData
+          user_id: user?.id?.toString() || null,
+          event_data: {
+            page_url: window.location.href,
+            user_agent: navigator.userAgent,
+            referrer: document.referrer,
+            ...eventData
+          }
         });
     } catch (error: any) {
       console.error('Error tracking widget event:', error);
@@ -277,7 +296,7 @@ export function ChatwootWidget({ organizationId, customConfig }: ChatwootWidgetP
   };
 
   // Expose methods to parent components
-  React.useImperativeHandle(React.forwardRef(() => null), () => ({
+  useImperativeHandle(ref, () => ({
     openChat,
     closeChat,
     updateCustomAttributes,
@@ -297,7 +316,9 @@ export function ChatwootWidget({ organizationId, customConfig }: ChatwootWidgetP
 
   // The widget is loaded via script injection, no visual component needed
   return null;
-}
+});
+
+ChatwootWidget.displayName = 'ChatwootWidget';
 
 // Export utility functions for use in other components
 export const useChatwootWidget = () => {

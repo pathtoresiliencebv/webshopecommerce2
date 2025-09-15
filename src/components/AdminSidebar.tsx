@@ -19,7 +19,8 @@ import {
   ArrowLeftRight,
   Gift,
   Images,
-  BarChart3
+  BarChart3,
+  MessageCircle
 } from "lucide-react";
 import { AdminSection } from "@/pages/Admin";
 import { useOrganization } from "@/contexts/OrganizationContext";
