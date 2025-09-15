@@ -9,18 +9,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Plus, Upload, Tag, Folder } from "lucide-react";
+import { X, Plus, Upload, Tag, Folder, ArrowLeft, MoreHorizontal } from "lucide-react";
 import { ImageUpload } from "./ImageUpload";
-import { SEOPreview } from "./SEOPreview";
+import { ProductVariants } from "./ProductVariants";
+import { ProductOrganization } from "./ProductOrganization";
 
 interface ProductFormProps {
   product?: any;
   onSave: (product: any) => void;
   onCancel: () => void;
 }
-
-// Remove hardcoded arrays - will be fetched from database
 
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [availableTags, setAvailableTags] = useState<any[]>([]);
@@ -36,6 +34,8 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     originalPrice: product?.originalPrice || "",
     stockQuantity: product?.stockQuantity || "",
     category: product?.category || "",
+    vendor: product?.vendor || "",
+    product_type: product?.product_type || "",
     tags: product?.tags || [],
     collections: product?.collections || [],
     isActive: product?.isActive ?? true,
@@ -53,23 +53,18 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     }
   });
 
-  // Generate slug from name
-  const generateSlug = (name: string) => {
-    return name.toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-  };
-
-  const [newTag, setNewTag] = useState("");
-  const [newCollection, setNewCollection] = useState("");
+  // Product variants and options state
+  const [variants, setVariants] = useState<any[]>([]);
+  const [options, setOptions] = useState<any[]>([]);
 
   useEffect(() => {
     if (currentOrganization) {
       fetchTagsAndCollections();
+      if (product?.id) {
+        fetchVariantsAndOptions();
+      }
     }
-  }, [currentOrganization]);
+  }, [currentOrganization, product]);
 
   const fetchTagsAndCollections = async () => {
     if (!currentOrganization) return;
@@ -87,380 +82,176 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     }
   };
 
-  const handleAddTag = async (tagName: string) => {
-    if (!tagName || formData.tags.includes(tagName) || !currentOrganization) return;
+  const fetchVariantsAndOptions = async () => {
+    if (!product?.id) return;
 
     try {
-      // Check if tag exists, if not create it
-      let tag = availableTags.find(t => t.name === tagName);
-      
-      if (!tag) {
-        const { data, error } = await supabase
-          .from('tags')
-          .insert({
-            name: tagName,
-            slug: tagName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-            organization_id: currentOrganization.id
-          })
-          .select()
-          .single();
+      const [variantsResponse, optionsResponse] = await Promise.all([
+        supabase.from('product_variants').select('*').eq('product_id', product.id).order('position'),
+        supabase.from('product_options').select('*').eq('product_id', product.id).order('position')
+      ]);
 
-        if (error) throw error;
-        tag = data;
-        setAvailableTags(prev => [...prev, tag]);
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tagName]
-      }));
-    } catch (error: any) {
-      console.error("Failed to add tag:", error);
+      if (variantsResponse.data) setVariants(variantsResponse.data);
+      if (optionsResponse.data) setOptions(optionsResponse.data);
+    } catch (error) {
+      console.error('Error fetching variants and options:', error);
     }
-    setNewTag("");
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
-
-  const handleAddCollection = async (collectionName: string) => {
-    if (!collectionName || formData.collections.includes(collectionName) || !currentOrganization) return;
-
+  const handleSave = async () => {
     try {
-      // Check if collection exists, if not create it
-      let collection = availableCollections.find(c => c.name === collectionName);
-      
-      if (!collection) {
-        const { data, error } = await supabase
-          .from('collections')
-          .insert({
-            name: collectionName,
-            slug: collectionName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-            organization_id: currentOrganization.id
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        collection = data;
-        setAvailableCollections(prev => [...prev, collection]);
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        collections: [...prev.collections, collectionName]
-      }));
-    } catch (error: any) {
-      console.error("Failed to add collection:", error);
+      const productData = {
+        ...formData,
+        variants,
+        options
+      };
+      await onSave(productData);
+    } catch (error) {
+      console.error('Error saving product:', error);
     }
-    setNewCollection("");
-  };
-
-  const handleRemoveCollection = (collectionToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      collections: prev.collections.filter(collection => collection !== collectionToRemove)
-    }));
-  };
-
-  const handleSave = () => {
-    onSave(formData);
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{product ? 'Edit Product' : 'Add New Product'}</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button onClick={handleSave}>Save Product</Button>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b bg-card">
+        <div className="flex h-16 items-center px-6 gap-4">
+          <Button variant="ghost" size="sm" onClick={onCancel}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-semibold">
+                {formData.name || (product ? 'Edit Product' : 'Add Product')}
+              </h1>
+              {formData.isActive && (
+                <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200">
+                  Actief
+                </Badge>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={onCancel}>Annuleren</Button>
+            <Button onClick={handleSave}>Opslaan</Button>
+          </div>
         </div>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="tags-collections">Tags & Collections</TabsTrigger>
-          <TabsTrigger value="pricing">Pricing & Inventory</TabsTrigger>
-          <TabsTrigger value="seo">SEO & Meta</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="general" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+      {/* Main Content */}
+      <div className="flex">
+        {/* Main Content Area */}
+        <div className="flex-1 p-6">
+          <div className="max-w-4xl space-y-6">
+            
+            {/* Basic Information */}
+            <Card>
+              <CardContent className="p-6 space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Product Name</Label>
+                  <Label htmlFor="name">Titel</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter product name"
+                    placeholder="Korte mouwen t-shirt"
+                    className="text-lg"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="sku">SKU</Label>
+                  <Label htmlFor="description">Beschrijving</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Beschrijf je product..."
+                    rows={8}
+                    className="resize-none"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Media */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Media</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ImageUpload
+                  value={formData.imageUrl}
+                  onChange={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
+                  onRemove={() => setFormData(prev => ({ ...prev, imageUrl: "" }))}
+                  label="Product afbeelding"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Pricing */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Prijzen</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Prijs</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
+                      <Input
+                        id="price"
+                        type="number"
+                        value={formData.price}
+                        onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                        placeholder="0,00"
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="original-price">Vergelijk prijs</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
+                      <Input
+                        id="original-price"
+                        type="number"
+                        value={formData.originalPrice}
+                        onChange={(e) => setFormData(prev => ({ ...prev, originalPrice: e.target.value }))}
+                        placeholder="0,00"
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Variants Section */}
+            <ProductVariants 
+              variants={variants}
+              options={options}
+              onVariantsChange={setVariants}
+              onOptionsChange={setOptions}
+            />
+
+            {/* Inventory */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Voorraad</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="sku">SKU (voorraadeenheid)</Label>
                   <Input
                     id="sku"
                     value={formData.sku}
                     onChange={(e) => setFormData(prev => ({ ...prev, sku: e.target.value }))}
-                    placeholder="Product SKU"
+                    placeholder="SKU"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="chairs">Chairs</SelectItem>
-                    <SelectItem value="desks">Desks</SelectItem>
-                    <SelectItem value="storage">Storage</SelectItem>
-                    <SelectItem value="lighting">Lighting</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="short-description">Short Description</Label>
-                <Textarea
-                  id="short-description"
-                  value={formData.shortDescription}
-                  onChange={(e) => setFormData(prev => ({ ...prev, shortDescription: e.target.value }))}
-                  placeholder="Brief product description"
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Full Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Detailed product description"
-                  rows={6}
-                />
-              </div>
-
-              <ImageUpload
-                value={formData.imageUrl}
-                onChange={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
-                onRemove={() => setFormData(prev => ({ ...prev, imageUrl: "" }))}
-                label="Product Image"
-              />
-
-              <div className="grid gap-4 md:grid-cols-3">
+                
                 <div className="space-y-2">
-                  <Label htmlFor="weight">Weight (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    value={formData.weight}
-                    onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
-                    placeholder="0.0"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="length">Length (cm)</Label>
-                  <Input
-                    id="length"
-                    type="number"
-                    value={formData.dimensions.length}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      dimensions: { ...prev.dimensions, length: e.target.value }
-                    }))}
-                    placeholder="0"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="width">Width (cm)</Label>
-                  <Input
-                    id="width"
-                    type="number"
-                    value={formData.dimensions.width}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      dimensions: { ...prev.dimensions, width: e.target.value }
-                    }))}
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="height">Height (cm)</Label>
-                <Input
-                  id="height"
-                  type="number"
-                  value={formData.dimensions.height}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    dimensions: { ...prev.dimensions, height: e.target.value }
-                  }))}
-                  placeholder="0"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="tags-collections" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Tag className="h-5 w-5" />
-                  Product Tags
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {formData.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                      {tag}
-                      <X 
-                        className="h-3 w-3 cursor-pointer" 
-                        onClick={() => handleRemoveTag(tag)}
-                      />
-                    </Badge>
-                  ))}
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Add Existing Tags</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableTags.filter(tag => !formData.tags.includes(tag.name)).map((tag) => (
-                      <Button
-                        key={tag.id}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddTag(tag.name)}
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        {tag.name}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="new-tag">Create New Tag</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="new-tag"
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      placeholder="Enter new tag"
-                    />
-                    <Button onClick={() => handleAddTag(newTag)}>Add</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Folder className="h-5 w-5" />
-                  Collections
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {formData.collections.map((collection) => (
-                    <Badge key={collection} variant="default" className="flex items-center gap-1">
-                      {collection}
-                      <X 
-                        className="h-3 w-3 cursor-pointer" 
-                        onClick={() => handleRemoveCollection(collection)}
-                      />
-                    </Badge>
-                  ))}
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Add to Existing Collections</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableCollections.filter(collection => !formData.collections.includes(collection.name)).map((collection) => (
-                      <Button
-                        key={collection.id}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddCollection(collection.name)}
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        {collection.name}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="new-collection">Create New Collection</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="new-collection"
-                      value={newCollection}
-                      onChange={(e) => setNewCollection(e.target.value)}
-                      placeholder="Enter new collection"
-                    />
-                    <Button onClick={() => handleAddCollection(newCollection)}>Add</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="pricing" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pricing</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="price">Current Price (€)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="original-price">Original Price (€)</Label>
-                  <Input
-                    id="original-price"
-                    type="number"
-                    value={formData.originalPrice}
-                    onChange={(e) => setFormData(prev => ({ ...prev, originalPrice: e.target.value }))}
-                    placeholder="0.00"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Inventory & Status</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="stock">Stock Quantity</Label>
+                  <Label htmlFor="stock">Hoeveelheid</Label>
                   <Input
                     id="stock"
                     type="number"
@@ -469,88 +260,126 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                     placeholder="0"
                   />
                 </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Active Product</Label>
-                    <Switch
-                      checked={formData.isActive}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Label>Featured Product</Label>
-                    <Switch
-                      checked={formData.isFeatured}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isFeatured: checked }))}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Label>New Product</Label>
-                    <Switch
-                      checked={formData.isNew}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isNew: checked }))}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Label>On Sale</Label>
-                    <Switch
-                      checked={formData.isSale}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isSale: checked }))}
-                    />
-                  </div>
-                </div>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
 
-        <TabsContent value="seo" className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Shipping */}
             <Card>
               <CardHeader>
-                <CardTitle>SEO & Meta Information</CardTitle>
+                <CardTitle>Verzending</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="meta-title">Meta Title</Label>
-                  <Input
-                    id="meta-title"
-                    value={formData.metaTitle}
-                    onChange={(e) => setFormData(prev => ({ ...prev, metaTitle: e.target.value }))}
-                    placeholder="SEO optimized title (max 60 characters)"
-                    maxLength={60}
-                  />
-                  <p className="text-xs text-muted-foreground">{formData.metaTitle.length}/60 characters</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="meta-description">Meta Description</Label>
-                  <Textarea
-                    id="meta-description"
-                    value={formData.metaDescription}
-                    onChange={(e) => setFormData(prev => ({ ...prev, metaDescription: e.target.value }))}
-                    placeholder="SEO optimized description (max 160 characters)"
-                    maxLength={160}
-                    rows={3}
-                  />
-                  <p className="text-xs text-muted-foreground">{formData.metaDescription.length}/160 characters</p>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="weight">Gewicht</Label>
+                    <Input
+                      id="weight"
+                      type="number"
+                      value={formData.weight}
+                      onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
+                      placeholder="0,0 kg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="length">Lengte</Label>
+                    <Input
+                      id="length"
+                      type="number"
+                      value={formData.dimensions.length}
+                      onChange={(e) => setFormData(prev => ({ 
+                        ...prev, 
+                        dimensions: { ...prev.dimensions, length: e.target.value }
+                      }))}
+                      placeholder="0 cm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="width">Breedte</Label>
+                    <Input
+                      id="width"
+                      type="number"
+                      value={formData.dimensions.width}
+                      onChange={(e) => setFormData(prev => ({ 
+                        ...prev, 
+                        dimensions: { ...prev.dimensions, width: e.target.value }
+                      }))}
+                      placeholder="0 cm"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <SEOPreview
-              title={formData.metaTitle || formData.name}
-              description={formData.metaDescription || formData.shortDescription}
-              slug={generateSlug(formData.name)}
-              type="product"
-            />
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+
+        {/* Sidebar */}
+        <div className="w-80 border-l bg-card p-6 space-y-6">
+          
+          {/* Product Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Productstatus</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Select 
+                value={formData.isActive ? "active" : "draft"} 
+                onValueChange={(value) => setFormData(prev => ({ 
+                  ...prev, 
+                  isActive: value === "active" 
+                }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Actief</SelectItem>
+                  <SelectItem value="draft">Concept</SelectItem>
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
+          {/* Product Organization */}
+          <ProductOrganization
+            formData={formData}
+            setFormData={setFormData}
+            availableCollections={availableCollections}
+            availableTags={availableTags}
+          />
+
+          {/* Product Visibility */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Productbeschikbaarheid</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-normal">Uitgelicht product</Label>
+                <Switch
+                  checked={formData.isFeatured}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isFeatured: checked }))}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-normal">Nieuw product</Label>
+                <Switch
+                  checked={formData.isNew}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isNew: checked }))}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-normal">In de uitverkoop</Label>
+                <Switch
+                  checked={formData.isSale}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isSale: checked }))}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+        </div>
+      </div>
     </div>
   );
 }

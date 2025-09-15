@@ -930,6 +930,36 @@ export type Database = {
           },
         ]
       }
+      product_options: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          position: number | null
+          product_id: string
+          updated_at: string
+          values: string[]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          position?: number | null
+          product_id: string
+          updated_at?: string
+          values?: string[]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number | null
+          product_id?: string
+          updated_at?: string
+          values?: string[]
+        }
+        Relationships: []
+      }
       product_tags: {
         Row: {
           created_at: string
@@ -948,6 +978,54 @@ export type Database = {
           id?: string
           product_id?: string
           tag_id?: string
+        }
+        Relationships: []
+      }
+      product_variants: {
+        Row: {
+          barcode: string | null
+          compare_at_price: number | null
+          created_at: string
+          id: string
+          inventory_quantity: number | null
+          is_active: boolean | null
+          option_values: Json
+          position: number | null
+          price: number
+          product_id: string
+          sku: string | null
+          updated_at: string
+          weight: number | null
+        }
+        Insert: {
+          barcode?: string | null
+          compare_at_price?: number | null
+          created_at?: string
+          id?: string
+          inventory_quantity?: number | null
+          is_active?: boolean | null
+          option_values?: Json
+          position?: number | null
+          price: number
+          product_id: string
+          sku?: string | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Update: {
+          barcode?: string | null
+          compare_at_price?: number | null
+          created_at?: string
+          id?: string
+          inventory_quantity?: number | null
+          is_active?: boolean | null
+          option_values?: Json
+          position?: number | null
+          price?: number
+          product_id?: string
+          sku?: string | null
+          updated_at?: string
+          weight?: number | null
         }
         Relationships: []
       }
@@ -970,11 +1048,13 @@ export type Database = {
           organization_id: string
           original_price: number | null
           price: number
+          product_type: string | null
           short_description: string | null
           sku: string | null
           slug: string
           stock_quantity: number | null
           updated_at: string
+          vendor: string | null
           weight: number | null
         }
         Insert: {
@@ -995,11 +1075,13 @@ export type Database = {
           organization_id: string
           original_price?: number | null
           price: number
+          product_type?: string | null
           short_description?: string | null
           sku?: string | null
           slug: string
           stock_quantity?: number | null
           updated_at?: string
+          vendor?: string | null
           weight?: number | null
         }
         Update: {
@@ -1020,11 +1102,13 @@ export type Database = {
           organization_id?: string
           original_price?: number | null
           price?: number
+          product_type?: string | null
           short_description?: string | null
           sku?: string | null
           slug?: string
           stock_quantity?: number | null
           updated_at?: string
+          vendor?: string | null
           weight?: number | null
         }
         Relationships: [
