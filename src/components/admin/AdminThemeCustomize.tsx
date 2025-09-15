@@ -65,17 +65,32 @@ export function AdminThemeCustomize({ onSectionChange }: AdminThemeCustomizeProp
   // Load existing theme settings
   useEffect(() => {
     const fetchSettings = async () => {
-      if (!currentOrganization?.id) return;
+      if (!currentOrganization?.id) {
+        console.warn('No organization ID available');
+        setLoading(false);
+        return;
+      }
 
       try {
+        console.log('Fetching theme settings for organization:', currentOrganization.id);
+        
+        // Get the most recent active theme settings, handling duplicates
         const { data, error } = await supabase
           .from('theme_settings')
           .select('appearance_settings, seo_settings')
           .eq('organization_id', currentOrganization.id)
           .eq('is_active', true)
+          .order('updated_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching theme settings:', error);
+          toast.error(`Failed to load theme settings: ${error.message}`);
+          return;
+        }
+
+        console.log('Theme settings data:', data);
 
         if (data) {
           const appearance = (data.appearance_settings as any) || {};
@@ -85,10 +100,26 @@ export function AdminThemeCustomize({ onSectionChange }: AdminThemeCustomizeProp
             ...(typeof appearance === 'object' && appearance !== null ? appearance : {}),
             ...(typeof seo === 'object' && seo !== null ? seo : {})
           });
+        } else {
+          console.log('No theme settings found, will create defaults on first save');
+          // Set default values
+          setSettings({
+            store_name: currentOrganization.name || 'My Store',
+            tagline: 'Welcome to our store',
+            primary_color: '#3B82F6',
+            font_family: 'figtree',
+            show_featured_products: true,
+            show_newsletter_signup: true,
+            site_title: currentOrganization.name || 'My Store',
+            site_description: 'Welcome to our online store',
+            xml_sitemap_enabled: true,
+            robots_txt_enabled: true,
+            structured_data_enabled: true
+          });
         }
       } catch (error) {
-        console.error('Error fetching theme settings:', error);
-        toast.error('Failed to load theme settings');
+        console.error('Unexpected error:', error);
+        toast.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         setLoading(false);
       }
@@ -103,6 +134,8 @@ export function AdminThemeCustomize({ onSectionChange }: AdminThemeCustomizeProp
 
     setSaving(true);
     try {
+      console.log('Saving theme settings for organization:', currentOrganization.id);
+
       const appearanceSettings = {
         logo_url: settings.logo_url,
         store_name: settings.store_name,
@@ -128,11 +161,19 @@ export function AdminThemeCustomize({ onSectionChange }: AdminThemeCustomizeProp
         structured_data_enabled: settings.structured_data_enabled
       };
 
+      // First deactivate any existing active themes for this organization
+      await supabase
+        .from('theme_settings')
+        .update({ is_active: false })
+        .eq('organization_id', currentOrganization.id)
+        .eq('is_active', true);
+
+      // Then insert the new theme settings
       const { error } = await supabase
         .from('theme_settings')
-        .upsert({
+        .insert({
           organization_id: currentOrganization.id,
-          theme_name: 'Custom Theme',
+          theme_name: `Custom Theme ${Date.now()}`, // Make theme name unique
           appearance_settings: appearanceSettings,
           seo_settings: seoSettings,
           is_active: true
@@ -140,10 +181,11 @@ export function AdminThemeCustomize({ onSectionChange }: AdminThemeCustomizeProp
 
       if (error) throw error;
 
+      console.log('Theme settings saved successfully');
       toast.success('Theme settings saved successfully');
     } catch (error) {
       console.error('Error saving theme settings:', error);
-      toast.error('Failed to save theme settings');
+      toast.error(`Failed to save theme settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
