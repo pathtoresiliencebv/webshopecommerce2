@@ -118,6 +118,45 @@ export type Database = {
           },
         ]
       }
+      custom_domains: {
+        Row: {
+          created_at: string
+          dns_verified_at: string | null
+          domain: string
+          id: string
+          is_primary: boolean | null
+          organization_id: string
+          ssl_issued_at: string | null
+          ssl_status: string | null
+          updated_at: string
+          verification_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          dns_verified_at?: string | null
+          domain: string
+          id?: string
+          is_primary?: boolean | null
+          organization_id: string
+          ssl_issued_at?: string | null
+          ssl_status?: string | null
+          updated_at?: string
+          verification_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          dns_verified_at?: string | null
+          domain?: string
+          id?: string
+          is_primary?: boolean | null
+          organization_id?: string
+          ssl_issued_at?: string | null
+          ssl_status?: string | null
+          updated_at?: string
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
       customer_events: {
         Row: {
           created_at: string
@@ -200,6 +239,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      domain_verification_records: {
+        Row: {
+          created_at: string
+          custom_domain_id: string
+          id: string
+          is_verified: boolean | null
+          record_name: string
+          record_type: string
+          record_value: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          custom_domain_id: string
+          id?: string
+          is_verified?: boolean | null
+          record_name: string
+          record_type: string
+          record_value: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          custom_domain_id?: string
+          id?: string
+          is_verified?: boolean | null
+          record_name?: string
+          record_type?: string
+          record_value?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: []
       }
       email_campaigns: {
         Row: {
