@@ -28,6 +28,7 @@ interface CartItem {
 
 interface Customer {
   id: string;
+  email?: string;
   first_name: string;
   last_name: string;
   phone?: string;
@@ -81,9 +82,10 @@ export default function CreateOrder() {
       if (!currentOrganization?.id) return [];
       
       const { data, error } = await supabase
-        .from('profiles')
+        .from('customers')
         .select('*')
-        .or(`first_name.ilike.%${customerSearch}%,last_name.ilike.%${customerSearch}%`)
+        .eq('organization_id', currentOrganization.id)
+        .or(`first_name.ilike.%${customerSearch}%,last_name.ilike.%${customerSearch}%,email.ilike.%${customerSearch}%`)
         .limit(10);
 
       if (error) throw error;
@@ -109,7 +111,8 @@ export default function CreateOrder() {
         .from('orders')
         .insert({
           organization_id: currentOrganization.id,
-          user_id: selectedCustomer.id,
+          customer_id: selectedCustomer.id,
+          user_id: null, // Keep for backward compatibility
           order_number: orderNumber,
           status: 'pending',
           subtotal,

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { toast } from "sonner";
 
 interface CustomerFormProps {
@@ -30,12 +31,14 @@ export function CustomerForm({
   onCancel
 }: CustomerFormProps) {
   const { user } = useAuth();
+  const { currentOrganization } = useOrganization();
   const queryClient = useQueryClient();
   
   // Determine if we're in dialog mode or full page mode
   const isDialogMode = open !== undefined;
   
   const [formData, setFormData] = useState({
+    email: customer?.email || '',
     first_name: customer?.first_name || '',
     last_name: customer?.last_name || '',
     phone: customer?.phone || '',
@@ -48,12 +51,12 @@ export function CustomerForm({
 
   const createCustomerMutation = useMutation({
     mutationFn: async (customerData: typeof formData) => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user || !currentOrganization) throw new Error('User not authenticated or no organization');
 
       const { data, error } = await supabase
-        .from('profiles')
+        .from('customers')
         .insert({
-          user_id: crypto.randomUUID(),
+          organization_id: currentOrganization.id,
           ...customerData
         })
         .select()
@@ -74,6 +77,7 @@ export function CustomerForm({
       
       // Reset form
       setFormData({
+        email: '',
         first_name: '',
         last_name: '',
         phone: '',
@@ -135,6 +139,16 @@ export function CustomerForm({
             required
           />
         </div>
+      </div>
+      
+      <div>
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        />
       </div>
       
       <div>

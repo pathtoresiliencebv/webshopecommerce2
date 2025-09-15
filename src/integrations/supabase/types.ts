@@ -187,6 +187,65 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          organization_id: string
+          phone: string | null
+          postal_code: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          organization_id: string
+          phone?: string | null
+          postal_code?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          organization_id?: string
+          phone?: string | null
+          postal_code?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discount_codes: {
         Row: {
           code: string
@@ -728,6 +787,7 @@ export type Database = {
           billing_phone: string | null
           billing_postal_code: string
           created_at: string
+          customer_id: string | null
           delivered_at: string | null
           discount_amount: number | null
           id: string
@@ -761,6 +821,7 @@ export type Database = {
           billing_phone?: string | null
           billing_postal_code: string
           created_at?: string
+          customer_id?: string | null
           delivered_at?: string | null
           discount_amount?: number | null
           id?: string
@@ -794,6 +855,7 @@ export type Database = {
           billing_phone?: string | null
           billing_postal_code?: string
           created_at?: string
+          customer_id?: string | null
           delivered_at?: string | null
           discount_amount?: number | null
           id?: string
@@ -818,6 +880,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_organization_id_fkey"
             columns: ["organization_id"]

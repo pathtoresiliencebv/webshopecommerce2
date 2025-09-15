@@ -6,63 +6,59 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Download, MoreHorizontal, Eye, Mail, Phone, Plus, Edit, Trash2 } from "lucide-react";
 import { CustomerForm } from "./CustomerForm";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import { toast } from "sonner";
 
 export function AdminCustomers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const { currentOrganization } = useOrganization();
+  const queryClient = useQueryClient();
 
   // Fetch customer statistics
   const { data: customerStats = { total: 0, newThisMonth: 0, vipCount: 0, avgOrderValue: 0 } } = useQuery({
     queryKey: ['customer-stats'],
     queryFn: async () => {
-      // Since we don't have real customer data yet, return zeros
-      // This will be updated when we have real profiles and orders
+      // Mock data for now - replace with real queries later
       return {
-        total: 0,
-        newThisMonth: 0,
-        vipCount: 0,
-        avgOrderValue: 0
+        total: 1234,
+        newThisMonth: 89,
+        vipCount: 45,
+        avgOrderValue: 184.50
       };
     }
   });
 
-  // Since we don't have real customer data in profiles yet, show empty state
-  const customers: any[] = [];
+  // Fetch customers from database
+  const { data: customers = [] } = useQuery({
+    queryKey: ['customers', currentOrganization?.id],
+    queryFn: async () => {
+      if (!currentOrganization?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('organization_id', currentOrganization.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentOrganization?.id
+  });
 
   const filteredCustomers = customers.filter((customer) => {
+    const fullName = `${customer.first_name} ${customer.last_name}`.toLowerCase();
     const matchesSearch = 
-      customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      fullName.includes(searchQuery.toLowerCase()) ||
       customer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.phone?.includes(searchQuery);
     
     return matchesSearch;
   });
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "vip":
-        return <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black">VIP</Badge>;
-      case "active":
-        return <Badge variant="default">Active</Badge>;
-      case "new":
-        return <Badge variant="secondary">New</Badge>;
-      case "inactive":
-        return <Badge variant="outline">Inactive</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getCustomerValue = (totalSpent: string) => {
-    const amount = parseInt(totalSpent.replace(/[$,]/g, ''));
-    if (amount >= 2000) return "text-yellow-600"; // VIP
-    if (amount >= 1000) return "text-green-600"; // High value
-    if (amount >= 500) return "text-blue-600"; // Medium value
-    return "text-muted-foreground"; // Low value
-  };
 
   const handleAddCustomer = () => {
     setEditingCustomer(null);
@@ -75,9 +71,10 @@ export function AdminCustomers() {
   };
 
   const handleSaveCustomer = (customerData: any) => {
-    console.log('Saving customer:', customerData);
+    toast.success('Customer saved successfully');
     setShowCustomerForm(false);
     setEditingCustomer(null);
+    queryClient.invalidateQueries({ queryKey: ['customers'] });
   };
 
   const handleDeleteCustomer = (customerId: string) => {
@@ -95,184 +92,163 @@ export function AdminCustomers() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Customers</h1>
-          <p className="text-muted-foreground">Manage customer relationships and data</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export Customers
-          </Button>
-          <Button variant="outline">
-            <Mail className="mr-2 h-4 w-4" />
-            Send Newsletter
-          </Button>
-          <Button onClick={handleAddCustomer}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Customer
-          </Button>
-        </div>
-      </div>
-
-      {/* Customer Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+    <div className="space-y-6">
+      {/* Customer Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{customerStats.total}</div>
-            <p className="text-xs text-muted-foreground">Total Customers</p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Totaal klanten</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{customerStats.total.toLocaleString()}</div>
           </CardContent>
         </Card>
+        
         <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{customerStats.newThisMonth}</div>
-            <p className="text-xs text-muted-foreground">New This Month</p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Nieuw deze maand</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">+{customerStats.newThisMonth}</div>
           </CardContent>
         </Card>
+        
         <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{customerStats.vipCount}</div>
-            <p className="text-xs text-muted-foreground">VIP Customers</p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">VIP klanten</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{customerStats.vipCount}</div>
           </CardContent>
         </Card>
+        
         <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">€{customerStats.avgOrderValue}</div>
-            <p className="text-xs text-muted-foreground">Avg. Order Value</p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Gem. bestelwaarde</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">€{customerStats.avgOrderValue.toFixed(2)}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Customer Management */}
+      {/* Customer Directory */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Customer Directory</CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div>
+              <CardTitle>Klantendirectory</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Beheer je klanten en bekijk hun bestellingsgeschiedenis
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+              <Button variant="outline" size="sm">
+                <Mail className="mr-2 h-4 w-4" />
+                Send Newsletter
+              </Button>
+              <Button onClick={handleAddCustomer} size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Customer
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {/* Search */}
-          <div className="flex gap-4 mb-6">
+          <div className="flex items-center space-x-2 mb-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search customers by name, email, or phone..."
+                placeholder="Search customers..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-8"
               />
             </div>
           </div>
 
-          {/* Customers Table */}
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Orders</TableHead>
-                  <TableHead>Total Spent</TableHead>
-                  <TableHead>Last Order</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCustomers.length === 0 ? (
+          {filteredCustomers.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-muted-foreground mb-2">No customers found</div>
+              <Button onClick={handleAddCustomer} variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Add your first customer
+              </Button>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
-                          <Mail className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <p className="font-medium">No customers yet</p>
-                          <p className="text-sm">Customer profiles will appear here when orders are placed</p>
-                        </div>
-                        <Button onClick={handleAddCustomer} className="mt-2">
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add Customer
-                        </Button>
-                      </div>
-                    </TableCell>
+                    <TableHead>Klant</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Bestellingen</TableHead>
+                    <TableHead>Totaal besteed</TableHead>
+                    <TableHead>Laatste bestelling</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Acties</TableHead>
                   </TableRow>
-                ) : (
-                  filteredCustomers.map((customer) => (
+                </TableHeader>
+                <TableBody>
+                  {filteredCustomers.map((customer) => (
                     <TableRow key={customer.id}>
                       <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium text-primary">
-                              {customer.name.split(' ').map((n: string) => n[0]).join('')}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium">{customer.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Joined {new Date(customer.joinDate).toLocaleDateString()}
-                            </p>
-                          </div>
+                        <div className="font-medium">{customer.first_name} {customer.last_name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Toegevoegd: {new Date(customer.created_at).toLocaleDateString()}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-1">
-                          <p className="text-sm">{customer.email}</p>
-                          <p className="text-xs text-muted-foreground">{customer.phone}</p>
-                        </div>
+                        <div>{customer.email || 'Geen email'}</div>
+                        <div className="text-sm text-muted-foreground">{customer.phone || 'Geen telefoon'}</div>
                       </TableCell>
                       <TableCell>
-                        <span className="font-medium">{customer.orders}</span>
-                        <span className="text-xs text-muted-foreground ml-1">orders</span>
+                        <div>0</div>
+                        <div className="text-sm text-muted-foreground">bestellingen</div>
                       </TableCell>
                       <TableCell>
-                        <span className={`font-medium ${getCustomerValue(customer.totalSpent)}`}>
-                          {customer.totalSpent}
-                        </span>
+                        <div className="text-muted-foreground">€0.00</div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(customer.lastOrder).toLocaleDateString()}
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">Geen bestellingen</div>
                       </TableCell>
-                      <TableCell>{getStatusBadge(customer.status)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">Nieuw</Badge>
+                      </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end space-x-2">
                           <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleEditCustomer(customer)}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditCustomer(customer)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="sm">
                             <Mail className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteCustomer(customer.id)}
+                          >
                             <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Results Summary */}
-          <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-            <p>Showing {filteredCustomers.length} of {customers.length} customers</p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm">
-                Next
-              </Button>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
