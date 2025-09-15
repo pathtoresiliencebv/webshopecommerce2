@@ -155,15 +155,10 @@ serve(async (req) => {
 
           // Update product stock quantities
           for (const item of cartItems) {
-            const { error: stockError } = await supabaseService
-              .from("products")
-              .update({
-                stock_quantity: supabaseService.rpc('decrement_stock', {
-                  product_id: item.product_id,
-                  quantity: item.quantity
-                })
-              })
-              .eq("id", item.product_id);
+            const { error: stockError } = await supabaseService.rpc('decrement_product_stock', {
+              _product_id: item.product_id,
+              _quantity: item.quantity
+            });
 
             if (stockError) {
               console.error("Error updating stock:", stockError);

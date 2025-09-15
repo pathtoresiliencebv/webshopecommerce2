@@ -1428,6 +1428,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decrement_product_stock: {
+        Args: { _product_id: string; _quantity: number }
+        Returns: boolean
+      }
       generate_order_number: {
         Args: Record<PropertyKey, never>
         Returns: string
