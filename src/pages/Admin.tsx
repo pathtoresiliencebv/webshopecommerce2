@@ -15,6 +15,7 @@ import { AdminInventory } from "@/components/admin/AdminInventory";
 import { AdminTransfers } from "@/components/admin/AdminTransfers";
 import { AdminGiftCards } from "@/components/admin/AdminGiftCards";
 import { AdminEmailMarketing } from "@/components/admin/AdminEmailMarketing";
+import { AdminShoppingFeeds } from "@/components/admin/AdminShoppingFeeds";
 import StoreManagementDashboard from "@/components/store/StoreManagementDashboard";
 import SubscriptionManager from "@/components/billing/SubscriptionManager";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -84,7 +85,7 @@ const Admin = () => {
       case "email-marketing":
         return <AdminEmailMarketing />;
       case "shopping-feeds":
-        return <div>Shopping Feeds (Coming Soon)</div>;
+        return <AdminShoppingFeeds />;
       case "store-settings":
         return <AdminStoreSettings />;
       case "stores":

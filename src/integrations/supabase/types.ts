@@ -710,6 +710,91 @@ export type Database = {
           },
         ]
       }
+      feed_products: {
+        Row: {
+          created_at: string
+          feed_id: string
+          id: string
+          last_synced_at: string | null
+          product_id: string
+          status: string
+          sync_error: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          feed_id: string
+          id?: string
+          last_synced_at?: string | null
+          product_id: string
+          status?: string
+          sync_error?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          feed_id?: string
+          id?: string
+          last_synced_at?: string | null
+          product_id?: string
+          status?: string
+          sync_error?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_products_feed_id_fkey"
+            columns: ["feed_id"]
+            isOneToOne: false
+            referencedRelation: "shopping_feeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_sync_logs: {
+        Row: {
+          created_at: string
+          errors_count: number | null
+          feed_id: string
+          id: string
+          log_data: Json | null
+          products_synced: number | null
+          status: string
+          sync_completed_at: string | null
+          sync_started_at: string
+        }
+        Insert: {
+          created_at?: string
+          errors_count?: number | null
+          feed_id: string
+          id?: string
+          log_data?: Json | null
+          products_synced?: number | null
+          status?: string
+          sync_completed_at?: string | null
+          sync_started_at?: string
+        }
+        Update: {
+          created_at?: string
+          errors_count?: number | null
+          feed_id?: string
+          id?: string
+          log_data?: Json | null
+          products_synced?: number | null
+          status?: string
+          sync_completed_at?: string | null
+          sync_started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_sync_logs_feed_id_fkey"
+            columns: ["feed_id"]
+            isOneToOne: false
+            referencedRelation: "shopping_feeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media_library: {
         Row: {
           alt_text: string | null
@@ -1527,6 +1612,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shopping_feeds: {
+        Row: {
+          config: Json
+          created_at: string
+          error_count: number | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          organization_id: string
+          platform: string
+          product_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          error_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          organization_id: string
+          platform: string
+          product_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          error_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          organization_id?: string
+          platform?: string
+          product_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       store_settings: {
         Row: {
