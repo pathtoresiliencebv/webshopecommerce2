@@ -4,6 +4,23 @@ import { useAuth } from './AuthContext';
 import { useOrganization } from './OrganizationContext';
 import { toast } from '@/hooks/use-toast';
 
+// Track cart events for email marketing
+const trackCartEvent = async (eventType: string, organizationId: string, userId?: string, eventData?: any) => {
+  try {
+    await supabase.functions.invoke('track-events', {
+      body: {
+        organizationId,
+        userId,
+        sessionId: crypto.randomUUID(), // Generate session ID for anonymous users
+        eventType,
+        eventData
+      }
+    });
+  } catch (error) {
+    console.error('Failed to track cart event:', error);
+  }
+};
+
 interface CartItem {
   id: string;
   product_id: string;
@@ -142,6 +159,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Added to cart",
           description: "Item has been added to your cart"
         });
+
+        // Track cart event for email marketing
+        trackCartEvent('cart_add', currentOrganization.id, user.id, {
+          product_id: productId,
+          quantity
+        });
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -188,6 +211,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const removeItem = async (itemId: string) => {
     setLoading(true);
     try {
+      // Get item details before deletion for tracking
+      const item = items.find(i => i.id === itemId);
+      
       const { error } = await supabase
         .from('shopping_cart')
         .delete()
@@ -200,6 +226,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Removed from cart",
         description: "Item has been removed from your cart"
       });
+
+      // Track cart removal event
+      if (item && currentOrganization) {
+        trackCartEvent('cart_remove', currentOrganization.id, user?.id, {
+          product_id: item.product_id,
+          quantity: item.quantity,
+          product_name: item.product?.name
+        });
+      }
     } catch (error) {
       console.error('Error removing from cart:', error);
       toast({

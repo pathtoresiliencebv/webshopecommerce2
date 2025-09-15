@@ -440,7 +440,7 @@ export function AdminEmailMarketing() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="workflows" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="workflows" className="flex items-center space-x-2">
             <Zap className="h-4 w-4" />
             <span>Workflows</span>
@@ -452,6 +452,10 @@ export function AdminEmailMarketing() {
           <TabsTrigger value="subscribers" className="flex items-center space-x-2">
             <Users className="h-4 w-4" />
             <span>Subscribers</span>
+          </TabsTrigger>
+          <TabsTrigger value="scheduler" className="flex items-center space-x-2">
+            <Target className="h-4 w-4" />
+            <span>Scheduler</span>
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center space-x-2">
             <BarChart3 className="h-4 w-4" />
@@ -582,6 +586,10 @@ export function AdminEmailMarketing() {
             onDelete={(id) => console.log('Delete subscriber:', id)}
             onBulkAction={handleBulkSubscriberAction}
           />
+        </TabsContent>
+
+        <TabsContent value="scheduler">
+          <WorkflowScheduler onRefresh={fetchEmailData} />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">

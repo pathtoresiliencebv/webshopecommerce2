@@ -118,6 +118,36 @@ export type Database = {
           },
         ]
       }
+      customer_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          organization_id: string
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          organization_id: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          organization_id?: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       discount_codes: {
         Row: {
           code: string
@@ -389,6 +419,7 @@ export type Database = {
           tags: string[] | null
           unsubscribed_at: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -405,6 +436,7 @@ export type Database = {
           tags?: string[] | null
           unsubscribed_at?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -421,6 +453,7 @@ export type Database = {
           tags?: string[] | null
           unsubscribed_at?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1291,6 +1324,48 @@ export type Database = {
           },
         ]
       }
+      workflow_queue: {
+        Row: {
+          attempts: number | null
+          campaign_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          organization_id: string
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          subscriber_id: string
+          workflow_trigger_id: string
+        }
+        Insert: {
+          attempts?: number | null
+          campaign_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          organization_id: string
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string
+          subscriber_id: string
+          workflow_trigger_id: string
+        }
+        Update: {
+          attempts?: number | null
+          campaign_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          organization_id?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          subscriber_id?: string
+          workflow_trigger_id?: string
+        }
+        Relationships: []
+      }
       workflow_triggers: {
         Row: {
           completed_at: string | null
@@ -1359,6 +1434,25 @@ export type Database = {
       }
       get_user_role_in_organization: {
         Args: { _organization_id: string }
+        Returns: string
+      }
+      process_workflow_triggers: {
+        Args: {
+          _event_data: Json
+          _event_type: string
+          _organization_id: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      track_customer_event: {
+        Args: {
+          _event_data?: Json
+          _event_type: string
+          _organization_id: string
+          _session_id: string
+          _user_id: string
+        }
         Returns: string
       }
       user_has_organization_access: {

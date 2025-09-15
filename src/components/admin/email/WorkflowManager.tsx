@@ -56,29 +56,23 @@ export function WorkflowManager({
     description: ''
   });
 
-  const workflowTypes = [
-    { value: 'welcome_series', label: 'Welcome Series', description: '4-email onboarding sequence' },
-    { value: 'cart_abandonment', label: 'Cart Abandonment', description: 'Recover abandoned carts' },
-    { value: 'browse_abandonment', label: 'Browse Abandonment', description: 'Re-engage product browsers' },
-    { value: 'post_purchase', label: 'Post Purchase', description: 'Follow-up after orders' },
-    { value: 'winback', label: 'Win-back Campaign', description: 'Reactivate inactive customers' },
-    { value: 'vip_loyalty', label: 'VIP/Loyalty', description: 'Reward top customers' },
-    { value: 'back_in_stock', label: 'Back in Stock', description: 'Notify when items return' },
-    { value: 'birthday', label: 'Birthday Campaign', description: 'Special birthday offers' },
-    { value: 'seasonal', label: 'Seasonal Campaign', description: 'Holiday & seasonal promotions' },
-    { value: 'custom', label: 'Custom Workflow', description: 'Build your own flow' }
-  ];
+const workflowTypes = [
+  { value: 'welcome', label: 'Welcome Series', description: '4-email onboarding sequence' },
+  { value: 'abandoned_cart', label: 'Abandoned Cart', description: 'Recover abandoned carts' },
+  { value: 'win_back', label: 'Win-back Campaign', description: 'Reactivate inactive customers' },
+  { value: 'post_purchase', label: 'Post-Purchase', description: 'Follow-up after orders' },
+  { value: 'browse_abandon', label: 'Browse Abandonment', description: 'Re-engage product browsers' },
+  { value: 'restock', label: 'Back in Stock', description: 'Notify when items return' },
+];
 
-  const triggerEvents = [
-    { value: 'subscriber_added', label: 'New Subscriber' },
-    { value: 'cart_abandoned', label: 'Cart Abandoned' },
-    { value: 'product_viewed', label: 'Product Viewed' },
-    { value: 'order_placed', label: 'Order Placed' },
-    { value: 'customer_inactive', label: 'Customer Inactive' },
-    { value: 'product_back_in_stock', label: 'Product Back in Stock' },
-    { value: 'birthday', label: 'Customer Birthday' },
-    { value: 'manual', label: 'Manual Trigger' }
-  ];
+const triggerEvents = [
+  { value: 'order_placed', label: 'Order Placed' },
+  { value: 'cart_add', label: 'Item Added to Cart' },
+  { value: 'cart_abandon', label: 'Cart Abandoned (1 hour)' },
+  { value: 'product_view', label: 'Product Viewed' },
+  { value: 'order_status_changed', label: 'Order Status Changed' },
+  { value: 'user_registered', label: 'User Registered' },
+];
 
   const getWorkflowDescription = (type: string) => {
     const workflowType = workflowTypes.find(w => w.value === type);
