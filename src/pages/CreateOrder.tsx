@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Search, Plus, Trash2, Tag, Package } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { toast } from "sonner";
+import { AdminSidebar } from "@/components/AdminSidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { CustomerForm } from "@/components/admin/CustomerForm";
+import { CustomProductForm } from "@/components/admin/CustomProductForm";
+import { AdminSection } from "@/pages/Admin";
 
 interface CartItem {
   id: string;
@@ -46,6 +50,9 @@ export default function CreateOrder() {
   const [orderTags, setOrderTags] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [shippingAmount, setShippingAmount] = useState(0);
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [showCustomProductForm, setShowCustomProductForm] = useState(false);
+  const [activeSection] = useState<AdminSection>("orders");
 
   // Fetch products for search
   const { data: products = [] } = useQuery({
@@ -208,29 +215,50 @@ export default function CreateOrder() {
     createOrderMutation.mutate({});
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/admin')}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Orders
-            </Button>
-            <div className="h-6 w-px bg-border" />
-            <h1 className="text-xl font-semibold">Conceptbestelling aanmaken</h1>
-          </div>
-        </div>
-      </div>
+  const handleBrowseProducts = () => {
+    // Navigate to products admin with a return param
+    navigate('/admin?section=products&return=create-order');
+  };
 
-      {/* Main Content */}
-      <div className="container mx-auto px-6 py-6">
+  const handleCustomProductAdd = (product: any) => {
+    addToCart(product);
+    toast.success('Custom product added to order');
+  };
+
+  const handleCustomerCreated = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    toast.success('Customer created and selected');
+  };
+
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AdminSidebar 
+          activeSection={activeSection} 
+          onSectionChange={() => {}} 
+        />
+        <main className="flex-1 overflow-auto">
+          {/* Header */}
+          <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container mx-auto px-6 py-4">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/admin')}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Orders
+                </Button>
+                <div className="h-6 w-px bg-border" />
+                <h1 className="text-xl font-semibold">Conceptbestelling aanmaken</h1>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="container mx-auto px-6 py-6">
         <div className="grid grid-cols-12 gap-6">
           {/* Product Search Sidebar - Left */}
           <div className="col-span-3">
@@ -248,13 +276,21 @@ export default function CreateOrder() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={handleBrowseProducts}
+                >
                   <Package className="mr-2 h-4 w-4" />
                   Bladeren
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Aangepast artikel toevoegen
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start text-sm"
+                  onClick={() => setShowCustomProductForm(true)}
+                >
+                  <Plus className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Aangepast artikel toevoegen</span>
                 </Button>
                 
                 <Separator className="my-4" />
@@ -435,7 +471,11 @@ export default function CreateOrder() {
                         </div>
                       </div>
                     ))}
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setShowCustomerForm(true)}
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Nieuwe klant
                     </Button>
@@ -510,8 +550,23 @@ export default function CreateOrder() {
               </Button>
             </div>
           </div>
-        </div>
+          </div>
+          </div>
+        </main>
       </div>
-    </div>
+      
+      {/* Dialogs */}
+      <CustomerForm 
+        open={showCustomerForm}
+        onOpenChange={setShowCustomerForm}
+        onCustomerCreated={handleCustomerCreated}
+      />
+      
+      <CustomProductForm 
+        open={showCustomProductForm}
+        onOpenChange={setShowCustomProductForm}
+        onProductAdd={handleCustomProductAdd}
+      />
+    </SidebarProvider>
   );
 }

@@ -1,367 +1,238 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, MapPin, CreditCard, ShoppingBag } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface CustomerFormProps {
+  // Dialog mode props (for CreateOrder)
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onCustomerCreated?: (customer: any) => void;
+  
+  // Full page mode props (for AdminCustomers)
   customer?: any;
-  onSave: (customer: any) => void;
-  onCancel: () => void;
+  onSave?: (customerData: any) => void;
+  onCancel?: () => void;
 }
 
-export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) {
+export function CustomerForm({ 
+  open, 
+  onOpenChange, 
+  onCustomerCreated,
+  customer,
+  onSave,
+  onCancel
+}: CustomerFormProps) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  
+  // Determine if we're in dialog mode or full page mode
+  const isDialogMode = open !== undefined;
+  
   const [formData, setFormData] = useState({
-    firstName: customer?.firstName || "",
-    lastName: customer?.lastName || "",
-    email: customer?.email || "",
-    phone: customer?.phone || "",
-    status: customer?.status || "active",
-    notes: customer?.notes || "",
-    billingAddress: {
-      street: customer?.billingAddress?.street || "",
-      city: customer?.billingAddress?.city || "",
-      postalCode: customer?.billingAddress?.postalCode || "",
-      country: customer?.billingAddress?.country || "Netherlands"
-    },
-    shippingAddress: {
-      street: customer?.shippingAddress?.street || "",
-      city: customer?.shippingAddress?.city || "",
-      postalCode: customer?.shippingAddress?.postalCode || "",
-      country: customer?.shippingAddress?.country || "Netherlands"
-    },
-    marketingConsent: customer?.marketingConsent ?? true,
-    isVip: customer?.isVip ?? false
+    first_name: customer?.first_name || '',
+    last_name: customer?.last_name || '',
+    phone: customer?.phone || '',
+    address_line1: customer?.address_line1 || '',
+    address_line2: customer?.address_line2 || '',
+    city: customer?.city || '',
+    postal_code: customer?.postal_code || '',
+    country: customer?.country || 'Netherlands'
   });
 
-  const [sameAsBilling, setSameAsBilling] = useState(true);
+  const createCustomerMutation = useMutation({
+    mutationFn: async (customerData: typeof formData) => {
+      if (!user) throw new Error('User not authenticated');
 
-  const handleSave = () => {
-    const customerData = {
-      ...formData,
-      shippingAddress: sameAsBilling ? formData.billingAddress : formData.shippingAddress
-    };
-    onSave(customerData);
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: crypto.randomUUID(),
+          ...customerData
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (newCustomer) => {
+      if (isDialogMode) {
+        toast.success('Customer created successfully');
+        queryClient.invalidateQueries({ queryKey: ['customers'] });
+        onCustomerCreated?.(newCustomer);
+        onOpenChange?.(false);
+      } else {
+        onSave?.(newCustomer);
+      }
+      
+      // Reset form
+      setFormData({
+        first_name: '',
+        last_name: '',
+        phone: '',
+        address_line1: '',
+        address_line2: '',
+        city: '',
+        postal_code: '',
+        country: 'Netherlands'
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating customer:', error);
+      toast.error('Failed to create customer');
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.first_name || !formData.last_name) {
+      toast.error('First name and last name are required');
+      return;
+    }
+    
+    if (customer) {
+      // Editing existing customer
+      onSave?.(formData);
+    } else {
+      // Creating new customer
+      createCustomerMutation.mutate(formData);
+    }
   };
 
-  return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{customer ? 'Edit Customer' : 'Add New Customer'}</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button onClick={handleSave}>Save Customer</Button>
+  const handleCancel = () => {
+    if (isDialogMode) {
+      onOpenChange?.(false);
+    } else {
+      onCancel?.();
+    }
+  };
+
+  const formContent = (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="first_name">Voornaam *</Label>
+          <Input
+            id="first_name"
+            value={formData.first_name}
+            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="last_name">Achternaam *</Label>
+          <Input
+            id="last_name"
+            value={formData.last_name}
+            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+            required
+          />
         </div>
       </div>
+      
+      <div>
+        <Label htmlFor="phone">Telefoon</Label>
+        <Input
+          id="phone"
+          value={formData.phone}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="address_line1">Adres</Label>
+        <Input
+          id="address_line1"
+          placeholder="Straat en huisnummer"
+          value={formData.address_line1}
+          onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
+        />
+      </div>
+      
+      <div>
+        <Input
+          placeholder="Adres regel 2 (optioneel)"
+          value={formData.address_line2}
+          onChange={(e) => setFormData({ ...formData, address_line2: e.target.value })}
+        />
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="city">Stad</Label>
+          <Input
+            id="city"
+            value={formData.city}
+            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="postal_code">Postcode</Label>
+          <Input
+            id="postal_code"
+            value={formData.postal_code}
+            onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
+          />
+        </div>
+      </div>
+      
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCancel}
+        >
+          Annuleren
+        </Button>
+        <Button
+          type="submit"
+          disabled={createCustomerMutation.isPending}
+        >
+          {createCustomerMutation.isPending 
+            ? 'Saving...' 
+            : customer 
+            ? 'Update Customer' 
+            : 'Klant toevoegen'}
+        </Button>
+      </div>
+    </form>
+  );
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="addresses">Addresses</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
-        </TabsList>
+  if (isDialogMode) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>
+              {customer ? 'Klant bewerken' : 'Nieuwe klant toevoegen'}
+            </DialogTitle>
+          </DialogHeader>
+          {formContent}
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
-        <TabsContent value="profile" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Customer Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                    placeholder="Enter first name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                    placeholder="Enter last name"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="customer@example.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="+31 6 12345678"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="status">Customer Status</Label>
-                <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="vip">VIP</SelectItem>
-                    <SelectItem value="blocked">Blocked</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Internal Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder="Add any internal notes about this customer"
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="addresses" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Billing Address
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="billing-street">Street Address</Label>
-                  <Input
-                    id="billing-street"
-                    value={formData.billingAddress.street}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      billingAddress: { ...prev.billingAddress, street: e.target.value }
-                    }))}
-                    placeholder="123 Main Street"
-                  />
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="billing-city">City</Label>
-                    <Input
-                      id="billing-city"
-                      value={formData.billingAddress.city}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        billingAddress: { ...prev.billingAddress, city: e.target.value }
-                      }))}
-                      placeholder="Amsterdam"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="billing-postal">Postal Code</Label>
-                    <Input
-                      id="billing-postal"
-                      value={formData.billingAddress.postalCode}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        billingAddress: { ...prev.billingAddress, postalCode: e.target.value }
-                      }))}
-                      placeholder="1012 AB"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="billing-country">Country</Label>
-                  <Select 
-                    value={formData.billingAddress.country} 
-                    onValueChange={(value) => setFormData(prev => ({
-                      ...prev,
-                      billingAddress: { ...prev.billingAddress, country: value }
-                    }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Netherlands">Netherlands</SelectItem>
-                      <SelectItem value="Germany">Germany</SelectItem>
-                      <SelectItem value="Belgium">Belgium</SelectItem>
-                      <SelectItem value="France">France</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Shipping Address
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="same-as-billing"
-                    checked={sameAsBilling}
-                    onChange={(e) => setSameAsBilling(e.target.checked)}
-                    className="rounded"
-                  />
-                  <Label htmlFor="same-as-billing">Same as billing address</Label>
-                </div>
-
-                {!sameAsBilling && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="shipping-street">Street Address</Label>
-                      <Input
-                        id="shipping-street"
-                        value={formData.shippingAddress.street}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          shippingAddress: { ...prev.shippingAddress, street: e.target.value }
-                        }))}
-                        placeholder="123 Main Street"
-                      />
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="shipping-city">City</Label>
-                        <Input
-                          id="shipping-city"
-                          value={formData.shippingAddress.city}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            shippingAddress: { ...prev.shippingAddress, city: e.target.value }
-                          }))}
-                          placeholder="Amsterdam"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="shipping-postal">Postal Code</Label>
-                        <Input
-                          id="shipping-postal"
-                          value={formData.shippingAddress.postalCode}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            shippingAddress: { ...prev.shippingAddress, postalCode: e.target.value }
-                          }))}
-                          placeholder="1012 AB"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="shipping-country">Country</Label>
-                      <Select 
-                        value={formData.shippingAddress.country} 
-                        onValueChange={(value) => setFormData(prev => ({
-                          ...prev,
-                          shippingAddress: { ...prev.shippingAddress, country: value }
-                        }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Netherlands">Netherlands</SelectItem>
-                          <SelectItem value="Germany">Germany</SelectItem>
-                          <SelectItem value="Belgium">Belgium</SelectItem>
-                          <SelectItem value="France">France</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="preferences" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingBag className="h-5 w-5" />
-                Customer Preferences
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Marketing Consent</Label>
-                  <p className="text-xs text-muted-foreground">Allow sending marketing emails and newsletters</p>
-                </div>
-                <Switch
-                  checked={formData.marketingConsent}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, marketingConsent: checked }))}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>VIP Customer</Label>
-                  <p className="text-xs text-muted-foreground">Mark as VIP for special treatment and offers</p>
-                </div>
-                <Switch
-                  checked={formData.isVip}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isVip: checked }))}
-                />
-              </div>
-
-              {customer && (
-                <div className="pt-4 border-t">
-                  <h4 className="font-medium mb-3">Customer Statistics</h4>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
-                      <div className="text-lg font-bold">{customer.orders || 0}</div>
-                      <div className="text-xs text-muted-foreground">Total Orders</div>
-                    </div>
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
-                      <div className="text-lg font-bold">{customer.totalSpent || "€0"}</div>
-                      <div className="text-xs text-muted-foreground">Total Spent</div>
-                    </div>
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
-                      <div className="text-lg font-bold">{customer.lastOrder || "Never"}</div>
-                      <div className="text-xs text-muted-foreground">Last Order</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+  // Full page mode for AdminCustomers
+  return (
+    <div className="p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {customer ? 'Edit Customer' : 'Add New Customer'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {formContent}
+        </CardContent>
+      </Card>
     </div>
   );
 }
