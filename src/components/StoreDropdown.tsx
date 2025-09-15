@@ -100,11 +100,8 @@ const StoreDropdown: React.FC = () => {
         <img 
           src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
           alt="Aurello Living" 
-          className="h-8 w-auto mr-2"
+          className="h-8 w-auto"
         />
-        <div className="hidden sm:block">
-          <span className="font-semibold text-sm leading-none">Aurello Living</span>
-        </div>
       </div>
     );
   }
