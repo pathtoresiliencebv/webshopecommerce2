@@ -16,6 +16,7 @@ import { EmailBuilder } from './email/EmailBuilder';
 import { WorkflowManager } from './email/WorkflowManager';
 import { SubscriberManager } from './email/SubscriberManager';
 import { WorkflowScheduler } from './email/WorkflowScheduler';
+import { CampaignManager } from './email/CampaignManager';
 import { 
   Mail, 
   Users, 
@@ -54,6 +55,8 @@ export function AdminEmailMarketing() {
   const [editingWorkflow, setEditingWorkflow] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingWorkflowId, setDeletingWorkflowId] = useState(null);
+  const [showCampaignManager, setShowCampaignManager] = useState(false);
+  const [selectedWorkflow, setSelectedWorkflow] = useState(null);
 
   useEffect(() => {
     if (currentOrganization?.id) {
@@ -421,6 +424,11 @@ export function AdminEmailMarketing() {
     }
   };
 
+  const handleManageCampaigns = (workflow: any) => {
+    setSelectedWorkflow(workflow);
+    setShowCampaignManager(true);
+  };
+
   if (loading) {
     return <div className="p-6">Loading email marketing data...</div>;
   }
@@ -545,13 +553,14 @@ export function AdminEmailMarketing() {
         </TabsList>
 
         <TabsContent value="workflows" className="space-y-4">
-          <WorkflowManager
-            workflows={workflows}
-            onToggle={toggleWorkflow}
-            onEdit={handleEditWorkflow}
-            onDelete={handleDeleteWorkflow}
-            onCreate={createWorkflow}
-          />
+                  <WorkflowManager 
+                    workflows={workflows}
+                    onToggle={toggleWorkflow}
+                    onEdit={handleEditWorkflow}
+                    onDelete={handleDeleteWorkflow}
+                    onCreate={createWorkflow}
+                    onManageCampaigns={handleManageCampaigns}
+                  />
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-4">

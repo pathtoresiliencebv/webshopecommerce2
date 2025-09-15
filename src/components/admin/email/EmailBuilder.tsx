@@ -16,7 +16,8 @@ import {
   Eye, 
   Trash2,
   Move,
-  Settings
+  Settings,
+  ArrowLeft
 } from 'lucide-react';
 
 interface EmailBlock {
@@ -28,11 +29,14 @@ interface EmailBlock {
 
 interface EmailBuilderProps {
   templateId?: string;
+  campaignId?: string;
+  workflowType?: string;
   onSave: (template: any) => void;
   onPreview: (html: string) => void;
+  onBack?: () => void;
 }
 
-export function EmailBuilder({ templateId, onSave, onPreview }: EmailBuilderProps) {
+export function EmailBuilder({ templateId, campaignId, workflowType, onSave, onPreview, onBack }: EmailBuilderProps) {
   const [blocks, setBlocks] = useState<EmailBlock[]>([
     {
       id: '1',
@@ -423,10 +427,19 @@ export function EmailBuilder({ templateId, onSave, onPreview }: EmailBuilderProp
       <div className="flex-1 flex flex-col">
         <div className="border-b p-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Badge variant="outline">Visual Builder</Badge>
+            {onBack && (
+              <Button variant="ghost" onClick={onBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+            )}
+            <Badge variant="outline">{campaignId ? 'Campaign Editor' : 'Visual Builder'}</Badge>
             <span className="text-sm text-muted-foreground">
-              {blocks.length} blocks • {templateName || 'Untitled Template'}
+              {blocks.length} blocks • {templateName || (campaignId ? 'Campaign Email' : 'Untitled Template')}
             </span>
+            {workflowType && (
+              <Badge variant="secondary">{workflowType.replace('_', ' ')}</Badge>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="outline" onClick={handlePreview}>
@@ -435,7 +448,7 @@ export function EmailBuilder({ templateId, onSave, onPreview }: EmailBuilderProp
             </Button>
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
-              Save Template
+              {campaignId ? 'Save Campaign Email' : 'Save Template'}
             </Button>
           </div>
         </div>

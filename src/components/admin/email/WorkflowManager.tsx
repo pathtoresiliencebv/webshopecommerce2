@@ -38,6 +38,7 @@ interface WorkflowManagerProps {
   onEdit: (workflow: Workflow) => void;
   onDelete: (id: string) => void;
   onCreate: (workflow: any) => void;
+  onManageCampaigns: (workflow: Workflow) => void;
 }
 
 export function WorkflowManager({ 
@@ -45,7 +46,8 @@ export function WorkflowManager({
   onToggle, 
   onEdit, 
   onDelete, 
-  onCreate 
+  onCreate,
+  onManageCampaigns 
 }: WorkflowManagerProps) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newWorkflow, setNewWorkflow] = useState({
@@ -358,6 +360,15 @@ const triggerEvents = [
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => onManageCampaigns(workflow)}
+                        title="Manage Email Sequence"
+                      >
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => onToggle(workflow.id, workflow.is_active)}
                       >
                         {workflow.is_active ? (
@@ -365,14 +376,6 @@ const triggerEvents = [
                         ) : (
                           <Play className="h-4 w-4" />
                         )}
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(workflow)}
-                      >
-                        <Settings className="h-4 w-4" />
                       </Button>
                       
                       <Button
