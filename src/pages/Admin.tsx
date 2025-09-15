@@ -5,11 +5,9 @@ import { AdminOrders } from "@/components/admin/AdminOrders";
 import { AdminProducts } from "@/components/admin/AdminProducts";
 import { AdminCustomers } from "@/components/admin/AdminCustomers";
 import { AdminDiscountCodes } from "@/components/admin/AdminDiscountCodes";
-import { AdminOnlineStore } from "@/components/admin/AdminOnlineStore";
-import { AdminEmailMarketing } from "@/components/admin/AdminEmailMarketing";
-import { AdminShoppingFeeds } from "@/components/admin/AdminShoppingFeeds";
 import { AdminTheme } from "@/components/admin/AdminTheme";
 import { AdminStoreSettings } from "@/components/admin/AdminStoreSettings";
+import { AdminThemeCustomize } from "@/components/admin/AdminThemeCustomize";
 import { AdminCollections } from "@/components/admin/AdminCollections";
 import { AdminCustomerService } from "@/components/admin/AdminCustomerService";
 import { AdminInventory } from "@/components/admin/AdminInventory";
@@ -35,7 +33,8 @@ export type AdminSection =
   | "gift-cards"
   | "customers" 
   | "discount-codes" 
-  | "theme" 
+  | "theme"
+  | "theme-customize" 
   | "email-marketing"
   | "shopping-feeds"
   | "store-settings"
@@ -74,11 +73,13 @@ const Admin = () => {
       case "discount-codes":
         return <AdminDiscountCodes />;
       case "theme":
-        return <AdminTheme />;
+        return <AdminTheme onSectionChange={setActiveSection} />;
+      case "theme-customize":
+        return <AdminThemeCustomize onSectionChange={setActiveSection} />;
       case "email-marketing":
-        return <AdminEmailMarketing />;
+        return <div>Email Marketing (Coming Soon)</div>;
       case "shopping-feeds":
-        return <AdminShoppingFeeds />;
+        return <div>Shopping Feeds (Coming Soon)</div>;
       case "store-settings":
         return <AdminStoreSettings />;
       case "stores":

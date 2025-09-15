@@ -15,17 +15,33 @@ import {
   Globe, 
   ShoppingBag,
   Eye,
-  Save
+  Save,
+  ArrowLeft
 } from "lucide-react";
+import type { AdminSection } from "@/pages/Admin";
 
-export function AdminOnlineStore() {
+interface AdminThemeCustomizeProps {
+  onSectionChange: (section: AdminSection) => void;
+}
+
+export function AdminThemeCustomize({ onSectionChange }: AdminThemeCustomizeProps) {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Thema Aanpassen</h1>
-          <p className="text-muted-foreground">Pas de verschijning en SEO van je thema aan</p>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => onSectionChange('theme')}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Terug naar Thema
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Thema Aanpassen</h1>
+            <p className="text-muted-foreground">Pas de verschijning en SEO van je thema aan</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">

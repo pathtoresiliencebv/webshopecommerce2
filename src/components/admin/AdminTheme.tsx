@@ -6,6 +6,7 @@ import { Palette, Monitor, Settings, Eye, ExternalLink } from "lucide-react";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { AdminSection } from "@/pages/Admin";
 
 interface ThemeSettings {
   id?: string;
@@ -16,7 +17,11 @@ interface ThemeSettings {
   seo_settings: any;
 }
 
-export function AdminTheme() {
+interface AdminThemeProps {
+  onSectionChange: (section: AdminSection) => void;
+}
+
+export function AdminTheme({ onSectionChange }: AdminThemeProps) {
   const { currentOrganization } = useOrganization();
   const [themeSettings, setThemeSettings] = useState<ThemeSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -129,7 +134,7 @@ export function AdminTheme() {
                   Aangepast op {new Date().toLocaleDateString('nl-NL')}
                 </p>
                 <div className="flex gap-2 mt-4">
-                  <Button size="sm">
+                  <Button size="sm" onClick={() => onSectionChange('theme-customize')}>
                     <Palette className="mr-2 h-4 w-4" />
                     Customize
                   </Button>
