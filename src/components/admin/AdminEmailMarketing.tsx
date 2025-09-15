@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -47,6 +50,10 @@ export function AdminEmailMarketing() {
   const [testEmail, setTestEmail] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingWorkflow, setEditingWorkflow] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingWorkflowId, setDeletingWorkflowId] = useState(null);
 
   useEffect(() => {
     if (currentOrganization?.id) {
@@ -270,6 +277,75 @@ export function AdminEmailMarketing() {
     }
   };
 
+  const editWorkflow = async (workflowData) => {
+    try {
+      const { error } = await supabase
+        .from('email_workflows')
+        .update({
+          name: workflowData.name,
+          workflow_type: workflowData.workflow_type,
+          trigger_event: workflowData.trigger_event,
+          trigger_conditions: workflowData.trigger_conditions
+        })
+        .eq('id', workflowData.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Workflow updated successfully"
+      });
+      
+      fetchEmailData();
+      setShowEditDialog(false);
+      setEditingWorkflow(null);
+    } catch (error) {
+      console.error('Error updating workflow:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update workflow",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteWorkflow = async (workflowId) => {
+    try {
+      const { error } = await supabase
+        .from('email_workflows')
+        .delete()
+        .eq('id', workflowId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Workflow deleted successfully"
+      });
+      
+      fetchEmailData();
+      setShowDeleteDialog(false);
+      setDeletingWorkflowId(null);
+    } catch (error) {
+      console.error('Error deleting workflow:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete workflow",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditWorkflow = (workflow) => {
+    setEditingWorkflow(workflow);
+    setShowEditDialog(true);
+  };
+
+  const handleDeleteWorkflow = (id) => {
+    setDeletingWorkflowId(id);
+    setShowDeleteDialog(true);
+  };
+
   const addSubscriber = async (subscriberData) => {
     try {
       const { error } = await supabase.from('email_subscribers').insert({
@@ -472,8 +548,8 @@ export function AdminEmailMarketing() {
           <WorkflowManager
             workflows={workflows}
             onToggle={toggleWorkflow}
-            onEdit={(workflow) => console.log('Edit workflow:', workflow)}
-            onDelete={(id) => console.log('Delete workflow:', id)}
+            onEdit={handleEditWorkflow}
+            onDelete={handleDeleteWorkflow}
             onCreate={createWorkflow}
           />
         </TabsContent>
@@ -659,6 +735,99 @@ export function AdminEmailMarketing() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Edit Workflow Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Workflow</DialogTitle>
+          </DialogHeader>
+          {editingWorkflow && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Workflow Name</label>
+                <Input
+                  value={editingWorkflow.name}
+                  onChange={(e) => setEditingWorkflow({ ...editingWorkflow, name: e.target.value })}
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Workflow Type</label>
+                <Select 
+                  value={editingWorkflow.workflow_type} 
+                  onValueChange={(value) => setEditingWorkflow({ ...editingWorkflow, workflow_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="welcome_series">Welcome Series</SelectItem>
+                    <SelectItem value="cart_abandonment">Cart Abandonment</SelectItem>
+                    <SelectItem value="browse_abandonment">Browse Abandonment</SelectItem>
+                    <SelectItem value="post_purchase">Post Purchase</SelectItem>
+                    <SelectItem value="winback_campaign">Win-back Campaign</SelectItem>
+                    <SelectItem value="restock_notification">Restock Notification</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Trigger Event</label>
+                <Select 
+                  value={editingWorkflow.trigger_event} 
+                  onValueChange={(value) => setEditingWorkflow({ ...editingWorkflow, trigger_event: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newsletter_signup">Newsletter Signup</SelectItem>
+                    <SelectItem value="order_placed">Order Placed</SelectItem>
+                    <SelectItem value="cart_add">Cart Add</SelectItem>
+                    <SelectItem value="cart_abandon">Cart Abandon</SelectItem>
+                    <SelectItem value="product_view">Product View</SelectItem>
+                    <SelectItem value="browse_abandon">Browse Abandon</SelectItem>
+                    <SelectItem value="order_status_changed">Order Status Changed</SelectItem>
+                    <SelectItem value="customer_inactive">Customer Inactive</SelectItem>
+                    <SelectItem value="product_restock">Product Restock</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => editWorkflow(editingWorkflow)}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Workflow</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this workflow? This action cannot be undone and will stop all related automated emails.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteWorkflow(deletingWorkflowId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Workflow
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
