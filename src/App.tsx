@@ -15,6 +15,7 @@ import CollectionPage from "./pages/CollectionPage";
 import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
+import CreateOrder from "./pages/CreateOrder";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import CustomerStorefront from "./components/store/CustomerStorefront";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -37,6 +38,11 @@ const App = () => (
               <Route path="/admin" element={
                 <AdminProtectedRoute>
                   <Admin />
+                </AdminProtectedRoute>
+              } />
+              <Route path="/admin/orders/new" element={
+                <AdminProtectedRoute>
+                  <CreateOrder />
                 </AdminProtectedRoute>
               } />
               <Route path="/admin/stores" element={<StoreManagerRoute />} />

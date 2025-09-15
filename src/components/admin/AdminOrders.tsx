@@ -5,11 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Search, Filter, Download, MoreHorizontal, Eye, Printer, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { OrderForm } from "./OrderForm";
+import { useNavigate } from "react-router-dom";
 
 const statusOptions = [
   { value: "all", label: "All Status" },
@@ -23,7 +22,7 @@ const statusOptions = [
 export function AdminOrders() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [showOrderForm, setShowOrderForm] = useState(false);
+  const navigate = useNavigate();
 
   // Fetch orders from database
   const { data: orders = [], isLoading } = useQuery({
@@ -100,20 +99,10 @@ export function AdminOrders() {
           <p className="text-muted-foreground">Manage customer orders and fulfillment</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={showOrderForm} onOpenChange={setShowOrderForm}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Order
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-              <OrderForm
-                onSuccess={() => setShowOrderForm(false)}
-                onCancel={() => setShowOrderForm(false)}
-              />
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => navigate('/admin/orders/new')}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Order
+          </Button>
           <Button variant="outline">
             <Download className="mr-2 h-4 w-4" />
             Export
