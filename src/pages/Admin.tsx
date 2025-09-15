@@ -8,7 +8,8 @@ import { AdminDiscountCodes } from "@/components/admin/AdminDiscountCodes";
 import { AdminOnlineStore } from "@/components/admin/AdminOnlineStore";
 import { AdminEmailMarketing } from "@/components/admin/AdminEmailMarketing";
 import { AdminShoppingFeeds } from "@/components/admin/AdminShoppingFeeds";
-import { AdminSettings } from "@/components/admin/AdminSettings";
+import { AdminTheme } from "@/components/admin/AdminTheme";
+import { AdminStoreSettings } from "@/components/admin/AdminStoreSettings";
 import { AdminCollections } from "@/components/admin/AdminCollections";
 import { AdminCustomerService } from "@/components/admin/AdminCustomerService";
 import { AdminInventory } from "@/components/admin/AdminInventory";
@@ -34,10 +35,10 @@ export type AdminSection =
   | "gift-cards"
   | "customers" 
   | "discount-codes" 
-  | "online-store" 
+  | "theme" 
   | "email-marketing"
   | "shopping-feeds"
-  | "settings"
+  | "store-settings"
   | "stores"
   | "subscription"
   | "customer-service";
@@ -72,14 +73,14 @@ const Admin = () => {
         return <AdminCustomers />;
       case "discount-codes":
         return <AdminDiscountCodes />;
-      case "online-store":
-        return <AdminOnlineStore />;
+      case "theme":
+        return <AdminTheme />;
       case "email-marketing":
         return <AdminEmailMarketing />;
       case "shopping-feeds":
         return <AdminShoppingFeeds />;
-      case "settings":
-        return <AdminSettings />;
+      case "store-settings":
+        return <AdminStoreSettings />;
       case "stores":
         return <StoreManagementDashboard />;
       case "subscription":

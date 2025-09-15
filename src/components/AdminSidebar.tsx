@@ -65,12 +65,12 @@ const marketingMenuItems = [
 ];
 
 const salesChannelItems = [
-  { id: "online-store" as AdminSection, label: "Online Store", icon: Store },
+  { id: "theme" as AdminSection, label: "Thema", icon: Store },
   { id: "shopping-feeds" as AdminSection, label: "Shopping Feeds", icon: Rss },
 ];
 
 const settingsItems = [
-  { id: "settings" as AdminSection, label: "Settings", icon: Settings },
+  { id: "store-settings" as AdminSection, label: "Settings", icon: Settings },
 ];
 
 const multiStoreItems = [

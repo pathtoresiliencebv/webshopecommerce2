@@ -1278,6 +1278,33 @@ export type Database = {
           },
         ]
       }
+      store_settings: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          setting_type: string
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          setting_type: string
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          setting_type?: string
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       store_templates: {
         Row: {
           config: Json | null
@@ -1407,6 +1434,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      theme_settings: {
+        Row: {
+          appearance_settings: Json
+          created_at: string
+          id: string
+          is_active: boolean | null
+          organization_id: string
+          seo_settings: Json
+          theme_name: string
+          updated_at: string
+        }
+        Insert: {
+          appearance_settings?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          organization_id: string
+          seo_settings?: Json
+          theme_name?: string
+          updated_at?: string
+        }
+        Update: {
+          appearance_settings?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string
+          seo_settings?: Json
+          theme_name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       workflow_queue: {
         Row: {
