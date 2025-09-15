@@ -666,6 +666,50 @@ export type Database = {
         }
         Relationships: []
       }
+      faqs: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          organization_id: string
+          question: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          organization_id: string
+          question: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string
+          question?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faqs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media_library: {
         Row: {
           alt_text: string | null

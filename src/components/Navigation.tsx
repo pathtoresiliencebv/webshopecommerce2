@@ -76,6 +76,9 @@ export function Navigation() {
     name: collection.name,
     href: `${getStorePrefix()}/collections/${collection.slug}`
   })), {
+    name: "FAQ",
+    href: `${getStorePrefix()}/faq`
+  }, {
     name: "About",
     href: `${getStorePrefix()}/about`
   }];

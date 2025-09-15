@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import CreateOrder from "./pages/CreateOrder";
+import FAQ from "./pages/FAQ";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import CustomerStorefront from "./components/store/CustomerStorefront";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -94,6 +95,11 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/faq" element={
+            <StoreProvider>
+              <FAQ />
+            </StoreProvider>
+          } />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
