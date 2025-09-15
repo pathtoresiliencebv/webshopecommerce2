@@ -1046,6 +1046,7 @@ export type Database = {
           compare_at_price: number | null
           created_at: string
           id: string
+          image_url: string | null
           inventory_quantity: number | null
           is_active: boolean | null
           option_values: Json
@@ -1061,6 +1062,7 @@ export type Database = {
           compare_at_price?: number | null
           created_at?: string
           id?: string
+          image_url?: string | null
           inventory_quantity?: number | null
           is_active?: boolean | null
           option_values?: Json
@@ -1076,6 +1078,7 @@ export type Database = {
           compare_at_price?: number | null
           created_at?: string
           id?: string
+          image_url?: string | null
           inventory_quantity?: number | null
           is_active?: boolean | null
           option_values?: Json

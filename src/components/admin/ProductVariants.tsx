@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, X, Edit, MoreHorizontal } from "lucide-react";
+import { Plus, X, Edit, MoreHorizontal, Image as ImageIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ImageUpload } from "./ImageUpload";
 
 interface ProductVariantsProps {
   variants: any[];
@@ -75,7 +76,8 @@ export function ProductVariants({
       compare_at_price: "",
       inventory_quantity: 0,
       position: index + 1,
-      is_active: true
+      is_active: true,
+      image_url: ""
     }));
 
     onVariantsChange(newVariants);
@@ -209,7 +211,7 @@ export function ProductVariants({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Variant</TableHead>
+                    <TableHead>Media & Variant</TableHead>
                     <TableHead>Prijs</TableHead>
                     <TableHead>Hoeveelheid</TableHead>
                     <TableHead>SKU</TableHead>
@@ -220,9 +222,32 @@ export function ProductVariants({
                   {variants.map((variant, index) => (
                     <TableRow key={variant.id || index}>
                       <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            {getVariantTitle(variant)}
+                        <div className="flex items-center gap-3">
+                          <div className="flex gap-2">
+                            <div className="w-12 h-12 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center overflow-hidden">
+                              {variant.image_url ? (
+                                <img 
+                                  src={variant.image_url} 
+                                  alt={getVariantTitle(variant)}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div className="w-12 h-12 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-colors">
+                              <ImageUpload
+                                value={variant.image_url || ""}
+                                onChange={(url) => updateVariant(index, 'image_url', url)}
+                                onRemove={() => updateVariant(index, 'image_url', "")}
+                                label=""
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="font-medium">
+                              {getVariantTitle(variant)}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
