@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Home, 
   ShoppingCart, 
@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { AdminSection } from "@/pages/Admin";
 import { useOrganization } from "@/contexts/OrganizationContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -90,6 +91,33 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
     marketing: false,
     sales: false,
   });
+  const [themeSettings, setThemeSettings] = useState<{
+    logo_url?: string;
+    store_name?: string;
+  }>({});
+
+  useEffect(() => {
+    const fetchThemeSettings = async () => {
+      if (!currentOrganization?.id) return;
+
+      const { data } = await supabase
+        .from('theme_settings')
+        .select('appearance_settings')
+        .eq('organization_id', currentOrganization.id)
+        .eq('is_active', true)
+        .single();
+
+      if (data?.appearance_settings && typeof data.appearance_settings === 'object') {
+        const settings = data.appearance_settings as any;
+        setThemeSettings({
+          logo_url: settings.logo_url,
+          store_name: settings.store_name,
+        });
+      }
+    };
+
+    fetchThemeSettings();
+  }, [currentOrganization?.id]);
 
   const toggleGroup = (group: string) => {
     setOpenGroups(prev => ({
@@ -108,14 +136,22 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
       <SidebarHeader className="border-b border-border p-4">
         {open && (
           <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">
-                {currentOrganization?.name?.charAt(0) || 'S'}
-              </span>
-            </div>
+            {themeSettings.logo_url ? (
+              <img 
+                src={themeSettings.logo_url} 
+                alt="Logo" 
+                className="h-8 w-8 rounded-lg object-contain"
+              />
+            ) : (
+              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">
+                  A
+                </span>
+              </div>
+            )}
             <div>
               <h2 className="text-lg font-bold text-foreground">
-                {currentOrganization?.name || 'Store Admin'}
+                {themeSettings.store_name || currentOrganization?.name || 'Aurelio Living'}
               </h2>
               <p className="text-xs text-muted-foreground">
                 {currentOrganization?.description || 'Store Management'}
@@ -125,11 +161,19 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
         )}
         {!open && (
           <div className="flex justify-center">
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">
-                {currentOrganization?.name?.charAt(0) || 'S'}
-              </span>
-            </div>
+            {themeSettings.logo_url ? (
+              <img 
+                src={themeSettings.logo_url} 
+                alt="Logo" 
+                className="h-8 w-8 rounded-lg object-contain"
+              />
+            ) : (
+              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">
+                  A
+                </span>
+              </div>
+            )}
           </div>
         )}
       </SidebarHeader>
