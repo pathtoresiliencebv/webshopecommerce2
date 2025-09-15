@@ -57,53 +57,118 @@ export function WorkflowManager({
   });
 
 const workflowTypes = [
-  { value: 'welcome', label: 'Welcome Series', description: '4-email onboarding sequence' },
-  { value: 'abandoned_cart', label: 'Abandoned Cart', description: 'Recover abandoned carts' },
-  { value: 'win_back', label: 'Win-back Campaign', description: 'Reactivate inactive customers' },
-  { value: 'post_purchase', label: 'Post-Purchase', description: 'Follow-up after orders' },
-  { value: 'browse_abandon', label: 'Browse Abandonment', description: 'Re-engage product browsers' },
-  { value: 'restock', label: 'Back in Stock', description: 'Notify when items return' },
+  { 
+    value: 'welcome_series', 
+    label: 'Welcome Series', 
+    description: 'Verwelkom nieuwe klanten met 4 emails over 2 weken',
+    emails: [
+      { delay: 0, subject: 'Welkom bij {{store_name}}! Hier is je 10% korting', content: 'welcome_email_1' },
+      { delay: 24, subject: 'Ontdek onze bestsellers', content: 'welcome_email_2' },
+      { delay: 168, subject: 'Design tips voor je perfecte werkplek', content: 'welcome_email_3' },
+      { delay: 336, subject: 'Speciale aanbieding alleen voor jou', content: 'welcome_email_4' }
+    ]
+  },
+  { 
+    value: 'cart_abandonment', 
+    label: 'Winkelwagen Verlaten', 
+    description: 'Win verlaten winkelwagentjes terug met 3 gerichte emails',
+    emails: [
+      { delay: 1, subject: 'Je vergat iets moois in je winkelwagen', content: 'cart_abandon_1' },
+      { delay: 24, subject: 'Nog steeds geïnteresseerd? 5% extra korting!', content: 'cart_abandon_2' },
+      { delay: 72, subject: 'Laatste kans - je favorieten wachten nog', content: 'cart_abandon_3' }
+    ]
+  },
+  { 
+    value: 'browse_abandonment', 
+    label: 'Browse Verlaten', 
+    description: 'Heractiveer bezoekers die producten bekeken maar niet kochten',
+    emails: [
+      { delay: 2, subject: 'Nog aan het twijfelen over {{product_name}}?', content: 'browse_abandon_1' }
+    ]
+  },
+  { 
+    value: 'post_purchase', 
+    label: 'Na Aankoop', 
+    description: 'Begeleid klanten na hun aankoop met 4 nuttige emails',
+    emails: [
+      { delay: 0, subject: 'Bedankt voor je bestelling #{{order_number}}!', content: 'order_confirmation' },
+      { delay: 24, subject: 'Je bestelling is onderweg!', content: 'order_shipped' },
+      { delay: 120, subject: 'Hoe bevalt je nieuwe {{product_name}}?', content: 'review_request' },
+      { delay: 720, subject: 'Tijd voor een upgrade? Bekijk onze nieuwste collectie', content: 'upsell_campaign' }
+    ]
+  },
+  { 
+    value: 'winback_campaign', 
+    label: 'Win-back Campagne', 
+    description: 'Heractiveer klanten die 60+ dagen niet actief waren',
+    emails: [
+      { delay: 0, subject: 'We missen je! Kom terug met 20% korting', content: 'winback_1' },
+      { delay: 168, subject: 'Nieuwe collectie speciaal voor jou', content: 'winback_2' },
+      { delay: 336, subject: 'Laatste kans: 25% korting vervalt binnenkort', content: 'winback_3' }
+    ]
+  },
+  { 
+    value: 'restock_notification', 
+    label: 'Weer op Voorraad', 
+    description: 'Informeer klanten wanneer uitverkochte producten terug zijn',
+    emails: [
+      { delay: 0, subject: 'Goed nieuws! {{product_name}} is weer beschikbaar', content: 'restock_notification' }
+    ]
+  },
 ];
 
 const triggerEvents = [
-  { value: 'order_placed', label: 'Order Placed' },
-  { value: 'cart_add', label: 'Item Added to Cart' },
-  { value: 'cart_abandon', label: 'Cart Abandoned (1 hour)' },
-  { value: 'product_view', label: 'Product Viewed' },
-  { value: 'order_status_changed', label: 'Order Status Changed' },
-  { value: 'user_registered', label: 'User Registered' },
+  { value: 'newsletter_signup', label: 'Nieuwsbrief Inschrijving' },
+  { value: 'order_placed', label: 'Bestelling Geplaatst' },
+  { value: 'cart_add', label: 'Product Toegevoegd aan Winkelwagen' },
+  { value: 'cart_abandon', label: 'Winkelwagen Verlaten (1 uur)' },
+  { value: 'product_view', label: 'Product Bekeken' },
+  { value: 'browse_abandon', label: 'Browse Sessie Verlaten (2 uur)' },
+  { value: 'order_status_changed', label: 'Bestelling Status Gewijzigd' },
+  { value: 'customer_inactive', label: 'Klant Inactief (60 dagen)' },
+  { value: 'product_restock', label: 'Product Weer op Voorraad' },
 ];
 
   const getWorkflowDescription = (type: string) => {
     const workflowType = workflowTypes.find(w => w.value === type);
-    return workflowType?.description || 'Custom workflow';
+    return workflowType?.description || 'Aangepaste workflow';
+  };
+
+  const getWorkflowEmails = (type: string) => {
+    const workflowType = workflowTypes.find(w => w.value === type);
+    return workflowType?.emails || [];
   };
 
   const getWorkflowStats = (workflow: Workflow) => {
-    // Mock stats - in real implementation, calculate from email_sends table
-    const campaigns = workflow.campaigns?.length || 0;
-    const subscribers = Math.floor(Math.random() * 500) + 50; // Mock data
-    const performance = Math.floor(Math.random() * 40) + 15; // Mock conversion rate
+    const workflowEmails = getWorkflowEmails(workflow.workflow_type);
+    const campaigns = workflowEmails.length || workflow.campaigns?.length || 0;
+    const subscribers = Math.floor(Math.random() * 500) + 50; // Mock data - in real implementation, calculate from email_subscribers
+    const performance = Math.floor(Math.random() * 40) + 15; // Mock conversion rate - calculate from email_events
     
     return { campaigns, subscribers, performance };
   };
 
-  const handleCreateWorkflow = () => {
+  const handleCreateWorkflow = async () => {
     if (!newWorkflow.name.trim()) return;
     
-    onCreate({
+    const selectedWorkflowType = workflowTypes.find(w => w.value === newWorkflow.workflow_type);
+    
+    // Create the workflow with proper trigger conditions
+    const workflowData = {
       ...newWorkflow,
       trigger_conditions: {
-        delay_hours: newWorkflow.workflow_type === 'cart_abandonment' ? 1 : 24,
-        emails_count: ['welcome_series', 'post_purchase', 'winback'].includes(newWorkflow.workflow_type) ? 4 : 1,
+        delay_hours: selectedWorkflowType?.emails?.[0]?.delay || 24,
+        emails_count: selectedWorkflowType?.emails?.length || 1,
         ...newWorkflow.trigger_conditions
       }
-    });
+    };
+    
+    await onCreate(workflowData);
     
     setNewWorkflow({
       name: '',
-      workflow_type: 'custom',
-      trigger_event: 'manual', 
+      workflow_type: 'welcome_series',
+      trigger_event: 'newsletter_signup', 
       trigger_conditions: {},
       description: ''
     });
@@ -360,11 +425,12 @@ const triggerEvents = [
                         setNewWorkflow({
                           name: template.label,
                           workflow_type: template.value,
-                          trigger_event: template.value === 'welcome_series' ? 'subscriber_added' : 
-                                        template.value === 'cart_abandonment' ? 'cart_abandoned' :
-                                        template.value === 'browse_abandonment' ? 'product_viewed' :
+                          trigger_event: template.value === 'welcome_series' ? 'newsletter_signup' : 
+                                        template.value === 'cart_abandonment' ? 'cart_abandon' :
+                                        template.value === 'browse_abandonment' ? 'browse_abandon' :
                                         template.value === 'post_purchase' ? 'order_placed' :
-                                        template.value === 'winback' ? 'customer_inactive' : 'manual',
+                                        template.value === 'winback_campaign' ? 'customer_inactive' :
+                                        template.value === 'restock_notification' ? 'product_restock' : 'newsletter_signup',
                           trigger_conditions: {},
                           description: template.description
                         });

@@ -1,6 +1,7 @@
 import { Navigation } from "@/components/Navigation";
 import { ProductCard } from "@/components/ProductCard";
 import { CollectionSlider } from "@/components/CollectionSlider";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -683,6 +684,11 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Newsletter Signup Section */}
+      <section className="container mx-auto px-4 py-16">
+        <NewsletterSignup />
+      </section>
+
       {/* Footer */}
       <footer className="bg-card border-t border-border py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -724,15 +730,15 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>info@furnistore.com</li>
-                <li>+1 555 123 4567</li>
-                <li>Mon-Fri: 9:00-17:00</li>
+                <li>info@aurelio-living.com</li>
+                <li>+31 20 123 4567</li>
+                <li>Ma-Vr: 9:00-17:00</li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 FurniStore. All rights reserved.</p>
+            <p>&copy; 2024 {store?.name || 'Aurelio Living'}. Alle rechten voorbehouden.</p>
           </div>
         </div>
       </footer>

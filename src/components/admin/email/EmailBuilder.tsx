@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Plus, 
   Image, 
@@ -20,7 +21,7 @@ import {
 
 interface EmailBlock {
   id: string;
-  type: 'header' | 'text' | 'image' | 'button' | 'product' | 'footer';
+  type: 'header' | 'text' | 'image' | 'button' | 'product' | 'products-grid' | 'footer';
   content: any;
   styles: any;
 }
@@ -48,14 +49,16 @@ export function EmailBuilder({ templateId, onSave, onPreview }: EmailBuilderProp
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const [templateName, setTemplateName] = useState('');
   const [templateSubject, setTemplateSubject] = useState('');
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
 
   const blockTypes = [
-    { type: 'header', icon: Layout, label: 'Header', description: 'Logo en titel sectie' },
-    { type: 'text', icon: Type, label: 'Text Block', description: 'Tekst en koppen' },
-    { type: 'image', icon: Image, label: 'Image', description: 'Afbeelding met tekst' },
-    { type: 'button', icon: Link, label: 'Button', description: 'Call-to-action knop' },
-    { type: 'product', icon: Layout, label: 'Product', description: 'Product showcase' },
-    { type: 'footer', icon: Layout, label: 'Footer', description: 'Contact en links' },
+    { type: 'header', icon: Layout, label: 'Header', description: 'Logo en winkel branding' },
+    { type: 'text', icon: Type, label: 'Tekst Blok', description: 'Tekst en koppen' },
+    { type: 'image', icon: Image, label: 'Afbeelding', description: 'Upload en toon afbeeldingen' },
+    { type: 'button', icon: Link, label: 'Knop', description: 'Call-to-action knop' },
+    { type: 'product', icon: Layout, label: 'Product Showcase', description: 'Dynamische producten' },
+    { type: 'products-grid', icon: Layout, label: 'Product Grid', description: '2x2 product raster' },
+    { type: 'footer', icon: Layout, label: 'Footer', description: 'Contact info en links' },
   ];
 
   const addBlock = (type: string) => {
@@ -96,18 +99,31 @@ export function EmailBuilder({ templateId, onSave, onPreview }: EmailBuilderProp
         };
       case 'product':
         return { 
-          name: 'Featured Product', 
-          price: '€99.99', 
-          image: '/placeholder.svg',
-          description: 'Amazing product description',
-          url: 'https://yourstore.com/product/1'
+          type: 'featured', // 'featured', 'recent_viewed', 'bestsellers'
+          count: 1,
+          showPrice: true,
+          showDescription: true,
+          buttonText: 'Bekijk Product'
+        };
+      case 'products-grid':
+        return {
+          type: 'bestsellers', // 'bestsellers', 'new_arrivals', 'category'
+          count: 4,
+          columns: 2,
+          showPrice: true,
+          showDescription: false,
+          buttonText: 'Shop Nu'
         };
       case 'footer':
         return { 
-          company: 'Your Store Name',
-          address: '123 Store Street, City',
-          unsubscribe: 'Unsubscribe from our emails',
-          social: { facebook: '', instagram: '', twitter: '' }
+          company: '{{store_name}}',
+          address: '{{store_address}}',
+          unsubscribe: 'Uitschrijven van onze emails',
+          social: { 
+            website: '{{store_website}}',
+            instagram: '{{store_instagram}}', 
+            facebook: '{{store_facebook}}' 
+          }
         };
       default:
         return {};
@@ -220,20 +236,64 @@ export function EmailBuilder({ templateId, onSave, onPreview }: EmailBuilderProp
           </tr>
         `;
 
+      case 'products-grid':
+        return `
+          <tr>
+            <td style="${styleString}">
+              <h3 style="margin: 0 0 20px; font-size: 20px; color: #333; text-align: center;">${content.type === 'bestsellers' ? 'Onze Bestsellers' : content.type === 'new_arrivals' ? 'Nieuwe Collectie' : 'Aanbevolen voor Jou'}</h3>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="48%" style="padding-right: 10px;">
+                    <img src="/placeholder.svg" alt="Product 1" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;" />
+                    <h4 style="margin: 0 0 5px; font-size: 16px; color: #333;">Premium Desk Chair</h4>
+                    ${content.showPrice ? '<p style="margin: 0 0 10px; font-size: 18px; font-weight: bold; color: #000;">€299.99</p>' : ''}
+                    <a href="#" style="display: inline-block; padding: 8px 16px; background-color: #000; color: #fff; text-decoration: none; border-radius: 4px; font-size: 14px;">${content.buttonText}</a>
+                  </td>
+                  <td width="48%" style="padding-left: 10px;">
+                    <img src="/placeholder.svg" alt="Product 2" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;" />
+                    <h4 style="margin: 0 0 5px; font-size: 16px; color: #333;">Standing Desk</h4>
+                    ${content.showPrice ? '<p style="margin: 0 0 10px; font-size: 18px; font-weight: bold; color: #000;">€599.99</p>' : ''}
+                    <a href="#" style="display: inline-block; padding: 8px 16px; background-color: #000; color: #fff; text-decoration: none; border-radius: 4px; font-size: 14px;">${content.buttonText}</a>
+                  </td>
+                </tr>
+                <tr style="height: 20px;"><td colspan="2"></td></tr>
+                <tr>
+                  <td width="48%" style="padding-right: 10px;">
+                    <img src="/placeholder.svg" alt="Product 3" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;" />
+                    <h4 style="margin: 0 0 5px; font-size: 16px; color: #333;">Storage Cabinet</h4>
+                    ${content.showPrice ? '<p style="margin: 0 0 10px; font-size: 18px; font-weight: bold; color: #000;">€199.99</p>' : ''}
+                    <a href="#" style="display: inline-block; padding: 8px 16px; background-color: #000; color: #fff; text-decoration: none; border-radius: 4px; font-size: 14px;">${content.buttonText}</a>
+                  </td>
+                  <td width="48%" style="padding-left: 10px;">
+                    <img src="/placeholder.svg" alt="Product 4" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;" />
+                    <h4 style="margin: 0 0 5px; font-size: 16px; color: #333;">Office Light</h4>
+                    ${content.showPrice ? '<p style="margin: 0 0 10px; font-size: 18px; font-weight: bold; color: #000;">€89.99</p>' : ''}
+                    <a href="#" style="display: inline-block; padding: 8px 16px; background-color: #000; color: #fff; text-decoration: none; border-radius: 4px; font-size: 14px;">${content.buttonText}</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        `;
+
       case 'product':
         return `
           <tr>
             <td style="${styleString}">
+              <h3 style="margin: 0 0 20px; font-size: 20px; color: #333; text-align: center;">
+                ${content.type === 'featured' ? 'Uitgelicht Product' : 
+                  content.type === 'recent_viewed' ? 'Recent Bekeken' : 'Bestseller'}
+              </h3>
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td width="200" style="padding-right: 20px;">
-                    <img src="${content.image}" alt="${content.name}" style="width: 180px; height: 180px; object-fit: cover; border-radius: 8px;" />
+                    <img src="/placeholder.svg" alt="Featured Product" style="width: 180px; height: 180px; object-fit: cover; border-radius: 8px;" />
                   </td>
                   <td style="vertical-align: top;">
-                    <h3 style="margin: 0 0 10px; font-size: 20px; color: #333;">${content.name}</h3>
-                    <p style="margin: 0 0 15px; color: #666; line-height: 1.6;">${content.description}</p>
-                    <p style="margin: 0 0 20px; font-size: 24px; font-weight: bold; color: #000;">${content.price}</p>
-                    <a href="${content.url}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">View Product</a>
+                    <h3 style="margin: 0 0 10px; font-size: 20px; color: #333;">Premium Bureau Stoel</h3>
+                    ${content.showDescription ? '<p style="margin: 0 0 15px; color: #666; line-height: 1.6;">Ergonomische bureaustoel met premium materialen voor optimaal comfort tijdens lange werkdagen.</p>' : ''}
+                    ${content.showPrice ? '<p style="margin: 0 0 20px; font-size: 24px; font-weight: bold; color: #000;">€299.99</p>' : ''}
+                    <a href="#" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">${content.buttonText}</a>
                   </td>
                 </tr>
               </table>
@@ -274,6 +334,32 @@ export function EmailBuilder({ templateId, onSave, onPreview }: EmailBuilderProp
 
   const handlePreview = () => {
     onPreview(generateHTML());
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setImageUploadLoading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `email-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    } finally {
+      setImageUploadLoading(false);
+    }
   };
 
   return (
