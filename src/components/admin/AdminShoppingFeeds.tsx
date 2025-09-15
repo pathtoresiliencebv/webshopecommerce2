@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { 
   Rss, 
   Globe, 
@@ -19,16 +25,36 @@ import {
   Settings, 
   Download,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Copy
 } from "lucide-react";
 
-const feeds: any[] = [];
-const platforms: any[] = [];
-const errors: any[] = [];
+interface ShoppingFeed {
+  id: string;
+  platform: 'google' | 'facebook' | 'tiktok';
+  is_active: boolean;
+  last_sync_at: string | null;
+  product_count: number;
+  error_count: number;
+  config: any;
+  created_at: string;
+}
+
+interface FeedStats {
+  activeFeeds: number;
+  totalProducts: number;
+  totalErrors: number;
+}
 
 export function AdminShoppingFeeds() {
+  const { currentOrganization } = useOrganization();
+  const [feeds, setFeeds] = useState<ShoppingFeed[]>([]);
+  const [stats, setStats] = useState<FeedStats>({ activeFeeds: 0, totalProducts: 0, totalErrors: 0 });
   const [syncProgress, setSyncProgress] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -66,22 +92,156 @@ export function AdminShoppingFeeds() {
     );
   };
 
-  const handleSync = async () => {
+  useEffect(() => {
+    if (currentOrganization) {
+      fetchFeeds();
+    }
+  }, [currentOrganization]);
+
+  const fetchFeeds = async () => {
+    if (!currentOrganization) return;
+    
+    try {
+      const { data: feedsData, error: feedsError } = await supabase
+        .from('shopping_feeds')
+        .select('*')
+        .eq('organization_id', currentOrganization.id)
+        .order('created_at', { ascending: false });
+
+      if (feedsError) throw feedsError;
+
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('id')
+        .eq('organization_id', currentOrganization.id)
+        .eq('is_active', true);
+
+      if (productsError) throw productsError;
+
+      setFeeds(feedsData as ShoppingFeed[] || []);
+      setStats({
+        activeFeeds: feedsData?.filter(f => f.is_active).length || 0,
+        totalProducts: productsData?.length || 0,
+        totalErrors: feedsData?.reduce((sum, f) => sum + f.error_count, 0) || 0
+      });
+    } catch (error) {
+      console.error('Error fetching feeds:', error);
+      toast.error('Fout bij laden van feeds');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createFeed = async () => {
+    if (!currentOrganization || !selectedPlatform) return;
+
+    try {
+      const { error } = await supabase
+        .from('shopping_feeds')
+        .insert({
+          organization_id: currentOrganization.id,
+          platform: selectedPlatform,
+          is_active: true,
+          config: {}
+        });
+
+      if (error) throw error;
+
+      toast.success(`${selectedPlatform.toUpperCase()} feed aangemaakt`);
+      setShowCreateDialog(false);
+      setSelectedPlatform('');
+      fetchFeeds();
+    } catch (error) {
+      console.error('Error creating feed:', error);
+      toast.error('Fout bij aanmaken feed');
+    }
+  };
+
+  const toggleFeed = async (feedId: string, isActive: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('shopping_feeds')
+        .update({ is_active: !isActive })
+        .eq('id', feedId);
+
+      if (error) throw error;
+
+      toast.success(isActive ? 'Feed gepauzeerd' : 'Feed geactiveerd');
+      fetchFeeds();
+    } catch (error) {
+      console.error('Error toggling feed:', error);
+      toast.error('Fout bij wijzigen feed status');
+    }
+  };
+
+  const handleSync = async (feedId?: string) => {
+    if (!currentOrganization) return;
+    
     setIsSyncing(true);
     setSyncProgress(0);
     
-    // Simulate sync progress
-    const interval = setInterval(() => {
-      setSyncProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsSyncing(false);
-          return 100;
+    try {
+      const feedsToSync = feedId ? feeds.filter(f => f.id === feedId) : feeds.filter(f => f.is_active);
+      
+      for (let i = 0; i < feedsToSync.length; i++) {
+        const feed = feedsToSync[i];
+        const format = feed.platform === 'google' ? 'xml' : 'csv';
+        
+        // Call the edge function to generate/sync the feed
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-shopping-feed/${currentOrganization.slug}/${feed.platform}-shopping.${format}`, {
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Feed sync failed for ${feed.platform}`);
         }
-        return prev + 10;
-      });
-    }, 200);
+        
+        setSyncProgress(((i + 1) / feedsToSync.length) * 100);
+      }
+      
+      toast.success('Feeds succesvol gesynchroniseerd');
+      fetchFeeds();
+    } catch (error) {
+      console.error('Error syncing feeds:', error);
+      toast.error('Fout bij synchroniseren van feeds');
+    } finally {
+      setIsSyncing(false);
+      setSyncProgress(0);
+    }
   };
+
+  const getFeedUrl = (platform: string) => {
+    if (!currentOrganization) return '';
+    
+    const format = platform === 'google' ? 'xml' : 'csv';
+    const domain = currentOrganization.domain || `${currentOrganization.subdomain || currentOrganization.slug}.aurelioliving.nl`;
+    
+    return `https://${domain}/${platform}-shopping.${format}`;
+  };
+
+  const copyFeedUrl = (platform: string) => {
+    const url = getFeedUrl(platform);
+    navigator.clipboard.writeText(url);
+    toast.success('Feed URL gekopieerd');
+  };
+
+  const platformIcons = {
+    google: Globe,
+    facebook: Globe,
+    tiktok: Zap
+  };
+
+  const platformNames = {
+    google: 'Google Shopping',
+    facebook: 'Facebook Catalog',
+    tiktok: 'TikTok Shop'
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Laden...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -93,14 +253,46 @@ export function AdminShoppingFeeds() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleSync} disabled={isSyncing}>
+          <Button variant="outline" onClick={() => handleSync()} disabled={isSyncing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
             {isSyncing ? 'Synchroniseren...' : 'Sync Alle Feeds'}
           </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nieuwe Feed
-          </Button>
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nieuwe Feed
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Nieuwe Shopping Feed</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="platform">Platform</Label>
+                  <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecteer platform" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="google">Google Shopping</SelectItem>
+                      <SelectItem value="facebook">Facebook Catalog</SelectItem>
+                      <SelectItem value="tiktok">TikTok Shop</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                  Annuleren
+                </Button>
+                <Button onClick={createFeed} disabled={!selectedPlatform}>
+                  Feed Aanmaken
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -127,8 +319,10 @@ export function AdminShoppingFeeds() {
             <Rss className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Geen feeds geconfigureerd</p>
+            <div className="text-2xl font-bold">{stats.activeFeeds}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.activeFeeds === 0 ? 'Geen feeds geconfigureerd' : 'Actieve feeds'}
+            </p>
           </CardContent>
         </Card>
 
@@ -138,8 +332,10 @@ export function AdminShoppingFeeds() {
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Geen producten geëxporteerd</p>
+            <div className="text-2xl font-bold">{stats.totalProducts}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.totalProducts === 0 ? 'Geen producten beschikbaar' : 'Beschikbare producten'}
+            </p>
           </CardContent>
         </Card>
 
@@ -149,8 +345,8 @@ export function AdminShoppingFeeds() {
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Afgelopen 30 dagen</p>
+            <div className="text-2xl font-bold">-</div>
+            <p className="text-xs text-muted-foreground">Nog niet beschikbaar</p>
           </CardContent>
         </Card>
 
@@ -160,8 +356,10 @@ export function AdminShoppingFeeds() {
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Geen fouten</p>
+            <div className="text-2xl font-bold">{stats.totalErrors}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.totalErrors === 0 ? 'Geen fouten' : 'Fouten gevonden'}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -185,12 +383,11 @@ export function AdminShoppingFeeds() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Feed Naam</TableHead>
                     <TableHead>Platform</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Feed URL</TableHead>
                     <TableHead>Producten</TableHead>
                     <TableHead>Laatste Sync</TableHead>
-                    <TableHead>Frequentie</TableHead>
                     <TableHead>Fouten</TableHead>
                     <TableHead>Acties</TableHead>
                   </TableRow>
@@ -198,41 +395,79 @@ export function AdminShoppingFeeds() {
                 <TableBody>
                   {feeds.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
-                        Geen shopping feeds geconfigureerd
+                      <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                        Geen shopping feeds geconfigureerd. Klik op "Nieuwe Feed" om te beginnen.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    feeds.map((feed) => (
-                      <TableRow key={feed.id}>
-                        <TableCell className="font-medium">{feed.name}</TableCell>
-                        <TableCell>{feed.platform}</TableCell>
-                        <TableCell>{getStatusBadge(feed.status)}</TableCell>
-                        <TableCell>{feed.products.toLocaleString()}</TableCell>
-                        <TableCell>{feed.lastSync}</TableCell>
-                        <TableCell>{feed.syncFrequency}</TableCell>
-                        <TableCell>
-                          {feed.errors > 0 ? (
-                            <Badge variant="destructive">{feed.errors}</Badge>
-                          ) : (
-                            <Badge variant="secondary">0</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
-                              <Settings className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <ExternalLink className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    feeds.map((feed) => {
+                      const IconComponent = platformIcons[feed.platform];
+                      return (
+                        <TableRow key={feed.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              <IconComponent className="h-4 w-4" />
+                              {platformNames[feed.platform]}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {getStatusBadge(feed.is_active ? 'active' : 'paused')}
+                              <Switch 
+                                checked={feed.is_active} 
+                                onCheckedChange={() => toggleFeed(feed.id, feed.is_active)}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 max-w-xs">
+                              <span className="text-sm truncate">{getFeedUrl(feed.platform)}</span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => copyFeedUrl(feed.platform)}
+                                className="h-6 w-6 p-0"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell>{feed.product_count || stats.totalProducts}</TableCell>
+                          <TableCell>
+                            {feed.last_sync_at 
+                              ? new Date(feed.last_sync_at).toLocaleDateString('nl-NL')
+                              : 'Nog niet gesynchroniseerd'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            {feed.error_count > 0 ? (
+                              <Badge variant="destructive">{feed.error_count}</Badge>
+                            ) : (
+                              <Badge variant="secondary">0</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleSync(feed.id)}
+                                disabled={isSyncing}
+                              >
+                                <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => window.open(getFeedUrl(feed.platform), '_blank')}
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -241,70 +476,111 @@ export function AdminShoppingFeeds() {
         </TabsContent>
 
         <TabsContent value="platforms" className="space-y-4">
-          {platforms.length === 0 ? (
-            <Card>
-              <CardContent className="py-20 text-center">
-                <Globe className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">Geen platform integraties</h3>
-                <p className="text-muted-foreground mb-4">
-                  Verbind met shopping platforms om je producten te promoten
-                </p>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Platform Verbinden
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {platforms.map((platform) => (
-                <Card key={platform.name}>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {(['google', 'facebook', 'tiktok'] as const).map((platform) => {
+              const IconComponent = platformIcons[platform];
+              const feed = feeds.find(f => f.platform === platform);
+              const isConnected = !!feed;
+              
+              return (
+                <Card key={platform}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <platform.icon className="h-5 w-5" />
-                        <CardTitle className="text-lg">{platform.name}</CardTitle>
+                        <IconComponent className="h-5 w-5" />
+                        <CardTitle className="text-lg">{platformNames[platform]}</CardTitle>
                       </div>
-                      <Switch checked={platform.connected} />
+                      <Switch 
+                        checked={isConnected && feed.is_active} 
+                        onCheckedChange={() => {
+                          if (isConnected) {
+                            toggleFeed(feed.id, feed.is_active);
+                          }
+                        }}
+                        disabled={!isConnected}
+                      />
                     </div>
-                    <CardDescription>{platform.description}</CardDescription>
+                    <CardDescription>
+                      {platform === 'google' && 'Exporteer producten naar Google Shopping'}
+                      {platform === 'facebook' && 'Sync producten met Facebook Catalog'}
+                      {platform === 'tiktok' && 'Promoot producten op TikTok Shop'}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {platform.connected ? (
-                      <div className="space-y-2">
+                    {isConnected ? (
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span>Feed URL:</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => copyFeedUrl(platform)}
+                            className="h-auto p-0 text-xs"
+                          >
+                            <Copy className="h-3 w-3 mr-1" />
+                            Kopiëren
+                          </Button>
+                        </div>
                         <div className="flex justify-between text-sm">
                           <span>Producten:</span>
-                          <span className="font-medium">{platform.products}</span>
+                          <span className="font-medium">{feed.product_count || stats.totalProducts}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span>Clicks:</span>
-                          <span className="font-medium">{platform.clicks.toLocaleString()}</span>
+                          <span>Laatste sync:</span>
+                          <span className="font-medium">
+                            {feed.last_sync_at 
+                              ? new Date(feed.last_sync_at).toLocaleDateString('nl-NL')
+                              : 'Nog niet'
+                            }
+                          </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span>Impressions:</span>
-                          <span className="font-medium">{platform.impressions.toLocaleString()}</span>
+                          <span>Fouten:</span>
+                          <span className="font-medium">{feed.error_count || 0}</span>
                         </div>
-                        <Button variant="outline" size="sm" className="w-full mt-4">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Configureren
-                        </Button>
+                        <div className="flex gap-2 mt-4">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => handleSync(feed.id)}
+                            disabled={isSyncing}
+                          >
+                            <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                            Sync
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.open(getFeedUrl(platform), '_blank')}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          Nog niet verbonden
+                          Nog niet geconfigureerd
                         </p>
-                        <Button size="sm" className="w-full">
+                        <Button 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => {
+                            setSelectedPlatform(platform);
+                            setShowCreateDialog(true);
+                          }}
+                        >
                           <Plus className="h-4 w-4 mr-2" />
-                          Verbinden
+                          Feed Aanmaken
                         </Button>
                       </div>
                     )}
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </TabsContent>
 
         <TabsContent value="errors" className="space-y-4">
@@ -326,33 +602,14 @@ export function AdminShoppingFeeds() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {errors.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                        Geen fouten gevonden
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    errors.map((error) => (
-                      <TableRow key={error.id}>
-                        <TableCell className="font-medium">{error.product}</TableCell>
-                        <TableCell>{error.feed}</TableCell>
-                        <TableCell>{error.error}</TableCell>
-                        <TableCell>{getSeverityBadge(error.severity)}</TableCell>
-                        <TableCell>{error.date}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
-                              <Settings className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              Oplossen
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                      {stats.totalErrors === 0 
+                        ? 'Geen fouten gevonden - alle feeds werken correct!' 
+                        : 'Foutdetails worden binnenkort beschikbaar gesteld'
+                      }
+                    </TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </CardContent>
@@ -390,9 +647,16 @@ export function AdminShoppingFeeds() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Base Feed URL</label>
                   <Input 
-                    defaultValue="https://feeds.aurelio.nl/" 
+                    value={currentOrganization?.domain 
+                      ? `https://${currentOrganization.domain}/`
+                      : `https://${currentOrganization?.subdomain || currentOrganization?.slug}.aurelioliving.nl/`
+                    }
                     placeholder="https://feeds.example.com/"
+                    readOnly
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Feed URLs worden automatisch gegenereerd op basis van jouw domein
+                  </p>
                 </div>
 
                 <div className="flex items-center justify-between">
