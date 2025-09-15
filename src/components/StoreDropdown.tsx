@@ -86,13 +86,30 @@ const StoreDropdown: React.FC = () => {
       <div className="flex items-center">
         <img 
           src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
-          alt="Aurora Living" 
+          alt="Aurello Living" 
           className="h-8 w-auto"
         />
       </div>
     );
   }
 
+  // For non-logged-in users, show only static logo (no dropdown)
+  if (!user) {
+    return (
+      <div className="flex items-center">
+        <img 
+          src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
+          alt="Aurello Living" 
+          className="h-8 w-auto mr-2"
+        />
+        <div className="hidden sm:block">
+          <span className="font-semibold text-sm leading-none">Aurello Living</span>
+        </div>
+      </div>
+    );
+  }
+
+  // For logged-in users, show full dropdown functionality
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -107,13 +124,13 @@ const StoreDropdown: React.FC = () => {
             ) : (
               <img 
                 src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
-                alt="Aurora Living" 
+                alt="Aurello Living" 
                 className="h-8 w-auto mr-2"
               />
             )}
             <div className="hidden sm:flex flex-col items-start">
               <span className="font-semibold text-sm leading-none">{displayStore.name}</span>
-              {user && currentOrganization?.subscription_status && (
+              {currentOrganization?.subscription_status && (
                 <Badge variant={getSubscriptionBadgeVariant(currentOrganization.subscription_status)} className="mt-1 text-xs">
                   {currentOrganization.subscription_status === 'trial' ? 'Trial' : 
                    currentOrganization.subscription_status === 'active' ? 'Pro' : 
