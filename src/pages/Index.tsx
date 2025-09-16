@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useStore } from "@/contexts/StoreContext";
+import LandingPage from "./LandingPage";
 
 // Import images
 import heroWorkspace from "@/assets/hero-workspace.jpg";
@@ -247,6 +248,11 @@ const Index = () => {
 
   // Handle store not found (only show error if not loading)
   if (!storeLoading && (storeError || !store)) {
+    // If we're on the root domain (myaurelio.com), show landing page
+    if (window.location.hostname === 'myaurelio.com') {
+      return <LandingPage />;
+    }
+    
     return (
       <div className="min-h-screen bg-background">
         <Navigation />

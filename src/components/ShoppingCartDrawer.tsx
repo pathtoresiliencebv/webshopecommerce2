@@ -56,7 +56,7 @@ export function ShoppingCartDrawer() {
               <h3 className="font-semibold">Please log in</h3>
               <p className="text-sm text-muted-foreground">You need to be logged in to view your cart</p>
             </div>
-            <Link to="/login" onClick={closeCart}>
+            <Link to="/auth" onClick={closeCart}>
               <Button>Log In</Button>
             </Link>
           </div>

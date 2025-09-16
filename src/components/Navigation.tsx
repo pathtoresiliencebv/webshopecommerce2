@@ -175,13 +175,13 @@ export function Navigation() {
                   ) : (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link to="/login">
+                        <Link to="/auth">
                           <User className="mr-2 h-4 w-4" />
                           Sign In
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/login">
+                        <Link to="/auth">
                           <User className="mr-2 h-4 w-4" />
                           Create Account
                         </Link>

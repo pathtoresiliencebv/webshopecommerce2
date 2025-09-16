@@ -113,8 +113,7 @@ export default function Checkout() {
 
   // Redirect if not logged in
   if (!user) {
-    const loginUrl = store?.slug ? `/store/${store.slug}/login` : "/login";
-    navigate(loginUrl, { state: { from: { pathname: "/checkout" } } });
+    navigate("/auth", { state: { from: { pathname: "/checkout" } } });
     return null;
   }
 
@@ -132,8 +131,7 @@ export default function Checkout() {
 
   // Redirect if cart is empty (only after loading is complete)
   if (items.length === 0) {
-    const productsUrl = store?.slug ? `/store/${store.slug}/products` : "/products";
-    navigate(productsUrl);
+    navigate("/products");
     return null;
   }
 
@@ -287,8 +285,7 @@ export default function Checkout() {
                     <button 
                       className="text-sm text-blue-600 hover:underline"
                       onClick={() => {
-                        const loginUrl = store?.slug ? `/store/${store.slug}/login` : "/login";
-                        navigate(loginUrl, { state: { from: { pathname: store?.slug ? `/store/${store.slug}/checkout` : "/checkout" } } });
+                        navigate("/auth", { state: { from: { pathname: "/checkout" } } });
                       }}
                     >
                       Log in

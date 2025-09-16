@@ -14,6 +14,7 @@ import AdminAuth from "./pages/AdminAuth";
 import NotFound from "./pages/NotFound";
 import CollectionPage from "./pages/CollectionPage";
 import Login from "./pages/Login";
+import Auth from "./pages/Auth";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import CreateOrder from "./pages/CreateOrder";
@@ -88,15 +89,26 @@ const App = () => (
             </StoreProvider>
           } />
           <Route path="/login" element={<Login />} />
+          <Route path="/auth" element={
+            <StoreProvider>
+              <CartProvider>
+                <Auth />
+              </CartProvider>
+            </StoreProvider>
+          } />
           <Route path="/checkout/success" element={
-            <CartProvider>
-              <CheckoutSuccess />
-            </CartProvider>
+            <StoreProvider>
+              <CartProvider>
+                <CheckoutSuccess />
+              </CartProvider>
+            </StoreProvider>
           } />
           <Route path="/checkout" element={
-            <CartProvider>
-              <Checkout />
-            </CartProvider>
+            <StoreProvider>
+              <CartProvider>
+                <Checkout />
+              </CartProvider>
+            </StoreProvider>
           } />
           <Route path="/faq" element={
             <StoreProvider>
