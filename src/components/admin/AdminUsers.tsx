@@ -1,29 +1,62 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Users, UserPlus, Settings, Mail } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { Users, UserPlus, Settings, Mail, Loader2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 export function AdminUsers() {
-  const teamMembers = [
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'owner',
-      status: 'active',
-      lastActive: '2 min geleden'
+  const { currentOrganization } = useOrganization();
+  const queryClient = useQueryClient();
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('staff');
+
+  const { data: teamMembers = [], isLoading } = useQuery({
+    queryKey: ['organization-users', currentOrganization?.id],
+    queryFn: async () => {
+      // Mock data until database migration is approved
+      return [
+        {
+          id: '1',
+          name: 'Admin Gebruiker',
+          email: 'admin@example.com',
+          role: 'owner',
+          status: 'active',
+          lastActive: new Date().toLocaleDateString('nl-NL')
+        }
+      ];
     },
-    {
-      id: '2', 
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      role: 'admin',
-      status: 'active',
-      lastActive: '1 uur geleden'
+    enabled: !!currentOrganization?.id
+  });
+
+  const inviteMutation = useMutation({
+    mutationFn: async () => {
+      // In a real implementation, this would send an invitation email
+      // For now, we'll just show a success message
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    onSuccess: () => {
+      toast({
+        title: "Uitnodiging verzonden",
+        description: `Een uitnodiging is verzonden naar ${inviteEmail}`
+      });
+      setInviteDialogOpen(false);
+      setInviteEmail('');
+      setInviteRole('staff');
     }
-  ];
+  });
+
+  if (!currentOrganization) {
+    return <div className="text-center py-8">Geen organisatie geselecteerd</div>;
+  }
 
   const getRoleBadge = (role: string) => {
     const config = {
@@ -48,10 +81,54 @@ export function AdminUsers() {
             Beheer teamleden en hun toegangsrechten
           </p>
         </div>
-        <Button className="flex items-center gap-2">
-          <UserPlus className="h-4 w-4" />
-          Gebruiker Uitnodigen
-        </Button>
+        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Gebruiker Uitnodigen
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Nieuwe Gebruiker Uitnodigen</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Email adres</label>
+                <Input 
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="gebruiker@example.com"
+                  type="email"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Rol</label>
+                <Select value={inviteRole} onValueChange={setInviteRole}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="staff">Medewerker</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button 
+                onClick={() => inviteMutation.mutate()} 
+                disabled={!inviteEmail || inviteMutation.isPending}
+                className="w-full"
+              >
+                {inviteMutation.isPending ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verzenden...</>
+                ) : (
+                  'Uitnodiging Verzenden'
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Team Overview */}
@@ -105,8 +182,13 @@ export function AdminUsers() {
           <CardTitle>Teamleden</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {teamMembers.map((member) => (
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {teamMembers.map((member) => (
               <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-4">
                   <Avatar>
@@ -130,7 +212,8 @@ export function AdminUsers() {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

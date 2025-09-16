@@ -49,6 +49,12 @@ const settingsSections = [
     description: 'Betalingen & facturen'
   },
   {
+    id: 'payment-methods',
+    label: 'Betaalmethoden',
+    icon: CreditCard,
+    description: 'Stripe & betalingen'
+  },
+  {
     id: 'users',
     label: 'Gebruikers & Machtigingen',
     icon: Users,

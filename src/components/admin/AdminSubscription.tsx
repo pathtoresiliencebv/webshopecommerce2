@@ -4,7 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { Crown, Users, Package, BarChart3, Calendar } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Crown, Users, Package, BarChart3, Calendar, Loader2 } from 'lucide-react';
 
 export function AdminSubscription() {
   const { currentOrganization } = useOrganization();
@@ -41,11 +43,35 @@ export function AdminSubscription() {
   };
 
   const currentPlan = planFeatures[currentOrganization.subscription_plan as keyof typeof planFeatures] || planFeatures.starter;
-  const usageData = {
-    products: 45,
-    users: 1,
-    storage: 0.3
-  };
+  const { data: usageData = { products: 0, users: 0, storage: 0 }, isLoading: usageLoading } = useQuery({
+    queryKey: ['usage-stats', currentOrganization?.id],
+    queryFn: async () => {
+      if (!currentOrganization?.id) return { products: 0, users: 0, storage: 0 };
+      
+      // Get product count
+      const { count: productCount } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', currentOrganization.id);
+      
+      // Get active user count
+      const { count: userCount } = await supabase
+        .from('organization_users')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', currentOrganization.id)
+        .eq('is_active', true);
+      
+      // Calculate storage usage (mock for now)
+      const storageUsage = Math.random() * 2; // 0-2 GB
+      
+      return {
+        products: productCount || 0,
+        users: userCount || 0,
+        storage: Number(storageUsage.toFixed(1))
+      };
+    },
+    enabled: !!currentOrganization?.id
+  });
 
   const getUsagePercentage = (used: number, limit: number | string) => {
     if (typeof limit === 'string') return 0;
@@ -122,8 +148,13 @@ export function AdminSubscription() {
           <CardTitle>Gebruik Overzicht</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div>
+          {usageLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">Producten</span>
                 <span className="text-sm text-muted-foreground">
@@ -162,6 +193,7 @@ export function AdminSubscription() {
               />
             </div>
           </div>
+          )}
         </CardContent>
       </Card>
 

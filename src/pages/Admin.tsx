@@ -50,6 +50,7 @@ export type AdminSection =
   | "store-settings"
   | "stores"
   | "subscription"
+  | "payment-methods"
   | "customer-service";
 
 const Admin = () => {
@@ -128,6 +129,8 @@ const Admin = () => {
         return <StoreManagementDashboard />;
       case "subscription":
         return <SubscriptionManager />;
+      case "payment-methods":
+        return <AdminPaymentMethods />;
       case "customer-service":
         return <AdminCustomerService />;
       default:

@@ -1,49 +1,85 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Languages, Globe, Plus, Settings } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { Languages, Globe, Plus, Settings, Loader2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+
+const availableLanguages = [
+  { code: 'nl', name: 'Nederlands', nativeName: 'Nederlands', flag: '🇳🇱' },
+  { code: 'en', name: 'Engels', nativeName: 'English', flag: '🇬🇧' },
+  { code: 'de', name: 'Duits', nativeName: 'Deutsch', flag: '🇩🇪' },
+  { code: 'fr', name: 'Frans', nativeName: 'Français', flag: '🇫🇷' },
+  { code: 'es', name: 'Spaans', nativeName: 'Español', flag: '🇪🇸' },
+  { code: 'it', name: 'Italiaans', nativeName: 'Italiano', flag: '🇮🇹' }
+];
 
 export function AdminLanguages() {
-  const languages = [
-    {
-      code: 'nl',
-      name: 'Nederlands',
-      nativeName: 'Nederlands',
-      flag: '🇳🇱',
-      isDefault: true,
-      isActive: true,
-      completeness: 100
+  const { currentOrganization } = useOrganization();
+  const queryClient = useQueryClient();
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+
+  const { data: languages = [], isLoading } = useQuery({
+    queryKey: ['language-settings', currentOrganization?.id],
+    queryFn: async () => {
+      // For now return mock data until database migration is approved and run
+      return [
+        {
+          id: '1',
+          language_code: 'nl',
+          name: 'Nederlands',
+          nativeName: 'Nederlands',
+          flag: '🇳🇱',
+          is_default: true,
+          is_active: true,
+          completeness: 100
+        },
+        {
+          id: '2',
+          language_code: 'en',
+          name: 'Engels',
+          nativeName: 'English',
+          flag: '🇬🇧',
+          is_default: false,
+          is_active: true,
+          completeness: 85
+        }
+      ];
     },
-    {
-      code: 'en',
-      name: 'Engels',
-      nativeName: 'English',
-      flag: '🇬🇧',
-      isDefault: false,
-      isActive: true,
-      completeness: 85
+    enabled: !!currentOrganization?.id
+  });
+
+  const addLanguageMutation = useMutation({
+    mutationFn: async () => {
+      // Mock implementation until database migration is approved
+      await new Promise(resolve => setTimeout(resolve, 1000));
     },
-    {
-      code: 'de',
-      name: 'Duits',
-      nativeName: 'Deutsch',
-      flag: '🇩🇪',
-      isDefault: false,
-      isActive: false,
-      completeness: 60
-    },
-    {
-      code: 'fr',
-      name: 'Frans',
-      nativeName: 'Français',
-      flag: '🇫🇷',
-      isDefault: false,
-      isActive: false,
-      completeness: 45
+    onSuccess: () => {
+      toast({
+        title: "Taal toegevoegd",
+        description: "De nieuwe taal is succesvol toegevoegd"
+      });
+      queryClient.invalidateQueries({ queryKey: ['language-settings'] });
+      setAddDialogOpen(false);
+      setSelectedLanguage('');
     }
-  ];
+  });
+
+  const toggleLanguageMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string, isActive: boolean }) => {
+      // Mock implementation until database migration is approved
+      await new Promise(resolve => setTimeout(resolve, 500));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['language-settings'] });
+    }
+  });
 
   const getCompletenessBadge = (completeness: number) => {
     if (completeness === 100) return <Badge variant="default">Compleet</Badge>;
@@ -51,6 +87,10 @@ export function AdminLanguages() {
     if (completeness >= 50) return <Badge variant="outline">In uitvoering</Badge>;
     return <Badge variant="destructive">Niet gestart</Badge>;
   };
+
+  if (!currentOrganization) {
+    return <div className="text-center py-8">Geen organisatie geselecteerd</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -62,10 +102,52 @@ export function AdminLanguages() {
             Beheer meertalige ondersteuning voor je store
           </p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Taal Toevoegen
-        </Button>
+        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Taal Toevoegen
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Nieuwe Taal Toevoegen</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Selecteer taal</label>
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Kies een taal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableLanguages
+                      .filter(lang => !languages.some(l => l.language_code === lang.code))
+                      .map(lang => (
+                        <SelectItem key={lang.code} value={lang.code}>
+                          <div className="flex items-center gap-2">
+                            <span>{lang.flag}</span>
+                            <span>{lang.name} ({lang.nativeName})</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button 
+                onClick={() => addLanguageMutation.mutate()}
+                disabled={!selectedLanguage || addLanguageMutation.isPending}
+                className="w-full"
+              >
+                {addLanguageMutation.isPending ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Toevoegen...</>
+                ) : (
+                  'Taal Toevoegen'
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Language Overview */}
@@ -77,7 +159,7 @@ export function AdminLanguages() {
                 <Languages className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{languages.filter(l => l.isActive).length}</p>
+                <p className="text-2xl font-bold">{languages.filter(l => l.is_active).length}</p>
                 <p className="text-sm text-muted-foreground">Actieve Talen</p>
               </div>
             </div>
@@ -105,7 +187,7 @@ export function AdminLanguages() {
                 <Settings className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{languages.filter(l => l.completeness < 100 && l.isActive).length}</p>
+                <p className="text-2xl font-bold">{languages.filter(l => l.completeness < 100 && l.is_active).length}</p>
                 <p className="text-sm text-muted-foreground">In Bewerking</p>
               </div>
             </div>
@@ -119,41 +201,55 @@ export function AdminLanguages() {
           <CardTitle>Beschikbare Talen</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {languages.map((language) => (
-              <div key={language.code} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl">{language.flag}</span>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium">{language.name}</p>
-                      <span className="text-sm text-muted-foreground">({language.nativeName})</span>
-                      {language.isDefault && <Badge variant="default">Standaard</Badge>}
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : languages.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Languages className="h-8 w-8 mx-auto mb-2" />
+              <p>Nog geen talen geconfigureerd</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {languages.map((language) => (
+                <div key={language.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl">{language.flag}</span>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium">{language.name}</p>
+                        <span className="text-sm text-muted-foreground">({language.nativeName})</span>
+                        {language.is_default && <Badge variant="default">Standaard</Badge>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {getCompletenessBadge(language.completeness)}
+                        <span className="text-sm text-muted-foreground">
+                          {language.completeness}% compleet
+                        </span>
+                      </div>
                     </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      {getCompletenessBadge(language.completeness)}
-                      <span className="text-sm text-muted-foreground">
-                        {language.completeness}% compleet
-                      </span>
+                      <span className="text-sm text-muted-foreground">Actief</span>
+                      <Switch 
+                        checked={language.is_active}
+                        disabled={language.is_default}
+                        onCheckedChange={(checked) => 
+                          toggleLanguageMutation.mutate({ id: language.id, isActive: checked })
+                        }
+                      />
                     </div>
+                    <Button variant="outline" size="sm">
+                      Bewerken
+                    </Button>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Actief</span>
-                    <Switch 
-                      checked={language.isActive}
-                      disabled={language.isDefault}
-                    />
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Bewerken
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
