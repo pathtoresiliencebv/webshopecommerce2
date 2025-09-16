@@ -46,7 +46,7 @@ export default function ProductDetail() {
         .eq("slug", slug)
         .eq("organization_id", store.id)
         .eq("is_active", true)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       
@@ -104,6 +104,17 @@ export default function ProductDetail() {
   const displayImage = currentVariant?.image_url || (product?.product_images?.[selectedImage]?.image_url);
   const availableStock = currentVariant?.inventory_quantity || product?.stock_quantity || 0;
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-2">
+          <div className="animate-spin h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     console.error("Error loading product:", error);
     return <Navigate to="/404" replace />;
@@ -111,10 +122,6 @@ export default function ProductDetail() {
 
   if (!product) {
     return <Navigate to="/404" replace />;
-  }
-
-  if (isLoading) {
-    return <div>Loading...</div>;
   }
 
   const handleAddToCart = async () => {
