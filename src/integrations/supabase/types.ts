@@ -14,6 +14,100 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_analytics: {
+        Row: {
+          agent_id: string
+          ai_escalations_received: number | null
+          avg_resolution_time_minutes: number | null
+          conversations_handled: number | null
+          created_at: string
+          customer_satisfaction_score: number | null
+          date: string
+          id: string
+          organization_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          ai_escalations_received?: number | null
+          avg_resolution_time_minutes?: number | null
+          conversations_handled?: number | null
+          created_at?: string
+          customer_satisfaction_score?: number | null
+          date?: string
+          id?: string
+          organization_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          ai_escalations_received?: number | null
+          avg_resolution_time_minutes?: number | null
+          conversations_handled?: number | null
+          created_at?: string
+          customer_satisfaction_score?: number | null
+          date?: string
+          id?: string
+          organization_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_analytics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_knowledge_base: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          effectiveness_score: number | null
+          id: string
+          is_active: boolean | null
+          organization_id: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          effectiveness_score?: number | null
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          effectiveness_score?: number | null
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_knowledge_base_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -67,6 +161,88 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_conversations: {
+        Row: {
+          agent_id: string | null
+          ai_metadata: Json | null
+          content: string
+          created_at: string
+          id: string
+          message_type: string
+          session_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          ai_metadata?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          message_type: string
+          session_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          ai_metadata?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_conversations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_sessions: {
+        Row: {
+          ai_context: Json | null
+          created_at: string
+          customer_context: Json | null
+          id: string
+          organization_id: string
+          session_token: string
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          ai_context?: Json | null
+          created_at?: string
+          customer_context?: Json | null
+          id?: string
+          organization_id: string
+          session_token: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          ai_context?: Json | null
+          created_at?: string
+          customer_context?: Json | null
+          id?: string
+          organization_id?: string
+          session_token?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -665,6 +841,53 @@ export type Database = {
           workflow_type?: string
         }
         Relationships: []
+      }
+      escalation_rules: {
+        Row: {
+          agent_assignment_logic: Json | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          organization_id: string
+          priority_level: number | null
+          rule_name: string
+          trigger_conditions: Json | null
+          trigger_keywords: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          agent_assignment_logic?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          organization_id: string
+          priority_level?: number | null
+          rule_name: string
+          trigger_conditions?: Json | null
+          trigger_keywords?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          agent_assignment_logic?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          organization_id?: string
+          priority_level?: number | null
+          rule_name?: string
+          trigger_conditions?: Json | null
+          trigger_keywords?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escalation_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       faqs: {
         Row: {
