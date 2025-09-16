@@ -138,10 +138,54 @@ export default function Checkout() {
   const handleStripeCheckout = async () => {
     const formData = form.getValues();
     
-    if (!formData.shipping_first_name || !formData.shipping_last_name || !formData.shipping_address_line1) {
+    // Comprehensive form validation
+    const requiredFields = [
+      { field: formData.shipping_first_name, name: "First name" },
+      { field: formData.shipping_last_name, name: "Last name" },
+      { field: formData.shipping_address_line1, name: "Address" },
+      { field: formData.shipping_city, name: "City" },
+      { field: formData.shipping_postal_code, name: "Postal code" },
+      { field: formData.email, name: "Email" }
+    ];
+
+    const missingFields = requiredFields.filter(field => !field.field).map(field => field.name);
+    
+    if (missingFields.length > 0) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your shipping address.",
+        description: `Please fill in: ${missingFields.join(", ")}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if items are still available
+    if (!items || items.length === 0) {
+      toast({
+        title: "Cart Empty",
+        description: "Your cart is empty. Please add items before checkout.",
+        variant: "destructive",
+      });
+      navigate("/products");
+      return;
+    }
+
+    // Check organization
+    if (!currentOrganization?.id) {
+      toast({
+        title: "Configuration Error",
+        description: "Store configuration is missing. Please try refreshing the page.",
         variant: "destructive",
       });
       return;
@@ -149,10 +193,11 @@ export default function Checkout() {
 
     setLoading(true);
     try {
+      console.log("Creating payment session...");
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           items: items,
-          organizationId: currentOrganization?.id,
+          organizationId: currentOrganization.id,
           shippingInfo: {
             firstName: formData.shipping_first_name,
             lastName: formData.shipping_last_name,
@@ -167,15 +212,39 @@ export default function Checkout() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to create payment session');
+      }
 
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
+      if (!data?.url) {
+        throw new Error('No payment URL received from server');
+      }
+
+      console.log("Payment session created successfully");
+      
+      // Open Stripe checkout in the same tab for better user experience
+      window.location.href = data.url;
+      
     } catch (error) {
       console.error('Error creating payment:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Provide specific error messages based on error type
+      let userMessage = "Failed to create payment session. Please try again.";
+      
+      if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        userMessage = "Network error. Please check your internet connection.";
+      } else if (errorMessage.includes('authentication') || errorMessage.includes('unauthorized')) {
+        userMessage = "Authentication error. Please sign in again.";
+      } else if (errorMessage.includes('validation')) {
+        userMessage = "Invalid information provided. Please check your details.";
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to create payment session. Please try again.",
+        title: "Payment Error",
+        description: userMessage,
         variant: "destructive",
       });
     } finally {
