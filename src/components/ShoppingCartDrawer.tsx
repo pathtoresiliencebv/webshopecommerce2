@@ -6,6 +6,7 @@ import { ShoppingCart, Plus, Minus, X, ArrowRight } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { getStoreAwarePath } from "@/lib/url-utils";
 
 // Create a safe hook that doesn't throw when StoreProvider is missing
 const useSafeStore = () => {
@@ -25,9 +26,8 @@ export function ShoppingCartDrawer() {
   const formatPrice = (price: number) => `€${price.toLocaleString()}`;
 
   // Get store-aware URLs
-  const getStorePrefix = () => store?.slug ? `/store/${store.slug}` : '';
-  const checkoutUrl = `${getStorePrefix()}/checkout`;
-  const productsUrl = `${getStorePrefix()}/products`;
+  const checkoutUrl = getStoreAwarePath('/checkout', store?.slug);
+  const productsUrl = getStoreAwarePath('/products', store?.slug);
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => open ? openCart() : closeCart()}>

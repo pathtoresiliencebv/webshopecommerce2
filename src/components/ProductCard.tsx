@@ -5,6 +5,7 @@ import { Heart, ShoppingCart, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useStore } from "@/contexts/StoreContext";
+import { getStoreAwarePath } from "@/lib/url-utils";
 
 interface ProductCardProps {
   id: string;
@@ -40,10 +41,7 @@ export function ProductCard({
   const { store } = useStore();
 
   const getProductUrl = () => {
-    if (store) {
-      return `/store/${store.slug}/products/${slug}`;
-    }
-    return `/products/${slug}`;
+    return getStoreAwarePath(`/products/${slug}`, store?.slug);
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {

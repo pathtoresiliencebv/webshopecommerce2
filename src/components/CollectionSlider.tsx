@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useStore } from "@/contexts/StoreContext";
+import { getStoreAwarePath } from "@/lib/url-utils";
 
 interface Product {
   id: string;
@@ -149,7 +150,7 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          <Link to={store ? `/store/${store.slug}/collections/${collectionSlug}` : `/collections/${collectionSlug}`}>
+          <Link to={getStoreAwarePath(`/collections/${collectionSlug}`, store?.slug)}>
             <Button variant="outline" size="sm">
               Bekijk alle
             </Button>
