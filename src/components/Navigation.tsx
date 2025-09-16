@@ -63,27 +63,25 @@ export function Navigation() {
     enabled: !storeLoading // Only run query when store loading is complete
   });
 
-  // Create store-aware navigation items
-  const getStorePrefix = () => store?.slug ? `/store/${store.slug}` : '';
-  
+  // Create navigation items (no store prefix needed with subdomain routing)
   const navItems = [{
     name: "Home",
-    href: store?.slug ? `/store/${store.slug}` : "/"
+    href: "/"
   }, {
     name: "All Products",
-    href: `${getStorePrefix()}/products`
+    href: "/products"
   }, ...collections.map(collection => ({
     name: collection.name,
-    href: `${getStorePrefix()}/collections/${collection.slug}`
+    href: `/collections/${collection.slug}`
   })), {
     name: "Track & Trace",
-    href: `${getStorePrefix()}/track`
+    href: "/track"
   }, {
     name: "FAQ",
-    href: `${getStorePrefix()}/faq`
+    href: "/faq"
   }, {
     name: "About",
-    href: `${getStorePrefix()}/about`
+    href: "/about"
   }];
   const isActive = (path: string) => location.pathname === path;
   const toggleDarkMode = () => {

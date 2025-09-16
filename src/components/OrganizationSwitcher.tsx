@@ -91,11 +91,18 @@ const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({ onCreateNew
             {userOrganizations
               .filter(orgUser => orgUser.organization_id !== currentOrganization.id)
               .map((orgUser) => (
-                <DropdownMenuItem
-                  key={orgUser.organization_id}
-                  onClick={() => switchOrganization(orgUser.organization_id)}
-                  className="flex-col items-start"
-                >
+                 <DropdownMenuItem
+                   key={orgUser.organization_id}
+                   onClick={() => {
+                     // If the organization has a subdomain, redirect to it
+                     if (orgUser.organization.subdomain) {
+                       window.location.href = `${window.location.protocol}//${orgUser.organization.subdomain}.myaurelio.com/admin`;
+                     } else {
+                       switchOrganization(orgUser.organization_id);
+                     }
+                   }}
+                   className="flex-col items-start"
+                 >
                   <div className="font-medium">{orgUser.organization.name}</div>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline" className="text-xs">

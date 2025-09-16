@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { AdminHome } from "@/components/admin/AdminHome";
 import { AdminOrders } from "@/components/admin/AdminOrders";
@@ -27,6 +28,7 @@ import OrganizationSwitcher from "@/components/OrganizationSwitcher";
 import CreateStoreDialog from "@/components/CreateStoreDialog";
 import { Button } from "@/components/ui/button";
 import { LogOut, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export type AdminSection = 
   | "home" 
@@ -53,8 +55,34 @@ export type AdminSection =
 const Admin = () => {
   const [activeSection, setActiveSection] = useState<AdminSection>("home");
   const [showCreateStore, setShowCreateStore] = useState(false);
+  const [storeData, setStoreData] = useState<any>(null);
   const { user, signOut } = useAuth();
-  const { currentOrganization, loading: orgLoading } = useOrganization();
+  const { currentOrganization, switchOrganization, loading: orgLoading } = useOrganization();
+  const { storeSlug } = useParams();
+
+  // Handle store-specific admin access
+  useEffect(() => {
+    if (storeSlug) {
+      // Fetch store data and switch to it if the user has access
+      const fetchStoreData = async () => {
+        const { data: store, error } = await supabase
+          .from('organizations')
+          .select('*')
+          .eq('slug', storeSlug)
+          .single();
+          
+        if (store && !error) {
+          setStoreData(store);
+          // Switch to this organization if it's different from current
+          if (currentOrganization?.id !== store.id) {
+            switchOrganization(store.id);
+          }
+        }
+      };
+      
+      fetchStoreData();
+    }
+  }, [storeSlug, currentOrganization?.id, switchOrganization]);
 
   const handleSignOut = async () => {
     await signOut();

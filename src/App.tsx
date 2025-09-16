@@ -51,62 +51,11 @@ const App = () => (
               <Route path="/admin/stores" element={<StoreManagerRoute />} />
               <Route path="/dashboard" element={<Dashboard />} />
           
-          {/* Store-specific routes */}
+          {/* Admin store-specific routes */}
           <Route path="/store/:storeSlug" element={
-            <StoreProvider>
-              <CartProvider>
-                <CustomerStorefront />
-              </CartProvider>
-            </StoreProvider>
-          } />
-          <Route path="/store/:storeSlug/products" element={
-            <StoreProvider>
-              <CartProvider>
-                <Products />
-              </CartProvider>
-            </StoreProvider>
-          } />
-          <Route path="/store/:storeSlug/products/:slug" element={
-            <StoreProvider>
-              <CartProvider>
-                <ProductDetail />
-              </CartProvider>
-            </StoreProvider>
-          } />
-          <Route path="/store/:storeSlug/collections/:slug" element={
-            <StoreProvider>
-              <CartProvider>
-                <CollectionPage />
-              </CartProvider>
-            </StoreProvider>
-          } />
-          <Route path="/store/:storeSlug/checkout" element={
-            <StoreProvider>
-              <CartProvider>
-                <Checkout />
-              </CartProvider>
-            </StoreProvider>
-          } />
-          <Route path="/store/:storeSlug/checkout/success" element={
-            <StoreProvider>
-              <CartProvider>
-                <CheckoutSuccess />
-              </CartProvider>
-            </StoreProvider>
-          } />
-          <Route path="/store/:storeSlug/faq" element={
-            <StoreProvider>
-              <CartProvider>
-                <FAQ />
-              </CartProvider>
-            </StoreProvider>
-          } />
-          <Route path="/store/:storeSlug/track" element={
-            <StoreProvider>
-              <CartProvider>
-                <TrackTrace />
-              </CartProvider>
-            </StoreProvider>
+            <AdminProtectedRoute>
+              <Admin />
+            </AdminProtectedRoute>
           } />
           
           {/* Default routes (with potential subdomain detection) */}
