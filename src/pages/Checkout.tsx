@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Navigation } from "@/components/Navigation";
 import { 
   CreditCard, 
   Shield, 
@@ -27,6 +28,16 @@ import {
   Plus,
   Minus
 } from "lucide-react";
+
+// Create a safe hook that doesn't throw when StoreProvider is missing
+const useSafeStore = () => {
+  try {
+    const { useStore } = require("@/contexts/StoreContext");
+    return useStore();
+  } catch {
+    return { store: null, loading: false, error: null };
+  }
+};
 
 
 const checkoutSchema = z.object({
@@ -55,6 +66,7 @@ export default function Checkout() {
   const { items, total, clearCart } = useCart();
   const { user } = useAuth();
   const { currentOrganization } = useOrganization();
+  const { store } = useSafeStore();
   const navigate = useNavigate();
 
   // Countdown timer
@@ -101,12 +113,14 @@ export default function Checkout() {
 
   // Redirect if not logged in or cart is empty
   if (!user) {
-    navigate("/login", { state: { from: { pathname: "/checkout" } } });
+    const loginUrl = store?.slug ? `/store/${store.slug}/login` : "/login";
+    navigate(loginUrl, { state: { from: { pathname: "/checkout" } } });
     return null;
   }
 
   if (items.length === 0) {
-    navigate("/products");
+    const productsUrl = store?.slug ? `/store/${store.slug}/products` : "/products";
+    navigate(productsUrl);
     return null;
   }
 
@@ -159,7 +173,10 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      
+      <div className="bg-white">
       {/* Header */}
       <div className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -724,6 +741,7 @@ export default function Checkout() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

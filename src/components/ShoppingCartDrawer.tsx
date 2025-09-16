@@ -7,11 +7,27 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 
+// Create a safe hook that doesn't throw when StoreProvider is missing
+const useSafeStore = () => {
+  try {
+    const { useStore } = require("@/contexts/StoreContext");
+    return useStore();
+  } catch {
+    return { store: null, loading: false, error: null };
+  }
+};
+
 export function ShoppingCartDrawer() {
   const { items, itemCount, total, loading, updateQuantity, removeItem, isOpen, openCart, closeCart } = useCart();
   const { user } = useAuth();
+  const { store } = useSafeStore();
 
   const formatPrice = (price: number) => `€${price.toLocaleString()}`;
+
+  // Get store-aware URLs
+  const getStorePrefix = () => store?.slug ? `/store/${store.slug}` : '';
+  const checkoutUrl = `${getStorePrefix()}/checkout`;
+  const productsUrl = `${getStorePrefix()}/products`;
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => open ? openCart() : closeCart()}>
@@ -51,7 +67,7 @@ export function ShoppingCartDrawer() {
               <h3 className="font-semibold">Your cart is empty</h3>
               <p className="text-sm text-muted-foreground">Add some products to get started</p>
             </div>
-            <Link to="/products" onClick={closeCart}>
+            <Link to={productsUrl} onClick={closeCart}>
               <Button>Continue Shopping</Button>
             </Link>
           </div>
@@ -137,13 +153,13 @@ export function ShoppingCartDrawer() {
               <Separator />
               
               <div className="space-y-2">
-                <Link to="/checkout" onClick={closeCart}>
+                <Link to={checkoutUrl} onClick={closeCart}>
                   <Button className="w-full" size="lg">
                     Checkout
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link to="/products" onClick={closeCart}>
+                <Link to={productsUrl} onClick={closeCart}>
                   <Button variant="outline" className="w-full">
                     Continue Shopping
                   </Button>

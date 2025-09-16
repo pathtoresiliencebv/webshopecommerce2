@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { StoreProvider } from "@/contexts/StoreContext";
+import { CartProvider } from "@/contexts/CartContext";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -52,52 +53,99 @@ const App = () => (
           {/* Store-specific routes */}
           <Route path="/store/:storeSlug" element={
             <StoreProvider>
-              <CustomerStorefront />
+              <CartProvider>
+                <CustomerStorefront />
+              </CartProvider>
             </StoreProvider>
           } />
           <Route path="/store/:storeSlug/products" element={
             <StoreProvider>
-              <Products />
+              <CartProvider>
+                <Products />
+              </CartProvider>
             </StoreProvider>
           } />
           <Route path="/store/:storeSlug/products/:slug" element={
             <StoreProvider>
-              <ProductDetail />
+              <CartProvider>
+                <ProductDetail />
+              </CartProvider>
             </StoreProvider>
           } />
           <Route path="/store/:storeSlug/collections/:slug" element={
             <StoreProvider>
-              <CollectionPage />
+              <CartProvider>
+                <CollectionPage />
+              </CartProvider>
+            </StoreProvider>
+          } />
+          <Route path="/store/:storeSlug/checkout" element={
+            <StoreProvider>
+              <CartProvider>
+                <Checkout />
+              </CartProvider>
+            </StoreProvider>
+          } />
+          <Route path="/store/:storeSlug/checkout/success" element={
+            <StoreProvider>
+              <CartProvider>
+                <CheckoutSuccess />
+              </CartProvider>
+            </StoreProvider>
+          } />
+          <Route path="/store/:storeSlug/faq" element={
+            <StoreProvider>
+              <CartProvider>
+                <FAQ />
+              </CartProvider>
             </StoreProvider>
           } />
           
           {/* Default routes (with potential subdomain detection) */}
           <Route path="/" element={
             <StoreProvider>
-              <Index />
+              <CartProvider>
+                <Index />
+              </CartProvider>
             </StoreProvider>
           } />
           <Route path="/products" element={
             <StoreProvider>
-              <Products />
+              <CartProvider>
+                <Products />
+              </CartProvider>
             </StoreProvider>
           } />
           <Route path="/products/:slug" element={
             <StoreProvider>
-              <ProductDetail />
+              <CartProvider>
+                <ProductDetail />
+              </CartProvider>
             </StoreProvider>
           } />
           <Route path="/collections/:slug" element={
             <StoreProvider>
-              <CollectionPage />
+              <CartProvider>
+                <CollectionPage />
+              </CartProvider>
             </StoreProvider>
           } />
           <Route path="/login" element={<Login />} />
-          <Route path="/checkout/success" element={<CheckoutSuccess />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout/success" element={
+            <CartProvider>
+              <CheckoutSuccess />
+            </CartProvider>
+          } />
+          <Route path="/checkout" element={
+            <CartProvider>
+              <Checkout />
+            </CartProvider>
+          } />
           <Route path="/faq" element={
             <StoreProvider>
-              <FAQ />
+              <CartProvider>
+                <FAQ />
+              </CartProvider>
             </StoreProvider>
           } />
           
