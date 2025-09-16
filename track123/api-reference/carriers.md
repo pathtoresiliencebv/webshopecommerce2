@@ -1,61 +1,50 @@
-# Supported Carriers
+#Get the list of package carriers
+get
+https://api.track123.com/gateway/open-api/tk/v2.1/courier/list
+Log in to see full request history
+time	status	user agent	
+Make a request to see history.
+0 Requests This Month
 
-List of carriers supported by Track123 API.
+Headers
+Track123-Api-Secret
+string
+required
+Your API key
 
-## Express Carriers
+Response
 
-### International Express
-- **FedEx** - `fedex`
-  - FedEx Express
-  - FedEx Ground  
-  - FedEx SmartPost
+200
+Success
 
-- **UPS** - `ups`
-  - UPS Express
-  - UPS Ground
-  - UPS SurePost
+Response body
+object
+code
+string
+Service status code
 
-- **DHL** - `dhl`
-  - DHL Express
-  - DHL eCommerce
+data
+array of objects
+object
+courierCode
+string
+The unique carrier code
 
-### Regional Express
-- **TNT** - `tnt`
-- **Aramex** - `aramex`
-- **SF Express** - `sf-express`
+courierNameCN
+string
+Carrier name in Chinese
 
-## Postal Services
+courierNameEN
+string
+Carrier name in English
 
-### Major Postal Services
-- **USPS** - `usps`
-- **Canada Post** - `canada-post`
-- **Royal Mail** - `royal-mail`
-- **Australia Post** - `australia-post`
-- **Deutsche Post** - `deutsche-post`
+courierHomePage
+string
+Carrier website home page
 
-### Asian Postal Services
-- **China Post** - `china-post`
-- **Japan Post** - `japan-post`
-- **Korea Post** - `korea-post`
+msg
+string
+The description information corresponding to the service status code or other auxiliary description information.
 
-## Ocean Freight
 
-### Container Lines
-- **Maersk** - `maersk`
-- **MSC** - `msc`
-- **COSCO** - `cosco`
-- **CMA CGM** - `cma-cgm`
-- **Hapag-Lloyd** - `hapag-lloyd`
-
-## Air Freight
-
-### Airlines
-- **Lufthansa Cargo** - `lufthansa-cargo`
-- **Cathay Pacific Cargo** - `cathay-cargo`
-- **Emirates SkyCargo** - `emirates-cargo`
-
-## E-commerce Platforms
-
-- **Amazon Logistics** - `amazon-logistics`
-- **Shopify Logistics** - `shopify-logistics`
-- **Wish Post** - `wish-post`
+  

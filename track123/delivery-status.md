@@ -1,26 +1,14 @@
-# Delivery Status Codes
+Delivery status
+Track123 Tracking API services use 9 key statuses.
 
-Standard delivery status codes used by Track123.
-
-## Status Categories
-
-### In Transit
-- `in_transit` - Package is in transit
-- `out_for_delivery` - Out for delivery
-- `attempted_delivery` - Delivery attempted
-
-### Delivered
-- `delivered` - Successfully delivered
-- `delivered_to_safe_place` - Delivered to safe place
-- `delivered_to_neighbor` - Delivered to neighbor
-
-### Exception
-- `exception` - General exception
-- `failed_attempt` - Failed delivery attempt
-- `damaged` - Package damaged
-- `lost` - Package lost
-
-### Other
-- `pending` - Awaiting pickup
-- `expired` - Tracking expired
-- `undelivered` - Returned to sender
+Delivery Status
+Status	Description
+INIT	New shipments added that are pending to track.
+NO_RECORD	This shipment has no tracking information available yet.
+INFO_RECEIVED	The carrier has received a request from the shipper and is preparing to pick up the package.
+IN_TRANSIT	The shipment is in transit.
+WAITING_DELIVERY	The shipment is out for delivery or has arrived at the collection point for pick up.
+DELIVERY_FAILED	Carrier attempted to deliver but failed due to address issues, unavailability of the recipient, etc.
+ABNORMAL	Parcels are damaged, returned, customs detained, and other abnormal situations.
+DELIVERED	Parcel delivered successfully.
+EXPIRED	Parcel has no tracking information for 30 days since added.
