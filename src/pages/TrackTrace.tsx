@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useOrganization } from "@/contexts/OrganizationContext";
+// Organization context removed for public access
 import { toast } from "sonner";
 import { Search, Package, MapPin, Calendar, Truck } from "lucide-react";
 
@@ -31,7 +31,7 @@ const TrackTrace = () => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [selectedCarrier, setSelectedCarrier] = useState<string>("");
   const [trackingResult, setTrackingResult] = useState<TrackingData | null>(null);
-  const { currentOrganization } = useOrganization();
+  // No organization context needed for public tracking
 
   // Fetch available carriers
   const { data: carriers, isLoading: carriersLoading } = useQuery({
@@ -53,8 +53,8 @@ const TrackTrace = () => {
         body: {
           action: 'track',
           trackingNumber,
-          carrierCode,
-          organizationId: currentOrganization?.id
+          carrierCode
+          // organizationId omitted for public access
         }
       });
       
