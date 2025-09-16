@@ -181,7 +181,22 @@ export default function Checkout() {
       <div className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="text-2xl font-bold text-black">AURORA AMSTERDAM</div>
+            <div className="flex items-center gap-3">
+              {store?.logo_url ? (
+                <div className="flex items-center gap-3">
+                  <img 
+                    src={store.logo_url} 
+                    alt={store.name} 
+                    className="h-8 w-auto object-contain"
+                  />
+                  <div className="text-2xl font-bold text-black">{store.name}</div>
+                </div>
+              ) : (
+                <div className="text-2xl font-bold text-black">
+                  {store?.name || "AURELIO LIVING"}
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
               <span className="font-medium">{items.length}</span>
@@ -256,7 +271,15 @@ export default function Checkout() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-medium">Contact</h3>
-                    <button className="text-sm text-blue-600 hover:underline">Log in</button>
+                    <button 
+                      className="text-sm text-blue-600 hover:underline"
+                      onClick={() => {
+                        const loginUrl = store?.slug ? `/store/${store.slug}/login` : "/login";
+                        navigate(loginUrl, { state: { from: { pathname: store?.slug ? `/store/${store.slug}/checkout` : "/checkout" } } });
+                      }}
+                    >
+                      Log in
+                    </button>
                   </div>
                   
                   <FormField
