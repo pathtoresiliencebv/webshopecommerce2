@@ -52,7 +52,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with loading true
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
   const { currentOrganization } = useOrganization();
@@ -66,6 +66,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fetchCartItems();
     } else {
       setItems([]);
+      setLoading(false); // No need to load if no user/org
     }
   }, [user, currentOrganization]);
 
