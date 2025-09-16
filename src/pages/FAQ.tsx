@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Search, HelpCircle } from 'lucide-react';
+import { Search, HelpCircle, MessageCircle } from 'lucide-react';
+import { useSearchParams, Link } from 'react-router-dom';
 
 interface FAQ {
   id: string;
@@ -23,12 +25,23 @@ const CATEGORY_LABELS: Record<string, string> = {
   verzending: 'Verzending',
   betaling: 'Betaling',
   retour: 'Retour & Ruil',
-  account: 'Account'
+  account: 'Account',
+  warranty: 'Garantie & Warranty'
 };
 
 export default function FAQ() {
   const { currentOrganization } = useOrganization();
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Handle URL parameter for category filtering
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam && CATEGORY_LABELS[categoryParam]) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [searchParams]);
 
   // Fetch active FAQs
   const { data: faqs, isLoading } = useQuery({
@@ -49,11 +62,13 @@ export default function FAQ() {
     enabled: !!currentOrganization?.id
   });
 
-  // Filter FAQs based on search
-  const filteredFAQs = faqs?.filter(faq => 
-    faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter FAQs based on search and selected category
+  const filteredFAQs = faqs?.filter(faq => {
+    const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !selectedCategory || faq.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   // Group FAQs by category
   const faqsByCategory = filteredFAQs?.reduce((acc, faq) => {
@@ -83,6 +98,13 @@ export default function FAQ() {
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Vind snel antwoorden op de meest gestelde vragen
         </p>
+        {selectedCategory && (
+          <div className="flex justify-center">
+            <Badge variant="secondary" className="text-sm">
+              Gefilterd op: {CATEGORY_LABELS[selectedCategory]}
+            </Badge>
+          </div>
+        )}
       </div>
 
       {/* Search */}
@@ -159,7 +181,7 @@ export default function FAQ() {
         )}
       </div>
 
-      {/* Contact Section */}
+      {/* Contact Section - Enhanced Customer Service Integration */}
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="text-center">Niet gevonden wat je zocht?</CardTitle>
@@ -168,8 +190,21 @@ export default function FAQ() {
           <p className="text-muted-foreground">
             Neem contact met ons op voor persoonlijke hulp
           </p>
-          <p className="text-muted-foreground">
-            Bekijk onze contactgegevens of stuur ons een bericht
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button asChild>
+              <Link to="/help-center">
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Help Center
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="#contact">
+                Contact Opnemen
+              </Link>
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Of bekijk onze andere service pagina's voor meer informatie
           </p>
         </CardContent>
       </Card>

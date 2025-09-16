@@ -723,10 +723,10 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-4">Service</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">Customer Service</a></li>
-                <li><a href="#" className="hover:text-primary">Shipping</a></li>
-                <li><a href="#" className="hover:text-primary">Returns</a></li>
-                <li><a href="#" className="hover:text-primary">Warranty</a></li>
+                <li><Link to="/faq" className="hover:text-primary">Customer Service</Link></li>
+                <li><Link to="/faq?category=verzending" className="hover:text-primary">Shipping</Link></li>
+                <li><Link to="/faq?category=retour" className="hover:text-primary">Returns</Link></li>
+                <li><Link to="/faq?category=warranty" className="hover:text-primary">Warranty</Link></li>
               </ul>
             </div>
             
