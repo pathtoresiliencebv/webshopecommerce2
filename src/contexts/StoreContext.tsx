@@ -36,6 +36,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const parts = hostname.split('.');
     
     // Check if we have a valid custom subdomain
+    // Support both .myaurelio.com and custom domains
     // Ignore localhost, Lovable sandbox hostnames (UUID pattern), and direct domain access
     if (parts.length > 2 && hostname !== 'localhost') {
       const potentialSubdomain = parts[0];
@@ -43,11 +44,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // Check if it's a Lovable sandbox hostname (UUID pattern or id-preview pattern)
       const isLovableSandbox = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|id-preview--[0-9a-f-]+)$/i.test(potentialSubdomain);
       
-      if (!isLovableSandbox) {
-        console.log('🏪 Detected custom subdomain:', potentialSubdomain);
+      // Check if it's a myaurelio.com subdomain
+      const isMyAurelioSubdomain = hostname.endsWith('.myaurelio.com');
+      
+      if (!isLovableSandbox && (isMyAurelioSubdomain || parts.length > 2)) {
+        console.log('🏪 Detected subdomain:', potentialSubdomain);
         setSubdomain(potentialSubdomain);
       } else {
-        console.log('🔧 Ignoring Lovable sandbox hostname:', hostname);
+        console.log('🔧 Ignoring sandbox/invalid hostname:', hostname);
         setSubdomain(null);
       }
     } else {
@@ -82,11 +86,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           searchType = 'slug';
           searchValue = storeSlug;
         } else {
-          // Fallback to aurello-living store when no subdomain or slug
-          console.log('🔍 Using fallback: looking for aurello-living');
-          query = query.eq('slug', 'aurello-living');
+          // Fallback to aurelioliving store when no subdomain or slug
+          console.log('🔍 Using fallback: looking for aurelioliving subdomain');
+          query = query.eq('subdomain', 'aurelioliving');
           searchType = 'fallback';
-          searchValue = 'aurello-living';
+          searchValue = 'aurelioliving';
         }
 
         const { data, error: fetchError } = await query.maybeSingle();
@@ -99,13 +103,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!data) {
           console.warn(`⚠️ No store found for ${searchType}: ${searchValue}`);
           
-          // If we're not already trying the fallback, try aurello-living
+          // If we're not already trying the fallback, try aurelioliving
           if (searchType !== 'fallback') {
-            console.log('🔄 Attempting fallback to aurello-living');
+            console.log('🔄 Attempting fallback to aurelioliving subdomain');
             const fallbackQuery = supabase
               .from('organizations')
               .select('id, name, slug, description, logo_url, subdomain, domain')
-              .eq('slug', 'aurello-living');
+              .eq('subdomain', 'aurelioliving');
 
             const { data: fallbackData, error: fallbackError } = await fallbackQuery.maybeSingle();
             
@@ -136,13 +140,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } catch (err) {
         console.error('💥 Critical error in store fetching:', err);
         
-        // Last resort: try to load aurello-living
+        // Last resort: try to load aurelioliving
         try {
-          console.log('🚨 Attempting emergency fallback to aurello-living');
+          console.log('🚨 Attempting emergency fallback to aurelioliving subdomain');
           const emergencyQuery = supabase
             .from('organizations')
             .select('id, name, slug, description, logo_url, subdomain, domain')
-            .eq('slug', 'aurello-living');
+            .eq('subdomain', 'aurelioliving');
             
           const { data: emergencyData } = await emergencyQuery.maybeSingle();
           

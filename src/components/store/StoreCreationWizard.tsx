@@ -113,7 +113,8 @@ export default function StoreCreationWizard({ open, onClose }: StoreCreationWiza
     setFormData(prev => ({ ...prev, [field]: value }));
     if (field === 'name' && !formData.slug) {
       const slug = value.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-      setFormData(prev => ({ ...prev, slug }));
+      const subdomain = slug.replace(/[^a-z0-9]/g, ''); // Clean for subdomain
+      setFormData(prev => ({ ...prev, slug, subdomain }));
     }
   };
 
@@ -306,19 +307,22 @@ export default function StoreCreationWizard({ open, onClose }: StoreCreationWiza
 
               <div className="grid gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="subdomain">Subdomain</Label>
+                  <Label htmlFor="subdomain">MyAurelio Subdomain</Label>
                   <div className="flex">
                     <Input
                       id="subdomain"
                       value={formData.subdomain}
-                      onChange={(e) => handleInputChange('subdomain', e.target.value)}
+                      onChange={(e) => handleInputChange('subdomain', e.target.value.replace(/[^a-z0-9]/g, ''))}
                       placeholder="mijnstore"
                       className="rounded-r-none"
                     />
                     <div className="bg-muted px-3 py-2 rounded-r-md border border-l-0 text-sm text-muted-foreground">
-                      .yourplatform.com
+                      .myaurelio.com
                     </div>
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    Je store wordt bereikbaar via {formData.subdomain || 'jouwstore'}.myaurelio.com
+                  </p>
                 </div>
 
                 <div className="space-y-2">

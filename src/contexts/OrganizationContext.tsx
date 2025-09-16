@@ -123,7 +123,7 @@ export const OrganizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           name: data.name,
           slug: data.slug,
           description: data.description,
-          subdomain: data.slug // Use slug as subdomain initially
+          subdomain: data.slug.replace(/[^a-z0-9]/g, '') // Clean slug for myaurelio.com subdomain
         })
         .select()
         .single();
