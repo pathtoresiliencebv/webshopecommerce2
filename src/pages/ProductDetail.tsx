@@ -9,7 +9,7 @@ import { ShoppingCart, Heart, Share2, Star, Plus, Minus } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import { useOrganization } from "@/contexts/OrganizationContext";
+import { useStore } from "@/contexts/StoreContext";
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -19,12 +19,12 @@ export default function ProductDetail() {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const { addItem } = useCart();
   const { toast } = useToast();
-  const { currentOrganization } = useOrganization();
+  const { store } = useStore();
 
   const { data: product, isLoading, error } = useQuery({
-    queryKey: ["product", slug, currentOrganization?.id],
+    queryKey: ["product", slug, store?.id],
     queryFn: async () => {
-      if (!currentOrganization?.id) return null;
+      if (!store?.id) return null;
       
       const { data, error } = await supabase
         .from("products")
@@ -44,7 +44,7 @@ export default function ProductDetail() {
           )
         `)
         .eq("slug", slug)
-        .eq("organization_id", currentOrganization.id)
+        .eq("organization_id", store.id)
         .eq("is_active", true)
         .single();
 
@@ -71,7 +71,7 @@ export default function ProductDetail() {
         product_variants: variantsResult.data || []
       };
     },
-    enabled: !!slug && !!currentOrganization?.id,
+    enabled: !!slug && !!store?.id,
   });
 
   // Memoized calculations for variants
@@ -118,10 +118,10 @@ export default function ProductDetail() {
   }
 
   const handleAddToCart = async () => {
-    if (!currentOrganization?.id) {
+    if (!store?.id) {
       toast({
         title: "Error",
-        description: "Please select an organization first",
+        description: "Store not found",
         variant: "destructive",
       });
       return;

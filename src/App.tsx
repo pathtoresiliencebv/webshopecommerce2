@@ -60,7 +60,7 @@ const App = () => (
               <Products />
             </StoreProvider>
           } />
-          <Route path="/store/:storeSlug/products/:id" element={
+          <Route path="/store/:storeSlug/products/:slug" element={
             <StoreProvider>
               <ProductDetail />
             </StoreProvider>
@@ -82,7 +82,7 @@ const App = () => (
               <Products />
             </StoreProvider>
           } />
-          <Route path="/products/:id" element={
+          <Route path="/products/:slug" element={
             <StoreProvider>
               <ProductDetail />
             </StoreProvider>

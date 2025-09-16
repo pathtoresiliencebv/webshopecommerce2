@@ -86,7 +86,42 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Filter by subdomain, slug, or fallback to default store
         if (subdomain) {
           console.log('🔍 Looking for store with subdomain:', subdomain);
-          query = query.eq('subdomain', subdomain);
+          // Try exact match first, then flexible matching
+          const { data: exactMatch, error: exactError } = await supabase
+            .from('organizations')
+            .select('id, name, slug, description, logo_url, subdomain, domain')
+            .eq('subdomain', subdomain)
+            .maybeSingle();
+          
+          if (exactMatch) {
+            console.log('✅ Found exact subdomain match:', exactMatch);
+            setStore(exactMatch);
+            setError(null);
+            setLoading(false);
+            return;
+          }
+          
+          // Try flexible matching (aurelioliving -> aurelio-living)
+          const normalizedSubdomain = subdomain.replace(/[-_]/g, '');
+          const { data: flexibleData, error: flexibleError } = await supabase
+            .from('organizations')
+            .select('id, name, slug, description, logo_url, subdomain, domain');
+          
+          if (flexibleData) {
+            const flexibleMatch = flexibleData.find(org => 
+              org.subdomain?.replace(/[-_]/g, '') === normalizedSubdomain ||
+              org.slug?.replace(/[-_]/g, '') === normalizedSubdomain
+            );
+            
+            if (flexibleMatch) {
+              console.log('✅ Found flexible subdomain match:', flexibleMatch);
+              setStore(flexibleMatch);
+              setError(null);
+              setLoading(false);
+              return;
+            }
+          }
+          
           searchType = 'subdomain';
           searchValue = subdomain;
         } else if (storeSlug) {
@@ -98,6 +133,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           // Fallback to aurelioliving store when no subdomain or slug
           console.log('🔍 Using fallback: looking for aurelioliving subdomain');
           query = query.eq('subdomain', 'aurelioliving');
+          searchType = 'fallback';
+          searchValue = 'aurelioliving';
+        }
+
+        // Only continue with original query if subdomain didn't find a match
+        if (subdomain) {
+
+          // Fallback to aurelioliving if subdomain search didn't find anything
+          console.log('🔄 Subdomain not found, trying aurelioliving fallback');
+          query = supabase
+            .from('organizations')
+            .select('id, name, slug, description, logo_url, subdomain, domain')
+            .eq('subdomain', 'aurelioliving');
           searchType = 'fallback';
           searchValue = 'aurelioliving';
         }
