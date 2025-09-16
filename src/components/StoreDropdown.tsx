@@ -38,11 +38,11 @@ const StoreDropdown: React.FC = () => {
     loading: false 
   };
 
-  // Always ensure "Aurello Living" is available, prioritize current organization
+  // Always ensure "Aurelio Living" is available, prioritize current organization
   const displayStore = currentOrganization || store || { 
-    id: 'aurello-living', 
-    name: 'Aurello Living', 
-    slug: 'aurello-living' 
+    id: 'aurelio-living', 
+    name: 'Aurelio Living', 
+    slug: 'aurelio-living' 
   };
 
   const handleStoreSelect = (organization: any) => {
@@ -52,7 +52,7 @@ const StoreDropdown: React.FC = () => {
     }
     
     // Navigate to the store
-    if (organization.slug === 'aurello-living') {
+    if (organization.slug === 'aurelio-living') {
       navigate('/');
     } else {
       navigate(`/store/${organization.slug}`);
@@ -86,7 +86,7 @@ const StoreDropdown: React.FC = () => {
       <div className="flex items-center">
         <img 
           src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
-          alt="Aurello Living" 
+          alt="Aurelio Living" 
           className="h-8 w-auto"
         />
       </div>
@@ -191,22 +191,22 @@ const StoreDropdown: React.FC = () => {
           </>
         )}
         
-        {/* Always show Aurello Living if user has access to multiple stores or it's not current */}
-        {user && currentOrganization?.slug !== 'aurello-living' && (
+        {/* Always show Aurelio Living if user has access to multiple stores or it's not current */}
+        {user && currentOrganization?.slug !== 'aurelio-living' && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => handleStoreSelect({ id: 'aurello-living', name: 'Aurello Living', slug: 'aurello-living' })}
+              onClick={() => handleStoreSelect({ id: 'aurelio-living', name: 'Aurelio Living', slug: 'aurelio-living' })}
               className="cursor-pointer hover:bg-muted"
             >
               <div className="flex items-center">
                 <img 
                   src="/lovable-uploads/5bed22df-c30a-4560-9108-fdc16061338b.png" 
-                  alt="Aurello Living" 
+                  alt="Aurelio Living" 
                   className="h-6 w-auto mr-3"
                 />
                 <div>
-                  <div className="font-medium">Aurello Living</div>
+                  <div className="font-medium">Aurelio Living</div>
                   <div className="text-xs text-muted-foreground">Hoofdwinkel</div>
                 </div>
               </div>

@@ -237,7 +237,7 @@ export default function StoreManagementDashboard() {
                     <div>
                       <CardTitle className="text-lg">{store.name}</CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {store.subdomain ? `${store.subdomain}.platform.com` : store.domain || 'Geen domein'}
+                        {store.subdomain ? `${store.subdomain}.myaurelio.com` : store.domain || 'Geen domein'}
                       </p>
                     </div>
                   </div>

@@ -163,7 +163,7 @@ export function AdminDomains() {
     return <div>Geen organisatie geselecteerd</div>;
   }
 
-  const defaultSubdomain = `${currentOrganization.slug}.aurelioliving.nl`;
+  const defaultSubdomain = `${currentOrganization.subdomain || currentOrganization.slug}.myaurelio.com`;
 
   return (
     <div className="space-y-6">

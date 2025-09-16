@@ -216,7 +216,7 @@ export function AdminShoppingFeeds() {
     if (!currentOrganization) return '';
     
     const format = platform === 'google' ? 'xml' : 'csv';
-    const domain = currentOrganization.domain || `${currentOrganization.subdomain || currentOrganization.slug}.aurelioliving.nl`;
+    const domain = currentOrganization.domain || `${currentOrganization.subdomain || currentOrganization.slug}.myaurelio.com`;
     
     return `https://${domain}/${platform}-shopping.${format}`;
   };
