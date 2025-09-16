@@ -9,52 +9,7 @@ import { Plus, Search, Gift, CreditCard, TrendingUp, Users } from "lucide-react"
 export function AdminGiftCards() {
   const [searchTerm, setSearchTerm] = useState("");
   
-  const [giftCards] = useState([
-    {
-      id: "GC-001",
-      code: "GIFT2024-ABC123",
-      value: 50.00,
-      balance: 50.00,
-      status: "active",
-      customer: "john.doe@example.com",
-      created: "2024-01-15",
-      expires: "2025-01-15",
-      used: false
-    },
-    {
-      id: "GC-002",
-      code: "GIFT2024-DEF456", 
-      value: 100.00,
-      balance: 25.00,
-      status: "partially_used",
-      customer: "jane.smith@example.com",
-      created: "2024-01-10",
-      expires: "2025-01-10",
-      used: true
-    },
-    {
-      id: "GC-003",
-      code: "GIFT2024-GHI789",
-      value: 25.00,
-      balance: 0.00,
-      status: "used",
-      customer: "bob.wilson@example.com", 
-      created: "2024-01-05",
-      expires: "2025-01-05",
-      used: true
-    },
-    {
-      id: "GC-004",
-      code: "GIFT2024-JKL012",
-      value: 75.00,
-      balance: 0.00,
-      status: "expired",
-      customer: "alice.brown@example.com",
-      created: "2023-12-01",
-      expires: "2024-01-01",
-      used: false
-    }
-  ]);
+  const [giftCards] = useState([]);
 
   const filteredGiftCards = giftCards.filter(card =>
     card.code.toLowerCase().includes(searchTerm.toLowerCase()) ||

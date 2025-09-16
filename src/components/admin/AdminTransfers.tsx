@@ -6,38 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, ArrowRight, Package, CheckCircle, Clock } from "lucide-react";
 
 export function AdminTransfers() {
-  const [transfers] = useState([
-    {
-      id: "TRF-001",
-      from: "Main Warehouse",
-      to: "Store Location A",
-      products: 3,
-      quantity: 25,
-      status: "pending",
-      created: "2024-01-15",
-      expected: "2024-01-18"
-    },
-    {
-      id: "TRF-002", 
-      from: "Store Location B",
-      to: "Main Warehouse",
-      products: 1,
-      quantity: 5,
-      status: "completed",
-      created: "2024-01-14",
-      expected: "2024-01-16"
-    },
-    {
-      id: "TRF-003",
-      from: "Main Warehouse", 
-      to: "Store Location C",
-      products: 7,
-      quantity: 42,
-      status: "in_transit",
-      created: "2024-01-13",
-      expected: "2024-01-17"
-    }
-  ]);
+  const [transfers] = useState([]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -135,28 +104,36 @@ export function AdminTransfers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transfers.map((transfer) => (
-                <TableRow key={transfer.id}>
-                  <TableCell className="font-medium">{transfer.id}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{transfer.from}</span>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{transfer.to}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{transfer.products} items</TableCell>
-                  <TableCell>{transfer.quantity} units</TableCell>
-                  <TableCell>{getStatusBadge(transfer.status)}</TableCell>
-                  <TableCell>{transfer.created}</TableCell>
-                  <TableCell>{transfer.expected}</TableCell>
-                  <TableCell>
-                    <Button size="sm" variant="outline">
-                      View Details
-                    </Button>
+              {transfers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    No transfers found.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                transfers.map((transfer) => (
+                  <TableRow key={transfer.id}>
+                    <TableCell className="font-medium">{transfer.id}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">{transfer.from}</span>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{transfer.to}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{transfer.products} items</TableCell>
+                    <TableCell>{transfer.quantity} units</TableCell>
+                    <TableCell>{getStatusBadge(transfer.status)}</TableCell>
+                    <TableCell>{transfer.created}</TableCell>
+                    <TableCell>{transfer.expected}</TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="outline">
+                        View Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
