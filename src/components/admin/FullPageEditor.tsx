@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { SEOPreview } from "./SEOPreview";
+import { useStoreDomain } from "@/hooks/useStoreDomain";
 
 interface Page {
   id: string;
@@ -50,6 +51,7 @@ export function FullPageEditor({ pageId, onBack }: FullPageEditorProps) {
   
   const { currentOrganization } = useOrganization();
   const { user } = useAuth();
+  const { domain } = useStoreDomain();
   const isEditing = pageId && pageId !== 'new';
 
   useEffect(() => {
@@ -252,7 +254,7 @@ export function FullPageEditor({ pageId, onBack }: FullPageEditorProps) {
       <div className="flex">
         {/* Left Column - Content */}
         <div className="flex-1 p-6">
-          <div className="max-w-4xl space-y-6">
+          <div className="max-w-6xl space-y-6">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -281,7 +283,7 @@ export function FullPageEditor({ pageId, onBack }: FullPageEditorProps) {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-80 border-l bg-muted/50 p-6 space-y-6">
+        <div className="w-72 border-l bg-muted/50 p-6 space-y-6">
           {/* Visibility */}
           <Card>
             <CardHeader>
@@ -375,7 +377,7 @@ export function FullPageEditor({ pageId, onBack }: FullPageEditorProps) {
                 <Label htmlFor="url-handle">URL handle</Label>
                 <div className="flex">
                   <span className="inline-flex items-center px-3 text-sm text-muted-foreground bg-muted border border-r-0 rounded-l-md">
-                    yourstore.com/
+                    {domain}/
                   </span>
                   <Input
                     id="url-handle"

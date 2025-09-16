@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Globe, Search } from "lucide-react";
+import { useStoreDomain } from "@/hooks/useStoreDomain";
 
 interface SEOPreviewProps {
   title?: string;
@@ -10,8 +11,20 @@ interface SEOPreviewProps {
 }
 
 export function SEOPreview({ title, description, slug, type = "product" }: SEOPreviewProps) {
-  const baseUrl = window.location.origin;
-  const fullUrl = `${baseUrl}/${type === "product" ? "products" : "collections"}/${slug || "example-slug"}`;
+  const { fullUrl } = useStoreDomain();
+  
+  // Determine the URL path based on type
+  let urlPath = "";
+  if (type === "product") {
+    urlPath = `/products/${slug || "example-slug"}`;
+  } else if (type === "collection") {
+    urlPath = `/collections/${slug || "example-slug"}`;
+  } else {
+    // For pages, use direct slug without prefix
+    urlPath = `/${slug || "example-page"}`;
+  }
+  
+  const completeUrl = `${fullUrl}${urlPath}`;
   
   // Truncate title to Google's limit (~60 characters)
   const truncatedTitle = title && title.length > 60 
@@ -40,7 +53,7 @@ export function SEOPreview({ title, description, slug, type = "product" }: SEOPr
               {/* URL */}
               <div className="flex items-center gap-1 text-sm text-green-700">
                 <Globe className="h-3 w-3" />
-                <span className="truncate">{fullUrl}</span>
+                <span className="truncate">{completeUrl}</span>
               </div>
               
               {/* Title */}

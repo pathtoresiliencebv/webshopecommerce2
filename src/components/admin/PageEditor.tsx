@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { useStoreDomain } from "@/hooks/useStoreDomain";
 
 interface Page {
   id: string;
@@ -42,6 +43,7 @@ export function PageEditor({ page, onSave, onCancel }: PageEditorProps) {
   const [previewMode, setPreviewMode] = useState(false);
   const { currentOrganization } = useOrganization();
   const { user } = useAuth();
+  const { domain } = useStoreDomain();
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -251,7 +253,7 @@ export function PageEditor({ page, onSave, onCancel }: PageEditorProps) {
                       {title || 'Untitled Page'}
                     </div>
                     <div className="text-green-700 text-xs">
-                      yourstore.com/{slug || 'page-slug'}
+                      {domain}/{slug || 'page-slug'}
                     </div>
                     <div className="text-gray-600 text-sm">
                       {metaDescription || 'No meta description provided.'}
