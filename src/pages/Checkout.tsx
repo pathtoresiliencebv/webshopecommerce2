@@ -63,7 +63,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [timeLeft, setTimeLeft] = useState(570); // 9:30 minutes in seconds
   const [discountCode, setDiscountCode] = useState("");
-  const { items, total, clearCart } = useCart();
+  const { items, total, clearCart, loading: cartLoading } = useCart();
   const { user } = useAuth();
   const { currentOrganization } = useOrganization();
   const { store } = useSafeStore();
@@ -111,13 +111,26 @@ export default function Checkout() {
   const insuranceCost = form.watch("add_insurance") ? 2.95 : 0;
   const totalAmount = subtotal + shippingCost + insuranceCost;
 
-  // Redirect if not logged in or cart is empty
+  // Redirect if not logged in
   if (!user) {
     const loginUrl = store?.slug ? `/store/${store.slug}/login` : "/login";
     navigate(loginUrl, { state: { from: { pathname: "/checkout" } } });
     return null;
   }
 
+  // Show loading state while cart is loading
+  if (cartLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading your cart...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if cart is empty (only after loading is complete)
   if (items.length === 0) {
     const productsUrl = store?.slug ? `/store/${store.slug}/products` : "/products";
     navigate(productsUrl);
