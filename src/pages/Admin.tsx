@@ -10,7 +10,6 @@ import { AdminStoreSettings } from "@/components/admin/AdminStoreSettings";
 import { AdminThemeCustomize } from "@/components/admin/AdminThemeCustomize";
 import { AdminCollections } from "@/components/admin/AdminCollections";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
-import { AdminChatwoot } from "@/components/admin/AdminChatwoot";
 import { AdminContent } from "@/components/admin/AdminContent";
 import { AdminCustomerService } from "@/components/admin/AdminCustomerService";
 import { AdminInventory } from "@/components/admin/AdminInventory";
