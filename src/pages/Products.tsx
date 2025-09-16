@@ -54,6 +54,7 @@ export default function Products() {
 
       return data?.map(product => ({
         id: product.id,
+        slug: product.slug,
         name: product.name,
         price: Number(product.price),
         originalPrice: product.original_price ? Number(product.original_price) : null,

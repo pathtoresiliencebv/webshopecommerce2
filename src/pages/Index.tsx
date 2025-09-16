@@ -112,6 +112,7 @@ const Index = () => {
         .select(`
           id,
           name,
+          slug,
           price,
           original_price,
           is_sale,
@@ -132,6 +133,7 @@ const Index = () => {
 
       return data?.map(product => ({
         id: product.id,
+        slug: product.slug,
         name: product.name,
         price: Number(product.price),
         originalPrice: product.original_price ? Number(product.original_price) : null,
@@ -383,6 +385,7 @@ const Index = () => {
               <ProductCard
                 key={product.id}
                 id={product.id}
+                slug={product.slug}
                 name={product.name}
                 price={product.price}
                 originalPrice={product.originalPrice}

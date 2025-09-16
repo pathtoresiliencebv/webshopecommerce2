@@ -375,19 +375,20 @@ export default function CollectionPage() {
                     : 0;
 
                   return (
-                    <ProductCard
-                      key={product.id}
-                      id={product.id}
-                      name={product.name}
-                      price={product.price}
-                      originalPrice={product.original_price}
-                      image={primaryImage?.image_url || ""}
-                      rating={avgRating}
-                      reviewCount={product.reviews?.length || 0}
-                      category={product.product_attributes?.find(attr => attr.attribute_type === "category")?.value || ""}
-                      isNew={product.is_new}
-                      isSale={product.is_sale}
-                    />
+                     <ProductCard
+                       key={product.id}
+                       id={product.id}
+                       slug={(product as any).slug}
+                       name={product.name}
+                       price={product.price}
+                       originalPrice={product.original_price}
+                       image={primaryImage?.image_url || ""}
+                       rating={avgRating}
+                       reviewCount={product.reviews?.length || 0}
+                       category={product.product_attributes?.find(attr => attr.attribute_type === "category")?.value || ""}
+                       isNew={product.is_new}
+                       isSale={product.is_sale}
+                     />
                   );
                 })}
               </div>

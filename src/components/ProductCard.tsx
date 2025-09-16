@@ -8,6 +8,7 @@ import { useStore } from "@/contexts/StoreContext";
 
 interface ProductCardProps {
   id: string;
+  slug: string;
   name: string;
   price: number;
   originalPrice?: number;
@@ -22,6 +23,7 @@ interface ProductCardProps {
 
 export function ProductCard({
   id,
+  slug,
   name,
   price,
   originalPrice,
@@ -39,9 +41,9 @@ export function ProductCard({
 
   const getProductUrl = () => {
     if (store) {
-      return `/store/${store.slug}/products/${id}`;
+      return `/store/${store.slug}/products/${slug}`;
     }
-    return `/products/${id}`;
+    return `/products/${slug}`;
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
