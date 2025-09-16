@@ -8,7 +8,8 @@ import {
   MapPin, 
   Languages, 
   HelpCircle,
-  Crown
+  Crown,
+  Wifi
 } from 'lucide-react';
 
 interface AdminSettingsSidebarProps {
@@ -28,6 +29,12 @@ const settingsSections = [
     label: 'Domeinen',
     icon: Globe,
     description: 'Domain management'
+  },
+  {
+    id: 'dns-setup',
+    label: 'DNS Setup',
+    icon: Wifi,
+    description: 'Subdomain configuratie'
   },
   {
     id: 'subscription',

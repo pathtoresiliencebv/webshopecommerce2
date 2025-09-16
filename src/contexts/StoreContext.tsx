@@ -35,6 +35,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const hostname = window.location.hostname;
     const parts = hostname.split('.');
     
+    console.log('🔍 DNS Debug Info:');
+    console.log('  - Hostname:', hostname);
+    console.log('  - Parts:', parts);
+    console.log('  - Parts length:', parts.length);
+    
     // Check if we have a valid custom subdomain
     // Support both .myaurelio.com and custom domains
     // Ignore localhost, Lovable sandbox hostnames (UUID pattern), and direct domain access
@@ -47,15 +52,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // Check if it's a myaurelio.com subdomain
       const isMyAurelioSubdomain = hostname.endsWith('.myaurelio.com');
       
+      console.log('  - Potential subdomain:', potentialSubdomain);
+      console.log('  - Is Lovable sandbox:', isLovableSandbox);
+      console.log('  - Is myaurelio subdomain:', isMyAurelioSubdomain);
+      
       if (!isLovableSandbox && (isMyAurelioSubdomain || parts.length > 2)) {
-        console.log('🏪 Detected subdomain:', potentialSubdomain);
+        console.log('🏪 ✅ Detected valid subdomain:', potentialSubdomain);
         setSubdomain(potentialSubdomain);
       } else {
-        console.log('🔧 Ignoring sandbox/invalid hostname:', hostname);
+        console.log('🔧 ❌ Ignoring sandbox/invalid hostname:', hostname);
         setSubdomain(null);
       }
     } else {
-      console.log('🏠 No custom subdomain detected, will use default store');
+      console.log('🏠 ❌ No custom subdomain detected (parts.length <= 2), will use default store');
       setSubdomain(null);
     }
   }, []);

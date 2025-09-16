@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AdminSettingsSidebar } from './AdminSettingsSidebar';
 import { AdminGeneralSettings } from './AdminGeneralSettings';
 import { AdminDomains } from './AdminDomains';
+import AdminDNSSetup from './AdminDNSSetup';
 import { AdminSubscription } from './AdminSubscription';
 import { AdminBilling } from './AdminBilling';
 import { AdminUsers } from './AdminUsers';
@@ -18,6 +19,8 @@ export function AdminStoreSettings() {
         return <AdminGeneralSettings />;
       case 'domains':
         return <AdminDomains />;
+      case 'dns-setup':
+        return <AdminDNSSetup />;
       case 'subscription':
         return <AdminSubscription />;
       case 'billing':
