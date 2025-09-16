@@ -1,1 +1,4 @@
 project_id = "ppvxydvbgbipvgvgaeja"
+
+[functions.track123-api]
+verify_jwt = false

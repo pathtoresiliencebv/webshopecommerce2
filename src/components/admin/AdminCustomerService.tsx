@@ -152,6 +152,7 @@ export function AdminCustomerService() {
           <TabsTrigger value="tickets">Support Tickets</TabsTrigger>
           <TabsTrigger value="team">Team Overzicht</TabsTrigger>
           <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
+          <TabsTrigger value="tracking">Track & Trace</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -380,6 +381,72 @@ export function AdminCustomerService() {
                         </TableRow>
                       ))
                     )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tracking" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Track & Trace Dashboard</CardTitle>
+                  <CardDescription>Bulk tracking lookup en customer support</CardDescription>
+                </div>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Bulk Import
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Quick Track Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Quick Track Lookup</h3>
+                  <div className="flex gap-2">
+                    <Input placeholder="Enter tracking number..." className="flex-1" />
+                    <Button>Track</Button>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Statistics</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-2xl font-bold">0</div>
+                      <div className="text-sm text-muted-foreground">Active Trackings</div>
+                    </div>
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-2xl font-bold">0</div>
+                      <div className="text-sm text-muted-foreground">Deliveries Today</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Trackings Table */}
+              <div className="space-y-4">
+                <h3 className="font-semibold">Recent Tracking Requests</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tracking Number</TableHead>
+                      <TableHead>Carrier</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Last Updated</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                        No tracking requests yet. Tracking data will appear here when customers use the Track & Trace feature.
+                      </TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </div>

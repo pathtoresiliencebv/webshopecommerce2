@@ -2107,6 +2107,135 @@ export type Database = {
         }
         Relationships: []
       }
+      track123_settings: {
+        Row: {
+          api_key_configured: boolean
+          created_at: string
+          default_carriers: string[] | null
+          id: string
+          organization_id: string
+          rate_limit_settings: Json | null
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          api_key_configured?: boolean
+          created_at?: string
+          default_carriers?: string[] | null
+          id?: string
+          organization_id: string
+          rate_limit_settings?: Json | null
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          api_key_configured?: boolean
+          created_at?: string
+          default_carriers?: string[] | null
+          id?: string
+          organization_id?: string
+          rate_limit_settings?: Json | null
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
+      tracking_webhooks: {
+        Row: {
+          created_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          processed: boolean
+          processed_at: string | null
+          source_ip: string | null
+          tracking_id: string
+          webhook_signature: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json
+          event_type: string
+          id?: string
+          processed?: boolean
+          processed_at?: string | null
+          source_ip?: string | null
+          tracking_id: string
+          webhook_signature?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          processed?: boolean
+          processed_at?: string | null
+          source_ip?: string | null
+          tracking_id?: string
+          webhook_signature?: string | null
+        }
+        Relationships: []
+      }
+      trackings: {
+        Row: {
+          additional_fields: Json | null
+          carrier_code: string
+          carrier_name: string | null
+          created_at: string
+          customer_email: string | null
+          customer_name: string | null
+          delivery_address: Json | null
+          estimated_delivery: string | null
+          id: string
+          last_updated_at: string
+          organization_id: string
+          status: string
+          sub_status: string | null
+          tracking_events: Json | null
+          tracking_number: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          additional_fields?: Json | null
+          carrier_code: string
+          carrier_name?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          delivery_address?: Json | null
+          estimated_delivery?: string | null
+          id?: string
+          last_updated_at?: string
+          organization_id: string
+          status?: string
+          sub_status?: string | null
+          tracking_events?: Json | null
+          tracking_number: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          additional_fields?: Json | null
+          carrier_code?: string
+          carrier_name?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          delivery_address?: Json | null
+          estimated_delivery?: string | null
+          id?: string
+          last_updated_at?: string
+          organization_id?: string
+          status?: string
+          sub_status?: string | null
+          tracking_events?: Json | null
+          tracking_number?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       workflow_queue: {
         Row: {
           attempts: number | null

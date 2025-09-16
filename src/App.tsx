@@ -18,6 +18,7 @@ import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import CreateOrder from "./pages/CreateOrder";
 import FAQ from "./pages/FAQ";
+import TrackTrace from "./pages/TrackTrace";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import CustomerStorefront from "./components/store/CustomerStorefront";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -100,6 +101,13 @@ const App = () => (
               </CartProvider>
             </StoreProvider>
           } />
+          <Route path="/store/:storeSlug/track" element={
+            <StoreProvider>
+              <CartProvider>
+                <TrackTrace />
+              </CartProvider>
+            </StoreProvider>
+          } />
           
           {/* Default routes (with potential subdomain detection) */}
           <Route path="/" element={
@@ -145,6 +153,13 @@ const App = () => (
             <StoreProvider>
               <CartProvider>
                 <FAQ />
+              </CartProvider>
+            </StoreProvider>
+          } />
+          <Route path="/track" element={
+            <StoreProvider>
+              <CartProvider>
+                <TrackTrace />
               </CartProvider>
             </StoreProvider>
           } />

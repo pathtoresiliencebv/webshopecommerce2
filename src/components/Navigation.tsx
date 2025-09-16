@@ -76,6 +76,9 @@ export function Navigation() {
     name: collection.name,
     href: `${getStorePrefix()}/collections/${collection.slug}`
   })), {
+    name: "Track & Trace",
+    href: `${getStorePrefix()}/track`
+  }, {
     name: "FAQ",
     href: `${getStorePrefix()}/faq`
   }, {
