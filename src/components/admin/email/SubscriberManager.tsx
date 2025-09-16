@@ -317,7 +317,7 @@ export function SubscriberManager({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Growth Rate</p>
-                <p className="text-2xl font-bold">+12%</p>
+                <p className="text-2xl font-bold">N/A</p>
               </div>
               <Calendar className="h-8 w-8 text-muted-foreground" />
             </div>

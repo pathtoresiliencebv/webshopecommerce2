@@ -144,8 +144,8 @@ const triggerEvents = [
   const getWorkflowStats = (workflow: Workflow) => {
     // Use real campaign data from database
     const campaigns = workflow.campaigns?.length || 0;
-    const subscribers = Math.floor(Math.random() * 500) + 50; // Mock data - in real implementation, calculate from email_subscribers
-    const performance = Math.floor(Math.random() * 40) + 15; // Mock conversion rate - calculate from email_events
+    const subscribers = 0; // Will be calculated from actual email_subscribers table data
+    const performance = 0; // Will be calculated from actual email_events conversion data
     
     return { campaigns, subscribers, performance };
   };
