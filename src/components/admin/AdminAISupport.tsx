@@ -20,6 +20,8 @@ import {
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import KnowledgeBaseManager from './KnowledgeBaseManager';
+import AISettingsManager from './AISettingsManager';
 
 interface ChatSession {
   id: string;
@@ -429,41 +431,11 @@ const AdminAISupport: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="knowledge">
-          <Card>
-            <CardHeader>
-              <CardTitle>Knowledge Base Management</CardTitle>
-              <CardDescription>
-                Manage AI knowledge base content and FAQs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">
-                  Knowledge base management coming soon
-                </p>
-                <Button variant="outline">Add Knowledge Entry</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <KnowledgeBaseManager />
         </TabsContent>
 
         <TabsContent value="settings">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Configuration</CardTitle>
-              <CardDescription>
-                Configure AI behavior and escalation rules
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">
-                  AI settings configuration coming soon
-                </p>
-                <Button variant="outline">Configure AI</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <AISettingsManager />
         </TabsContent>
       </Tabs>
     </div>

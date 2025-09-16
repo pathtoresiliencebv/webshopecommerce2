@@ -43,27 +43,51 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ organizationId }) => {
   }, [messages]);
 
   useEffect(() => {
-    // Listen for real-time conversation updates
+    // Listen for real-time conversation updates and agent responses
     if (!sessionId) return;
 
     const channel = supabase
-      .channel('chatbot-conversations')
+      .channel(`chatbot-session-${sessionId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'chatbot_conversations'
+          table: 'chatbot_conversations',
+          filter: `session_id=eq.${sessionId}`
         },
         (payload) => {
           const newMessage = payload.new as any;
-          // Only add messages for this session
-          if (newMessage.session_id === sessionId) {
+          
+          // Add real-time messages from agents
+          if (newMessage.message_type === 'agent') {
             setMessages(prev => [...prev, {
               id: newMessage.id,
-              type: newMessage.message_type,
+              type: 'agent',
               content: newMessage.content,
               timestamp: new Date(newMessage.created_at)
+            }]);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chatbot_sessions',
+          filter: `session_token=eq.${sessionId}`
+        },
+        (payload) => {
+          const updatedSession = payload.new as any;
+          
+          // Handle session escalation
+          if (updatedSession.status === 'escalated') {
+            setMessages(prev => [...prev, {
+              id: `escalation-${Date.now()}`,
+              type: 'system',
+              content: '🔄 Your conversation has been escalated to a human agent. They will respond shortly with personalized assistance.',
+              timestamp: new Date()
             }]);
           }
         }
@@ -210,6 +234,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ organizationId }) => {
                   className={`max-w-xs px-4 py-2 rounded-lg text-sm ${
                     message.type === 'user'
                       ? 'bg-primary text-primary-foreground'
+                      : message.type === 'agent'
+                      ? 'bg-accent text-accent-foreground border border-accent-foreground/20'
                       : message.type === 'system'
                       ? 'bg-muted text-muted-foreground border'
                       : 'bg-secondary text-secondary-foreground'
