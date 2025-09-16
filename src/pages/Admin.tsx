@@ -1,25 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { AdminHome } from "@/components/admin/AdminHome";
-import { AdminOrders } from "@/components/admin/AdminOrders";
-import { AdminProducts } from "@/components/admin/AdminProducts";
-import { AdminCustomers } from "@/components/admin/AdminCustomers";
 import { AdminDiscountCodes } from "@/components/admin/AdminDiscountCodes";
 import { AdminTheme } from "@/components/admin/AdminTheme";
 import { AdminStoreSettings } from "@/components/admin/AdminStoreSettings";
 import { AdminThemeCustomize } from "@/components/admin/AdminThemeCustomize";
-import { AdminCollections } from "@/components/admin/AdminCollections";
-import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
-import { AdminContent } from "@/components/admin/AdminContent";
-import { AdminPages } from "@/components/admin/AdminPages";
-import { AdminCustomerService } from "@/components/admin/AdminCustomerService";
-import { AdminInventory } from "@/components/admin/AdminInventory";
 import { AdminTransfers } from "@/components/admin/AdminTransfers";
 import { AdminGiftCards } from "@/components/admin/AdminGiftCards";
-import { AdminEmailMarketing } from "@/components/admin/AdminEmailMarketing";
 import { AdminShoppingFeeds } from "@/components/admin/AdminShoppingFeeds";
 import { AdminPaymentMethods } from "@/components/admin/AdminPaymentMethods";
+
+// Lazy-loaded components for better performance
+import {
+  LazyAdminProducts,
+  LazyAdminOrders,
+  LazyAdminCustomers,
+  LazyAdminAnalytics,
+  LazyAdminInventory,
+  LazyAdminEmailMarketing,
+  LazyAdminCollections,
+  LazyAdminContent,
+  LazyAdminPages,
+  LazyAdminCustomerService,
+} from "@/components/LazyAdminComponents";
 import StoreManagementDashboard from "@/components/store/StoreManagementDashboard";
 import SubscriptionManager from "@/components/billing/SubscriptionManager";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -95,25 +99,57 @@ const Admin = () => {
       case "home":
         return <AdminHome />;
       case "orders":
-        return <AdminOrders />;
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LazyAdminOrders />
+          </Suspense>
+        );
       case "content":
-        return <AdminContent />;
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LazyAdminContent />
+          </Suspense>
+        );
       case "pages":
-        return <AdminPages />;
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LazyAdminPages />
+          </Suspense>
+        );
       case "analytics":
-        return <AdminAnalytics />;
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LazyAdminAnalytics />
+          </Suspense>
+        );
       case "products":
-        return <AdminProducts />;
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LazyAdminProducts />
+          </Suspense>
+        );
       case "collections":
-        return <AdminCollections />;
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LazyAdminCollections />
+          </Suspense>
+        );
       case "inventory":
-        return <AdminInventory />;
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LazyAdminInventory />
+          </Suspense>
+        );
       case "transfers":
         return <AdminTransfers />;
       case "gift-cards":
         return <AdminGiftCards />;
       case "customers":
-        return <AdminCustomers />;
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LazyAdminCustomers />
+          </Suspense>
+        );
       case "discount-codes":
         return <AdminDiscountCodes />;
       case "theme":
@@ -121,7 +157,11 @@ const Admin = () => {
       case "theme-customize":
         return <AdminThemeCustomize onSectionChange={setActiveSection} />;
       case "email-marketing":
-        return <AdminEmailMarketing />;
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LazyAdminEmailMarketing />
+          </Suspense>
+        );
       case "shopping-feeds":
         return <AdminShoppingFeeds />;
       case "store-settings":
@@ -133,7 +173,11 @@ const Admin = () => {
       case "payment-methods":
         return <AdminPaymentMethods />;
       case "customer-service":
-        return <AdminCustomerService />;
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <LazyAdminCustomerService />
+          </Suspense>
+        );
       default:
         return <AdminHome />;
     }

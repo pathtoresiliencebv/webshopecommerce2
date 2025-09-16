@@ -33,6 +33,7 @@ export default function Products() {
 
   // Fetch products from database (store-aware)
   const { data: products = [], isLoading } = useQuery({
+    // Optimize React Query cache configuration for Products page
     queryKey: ['products', store?.id],
     queryFn: async () => {
       if (!store?.id) return [];
@@ -69,7 +70,9 @@ export default function Products() {
         reviews: product.reviews || []
       })) || [];
     },
-    enabled: !storeLoading && !!store?.id
+    enabled: !storeLoading && !!store?.id,
+    staleTime: 3 * 60 * 1000, // 3 minutes for products
+    gcTime: 5 * 60 * 1000, // 5 minutes cache
   });
 
   // Get unique filter options from products

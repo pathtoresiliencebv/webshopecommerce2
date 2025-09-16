@@ -108,6 +108,45 @@ export type Database = {
           },
         ]
       }
+      billing_events: {
+        Row: {
+          amount: number | null
+          created_at: string
+          currency: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          organization_id: string
+          processed_at: string | null
+          status: string
+          stripe_event_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          organization_id: string
+          processed_at?: string | null
+          status: string
+          stripe_event_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          organization_id?: string
+          processed_at?: string | null
+          status?: string
+          stripe_event_id?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -1021,6 +1060,108 @@ export type Database = {
           },
         ]
       }
+      language_settings: {
+        Row: {
+          completion_percentage: number | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          language_code: string
+          language_name: string
+          organization_id: string
+          translation_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          completion_percentage?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          language_code: string
+          language_name: string
+          organization_id: string
+          translation_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completion_percentage?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          language_code?: string
+          language_name?: string
+          organization_id?: string
+          translation_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      locations: {
+        Row: {
+          address_line1: string
+          address_line2: string | null
+          city: string
+          country: string
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          is_pickup_location: boolean | null
+          is_warehouse: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          opening_hours: Json | null
+          organization_id: string
+          phone: string | null
+          postal_code: string
+          updated_at: string
+        }
+        Insert: {
+          address_line1: string
+          address_line2?: string | null
+          city: string
+          country?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_pickup_location?: boolean | null
+          is_warehouse?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          opening_hours?: Json | null
+          organization_id: string
+          phone?: string | null
+          postal_code: string
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string
+          address_line2?: string | null
+          city?: string
+          country?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_pickup_location?: boolean | null
+          is_warehouse?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          opening_hours?: Json | null
+          organization_id?: string
+          phone?: string | null
+          postal_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       media_library: {
         Row: {
           alt_text: string | null
@@ -1411,6 +1552,51 @@ export type Database = {
           organization_id?: string
           slug?: string
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_methods: {
+        Row: {
+          card_brand: string | null
+          card_exp_month: number | null
+          card_exp_year: number | null
+          card_last4: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          organization_id: string
+          stripe_payment_method_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          card_brand?: string | null
+          card_exp_month?: number | null
+          card_exp_year?: number | null
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          organization_id: string
+          stripe_payment_method_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          card_brand?: string | null
+          card_exp_month?: number | null
+          card_exp_year?: number | null
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          organization_id?: string
+          stripe_payment_method_id?: string
+          type?: string
           updated_at?: string
         }
         Relationships: []

@@ -4,7 +4,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo, memo } from "react";
 import { useStore } from "@/contexts/StoreContext";
 import { getStoreAwarePath } from "@/lib/url-utils";
 
@@ -25,44 +25,33 @@ interface CollectionSliderProps {
   collectionSlug: string;
 }
 
-export function CollectionSlider({ collectionId, collectionName, collectionSlug }: CollectionSliderProps) {
+const CollectionSlider = memo(function CollectionSlider({ collectionId, collectionName, collectionSlug }: CollectionSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const { store, loading: storeLoading } = useStore();
 
+  // Optimized query that eliminates N+1 problem by using JOIN
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['collection-products', collectionId],
+    queryKey: ['collection-products', collectionId, store?.id],
     queryFn: async () => {
-      // First get the product IDs from the collection
-      const { data: productCollections, error: pcError } = await supabase
-        .from('product_collections')
-        .select('product_id')
-        .eq('collection_id', collectionId);
+      if (!store?.id) return [];
 
-      if (pcError || !productCollections?.length) {
-        return [];
-      }
-
-      const productIds = productCollections.map(pc => pc.product_id);
-
-      // Then get the products with those IDs
-      let query = supabase
+      // Single optimized query with JOIN to eliminate N+1
+      const { data, error } = await supabase
         .from('products')
         .select(`
           id, name, price, original_price, is_sale, is_new, slug,
           product_images!left (
-            image_url, is_primary
+            image_url, is_primary, sort_order
+          ),
+          product_collections!inner (
+            collection_id
           )
         `)
-        .in('id', productIds)
+        .eq('product_collections.collection_id', collectionId)
         .eq('is_active', true)
+        .eq('organization_id', store.id)
+        .order('created_at', { ascending: false })
         .limit(8);
-
-      // Filter by organization if we have a store context
-      if (store?.id) {
-        query = query.eq('organization_id', store.id);
-      }
-
-      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching collection products:', error);
@@ -77,11 +66,15 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
         is_sale: product.is_sale,
         is_new: product.is_new,
         slug: product.slug,
-        image: product.product_images?.find(img => img.is_primary)?.image_url || product.product_images?.[0]?.image_url || '/placeholder.svg',
+        image: product.product_images?.find(img => img.is_primary)?.image_url || 
+               product.product_images?.[0]?.image_url || 
+               '/placeholder.svg',
         category: 'Kantoormeubel'
-        })) || [];
+      })) || [];
     },
-    enabled: !storeLoading && !!store?.id
+    enabled: !storeLoading && !!store?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes - collections don't change often
+    gcTime: 10 * 60 * 1000, // 10 minutes cache (was cacheTime in v4)
   });
 
   const itemsPerPage = 6;
@@ -120,9 +113,10 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
     return null; // Don't render empty collections
   }
 
-  const currentProducts = products.slice(
-    currentIndex * itemsPerPage,
-    (currentIndex + 1) * itemsPerPage
+  // Memoized calculation for current products
+  const currentProducts = useMemo(() => 
+    products.slice(currentIndex * itemsPerPage, (currentIndex + 1) * itemsPerPage),
+    [products, currentIndex, itemsPerPage]
   );
 
   return (
@@ -165,4 +159,6 @@ export function CollectionSlider({ collectionId, collectionName, collectionSlug 
       </div>
     </div>
   );
-}
+});
+
+export { CollectionSlider };

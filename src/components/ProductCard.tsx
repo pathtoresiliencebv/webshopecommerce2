@@ -6,6 +6,8 @@ import { Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useStore } from "@/contexts/StoreContext";
 import { getStoreAwarePath } from "@/lib/url-utils";
+import { OptimizedImage } from "@/components/OptimizedImage";
+import { memo, useCallback } from "react";
 
 interface ProductCardProps {
   id: string;
@@ -22,7 +24,7 @@ interface ProductCardProps {
   colors?: string[];
 }
 
-export function ProductCard({
+const ProductCard = memo(function ProductCard({
   id,
   slug,
   name,
@@ -36,27 +38,28 @@ export function ProductCard({
   isSale = false,
   colors = [],
 }: ProductCardProps) {
-  const formatPrice = (price: number) => `€${price.toLocaleString()}`;
+  const formatPrice = useCallback((price: number) => `€${price.toLocaleString()}`, []);
   const { addItem } = useCart();
   const { store } = useStore();
 
-  const getProductUrl = () => {
+  const getProductUrl = useCallback(() => {
     return getStoreAwarePath(`/products/${slug}`, store?.slug);
-  };
+  }, [slug, store?.slug]);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addItem(id, 1);
-  };
+  }, [id, addItem]);
 
   return (
     <Card className="group relative overflow-hidden border-0 shadow-soft hover:shadow-medium transition-all duration-300 hover:scale-[1.02]">
       <div className="relative aspect-square overflow-hidden bg-accent">
-        <img
+        <OptimizedImage
           src={image}
           alt={name}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 16vw"
         />
         
         {/* Badges */}
@@ -155,4 +158,6 @@ export function ProductCard({
       </CardContent>
     </Card>
   );
-}
+});
+
+export { ProductCard };
