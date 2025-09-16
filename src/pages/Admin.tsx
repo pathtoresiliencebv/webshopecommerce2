@@ -19,6 +19,7 @@ import { AdminTransfers } from "@/components/admin/AdminTransfers";
 import { AdminGiftCards } from "@/components/admin/AdminGiftCards";
 import { AdminEmailMarketing } from "@/components/admin/AdminEmailMarketing";
 import { AdminShoppingFeeds } from "@/components/admin/AdminShoppingFeeds";
+import { AdminPaymentMethods } from "@/components/admin/AdminPaymentMethods";
 import StoreManagementDashboard from "@/components/store/StoreManagementDashboard";
 import SubscriptionManager from "@/components/billing/SubscriptionManager";
 import { SidebarProvider } from "@/components/ui/sidebar";
