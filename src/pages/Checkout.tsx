@@ -120,7 +120,6 @@ export default function Checkout() {
 
   // Show loading state while cart is loading
   if (cartLoading) {
-    console.log('Checkout: Cart is loading, showing spinner');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -131,13 +130,8 @@ export default function Checkout() {
     );
   }
 
-  // Debug logging
-  console.log('Checkout: Cart loaded, items count:', items.length);
-  console.log('Checkout: Cart items:', items);
-
   // Redirect if cart is empty (only after loading is complete)
   if (items.length === 0) {
-    console.log('Checkout: Cart is empty, redirecting to products');
     const productsUrl = store?.slug ? `/store/${store.slug}/products` : "/products";
     navigate(productsUrl);
     return null;
