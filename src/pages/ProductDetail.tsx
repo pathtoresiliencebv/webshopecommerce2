@@ -1,4 +1,4 @@
-import { useParams, Navigate } from "react-router-dom";
+import { useParams, Navigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { useState, useMemo } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/contexts/StoreContext";
+import { Navigation } from "@/components/Navigation";
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -176,6 +177,8 @@ export default function ProductDetail() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
+      
       <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Product Images */}
@@ -320,6 +323,60 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-card border-t border-border py-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center mb-4">
+                <img 
+                  src="/lovable-uploads/aurelio-living-logo-new.png" 
+                  alt="Aurelio Living" 
+                  className="h-10 w-auto"
+                />
+              </div>
+              <p className="text-muted-foreground text-sm">
+                Premium office furniture for the modern workplace. 
+                Quality and comfort in one.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Products</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link to="/products" className="hover:text-primary">Chairs</Link></li>
+                <li><Link to="/products" className="hover:text-primary">Desks</Link></li>
+                <li><Link to="/products" className="hover:text-primary">Storage</Link></li>
+                <li><Link to="/products" className="hover:text-primary">Accessories</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Service</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-primary">Customer Service</a></li>
+                <li><a href="#" className="hover:text-primary">Shipping</a></li>
+                <li><a href="#" className="hover:text-primary">Returns</a></li>
+                <li><a href="#" className="hover:text-primary">Warranty</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Contact</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>info@aurelio-living.com</li>
+                <li>+31 20 123 4567</li>
+                <li>Ma-Vr: 9:00-17:00</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
+            <p>&copy; 2024 {store?.name || 'Aurelio Living'}. Alle rechten voorbehouden.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
