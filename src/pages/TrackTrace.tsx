@@ -151,7 +151,7 @@ const TrackTrace = () => {
                       <SelectValue placeholder="Select carrier" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Auto-detect</SelectItem>
+                      <SelectItem value="auto">Auto-detect</SelectItem>
                       {carriers?.map((carrier: any) => (
                         <SelectItem key={carrier.courierCode} value={carrier.courierCode}>
                           {carrier.courierNameEN}

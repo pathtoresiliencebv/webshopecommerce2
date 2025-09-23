@@ -46,27 +46,51 @@ interface CartContextType {
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
+  // Guest cart support
+  guestItems: CartItem[];
+  addGuestItem: (product: any, quantity?: number) => void;
+  showCartNotification: boolean;
+  hideCartNotification: () => void;
+  lastAddedProduct: any;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true); // Start with loading true
+  const [guestItems, setGuestItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [showCartNotification, setShowCartNotification] = useState(false);
+  const [lastAddedProduct, setLastAddedProduct] = useState<any>(null);
   const { user } = useAuth();
   const { currentOrganization } = useOrganization();
 
-  const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-  const total = items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+  const allItems = user ? items : guestItems;
+  const itemCount = allItems.reduce((total, item) => total + item.quantity, 0);
+  const total = allItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+
+  // Load guest cart from localStorage on mount
+  useEffect(() => {
+    const savedGuestCart = localStorage.getItem('guestCart');
+    if (savedGuestCart) {
+      try {
+        setGuestItems(JSON.parse(savedGuestCart));
+      } catch (error) {
+        console.error('Error parsing guest cart:', error);
+      }
+    }
+  }, []);
 
   // Fetch cart items when user or organization changes
   useEffect(() => {
     if (user && currentOrganization) {
       fetchCartItems();
+      // Merge guest cart when user logs in
+      mergeGuestCart();
     } else {
       setItems([]);
-      setLoading(false); // No need to load if no user/org
+      setLoading(false);
     }
   }, [user, currentOrganization]);
 
@@ -124,14 +148,98 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const addGuestItem = (product: any, quantity = 1) => {
+    const existingItemIndex = guestItems.findIndex(item => item.product_id === product.id);
+    let updatedItems;
+    
+    if (existingItemIndex >= 0) {
+      updatedItems = guestItems.map((item, index) => 
+        index === existingItemIndex 
+          ? { ...item, quantity: item.quantity + quantity }
+          : item
+      );
+    } else {
+      const newItem: CartItem = {
+        id: `guest-${Date.now()}`,
+        product_id: product.id,
+        quantity,
+        product: {
+          id: product.id,
+          name: product.name,
+          price: Number(product.price),
+          sku: product.sku,
+          image_url: product.image_url
+        }
+      };
+      updatedItems = [...guestItems, newItem];
+    }
+    
+    setGuestItems(updatedItems);
+    localStorage.setItem('guestCart', JSON.stringify(updatedItems));
+    
+    // Show cart notification
+    setLastAddedProduct({ ...product, quantity });
+    setShowCartNotification(true);
+  };
+
+  const mergeGuestCart = async () => {
+    if (!user || !currentOrganization || guestItems.length === 0) return;
+    
+    // Add guest items to authenticated cart
+    for (const guestItem of guestItems) {
+      try {
+        await supabase
+          .from('shopping_cart')
+          .insert({
+            user_id: user.id,
+            product_id: guestItem.product_id,
+            quantity: guestItem.quantity,
+            organization_id: currentOrganization.id
+          });
+      } catch (error) {
+        console.error('Error merging guest cart item:', error);
+      }
+    }
+    
+    // Clear guest cart
+    setGuestItems([]);
+    localStorage.removeItem('guestCart');
+    
+    // Refresh cart
+    fetchCartItems();
+  };
+
   const addItem = async (productId: string, quantity = 1) => {
     if (!user || !currentOrganization) {
-      toast({
-        title: "Please log in",
-        description: "You need to be logged in to add items to cart",
-        variant: "destructive"
-      });
-      return;
+      // Fetch product details for guest cart
+      try {
+        const { data: product, error } = await supabase
+          .from('products')
+          .select(`
+            id, name, price, sku,
+            product_images!left (image_url, is_primary)
+          `)
+          .eq('id', productId)
+          .single();
+          
+        if (error) throw error;
+        
+        const productWithImage = {
+          ...product,
+          image_url: product.product_images?.find(img => img.is_primary)?.image_url || 
+                    product.product_images?.[0]?.image_url
+        };
+        
+        addGuestItem(productWithImage, quantity);
+        return;
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to add item to cart",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     setLoading(true);
@@ -156,10 +264,26 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) throw error;
         
         await fetchCartItems();
-        toast({
-          title: "Added to cart",
-          description: "Item has been added to your cart"
-        });
+        
+        // Get product details for notification
+        const { data: product } = await supabase
+          .from('products')
+          .select(`
+            id, name, price, sku,
+            product_images!left (image_url, is_primary)
+          `)
+          .eq('id', productId)
+          .single();
+          
+        if (product) {
+          const productWithImage = {
+            ...product,
+            image_url: product.product_images?.find(img => img.is_primary)?.image_url || 
+                      product.product_images?.[0]?.image_url
+          };
+          setLastAddedProduct({ ...productWithImage, quantity });
+          setShowCartNotification(true);
+        }
 
         // Track cart event for email marketing
         trackCartEvent('cart_add', currentOrganization.id, user.id, {
@@ -271,9 +395,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const openCart = () => setIsOpen(true);
   const closeCart = () => setIsOpen(false);
+  const hideCartNotification = () => setShowCartNotification(false);
 
   const value = {
-    items,
+    items: allItems,
     itemCount,
     total,
     loading,
@@ -283,7 +408,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     clearCart,
     isOpen,
     openCart,
-    closeCart
+    closeCart,
+    guestItems,
+    addGuestItem,
+    showCartNotification,
+    hideCartNotification,
+    lastAddedProduct
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

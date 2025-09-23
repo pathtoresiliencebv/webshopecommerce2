@@ -49,18 +49,7 @@ export function ShoppingCartDrawer() {
           </SheetTitle>
         </SheetHeader>
 
-        {!user ? (
-          <div className="flex flex-col items-center justify-center h-64 space-y-4">
-            <ShoppingCart className="h-16 w-16 text-muted-foreground" />
-            <div className="text-center">
-              <h3 className="font-semibold">Please log in</h3>
-              <p className="text-sm text-muted-foreground">You need to be logged in to view your cart</p>
-            </div>
-            <Link to="/auth" onClick={closeCart}>
-              <Button>Log In</Button>
-            </Link>
-          </div>
-        ) : items.length === 0 ? (
+        {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 space-y-4">
             <ShoppingCart className="h-16 w-16 text-muted-foreground" />
             <div className="text-center">
