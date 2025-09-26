@@ -28,16 +28,16 @@ interface ImportedProduct {
 }
 
 const AdminSheinImports = () => {
-  const { selectedOrganization } = useOrganization();
+  const { currentOrganization } = useOrganization();
   const [importJobs, setImportJobs] = useState<ImportJob[]>([]);
   const [pendingProducts, setPendingProducts] = useState<ImportedProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (selectedOrganization?.id) {
+    if (currentOrganization?.id) {
       fetchImportData();
     }
-  }, [selectedOrganization]);
+  }, [currentOrganization]);
 
   const fetchImportData = async () => {
     try {
@@ -47,7 +47,7 @@ const AdminSheinImports = () => {
       const { data: jobs, error: jobsError } = await supabase
         .from('import_jobs')
         .select('*')
-        .eq('organization_id', selectedOrganization?.id)
+        .eq('organization_id', currentOrganization?.id)
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -58,7 +58,7 @@ const AdminSheinImports = () => {
       const { data: products, error: productsError } = await supabase
         .from('imported_products')
         .select('*')
-        .eq('organization_id', selectedOrganization?.id)
+        .eq('organization_id', currentOrganization?.id)
         .eq('approval_status', 'pending')
         .order('created_at', { ascending: false })
         .limit(50);
