@@ -126,7 +126,10 @@ export default function ProductDetail() {
   }
 
   const handleAddToCart = async () => {
+    console.log("🛒 Add to cart clicked!", { productId: product.id, quantity, store: store?.id });
+    
     if (!store?.id) {
+      console.error("❌ No store found");
       toast({
         title: "Error",
         description: "Store not found",
@@ -136,13 +139,15 @@ export default function ProductDetail() {
     }
 
     try {
+      console.log("🔄 Calling addItem...");
       await addItem(product.id, quantity);
+      console.log("✅ Item added successfully");
       toast({
         title: "Added to Cart",
         description: `${quantity} × ${product.name} ${currentVariant ? `(${Object.values(currentVariant.option_values).join(', ')})` : ''} added to your cart`,
       });
     } catch (error) {
-      console.error("Error adding to cart:", error);
+      console.error("❌ Error adding to cart:", error);
       toast({
         title: "Error",
         description: "Failed to add item to cart",
