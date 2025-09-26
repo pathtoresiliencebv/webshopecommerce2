@@ -1,0 +1,225 @@
+/* SHEIN Product Importer - Content Script Styles */
+
+#shein-importer-fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+    cursor: pointer;
+    user-select: none;
+}
+
+.fab-button {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #007AFF, #0056CC);
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.fab-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+}
+
+.fab-button img {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0) invert(1);
+}
+
+.fab-tooltip {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.fab-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 16px;
+    border: 4px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+}
+
+#shein-importer-fab:hover .fab-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Product highlight indicators */
+.shein-importer-indicator {
+    animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Highlight overlay for product selection */
+#shein-importer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 122, 255, 0.1);
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* Product selection highlights */
+.shein-importer-selected {
+    outline: 2px solid #007AFF !important;
+    outline-offset: 2px;
+    background: rgba(0, 122, 255, 0.05) !important;
+}
+
+/* Loading indicator */
+.shein-importer-loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    z-index: 10001;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.shein-importer-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success notification */
+.shein-importer-success {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #34C759;
+    color: white;
+    padding: 16px;
+    border-radius: 8px;
+    z-index: 10001;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Error notification */
+.shein-importer-error {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #FF3B30;
+    color: white;
+    padding: 16px;
+    border-radius: 8px;
+    z-index: 10001;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+    animation: slideInRight 0.3s ease-out;
+}
+
+/* Hide on non-SHEIN sites */
+body:not([data-shein-site]) #shein-importer-fab {
+    display: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #shein-importer-fab {
+        bottom: 80px; /* Avoid mobile navigation */
+        right: 16px;
+    }
+    
+    .fab-button {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .fab-button img {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .fab-tooltip {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .fab-tooltip {
+        background: rgba(255, 255, 255, 0.9);
+        color: black;
+    }
+    
+    .fab-tooltip::after {
+        border-top-color: rgba(255, 255, 255, 0.9);
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .fab-button {
+        background: #0000FF;
+        border: 2px solid #FFFFFF;
+    }
+    
+    .shein-importer-indicator {
+        background: #000000 !important;
+        border: 1px solid #FFFFFF;
+    }
+}

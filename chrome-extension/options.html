@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHEIN Product Importer - Settings</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="icons/icon48.png" alt="Aurelio Living" class="logo">
+            <div>
+                <h1>SHEIN Product Importer</h1>
+                <p>Configure your import settings for Aurelio Living</p>
+            </div>
+        </header>
+
+        <main class="main">
+            <section class="section">
+                <h2>API Configuration</h2>
+                <div class="form-group">
+                    <label for="apiEndpoint">API Endpoint:</label>
+                    <input type="url" id="apiEndpoint" placeholder="https://your-api-endpoint.com">
+                    <small>Leave empty to use default endpoint</small>
+                </div>
+                <div class="form-group">
+                    <label for="organizationId">Default Organization ID:</label>
+                    <input type="text" id="organizationId" placeholder="Optional organization ID">
+                    <small>Pre-fill organization ID for faster login</small>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Import Settings</h2>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="autoApprove"> 
+                        Auto-approve imported products
+                    </label>
+                    <small>Products will be immediately published without manual approval</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="includeSoldOut"> 
+                        Include sold out products
+                    </label>
+                    <small>Import products even if they're out of stock</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="maxProducts">Maximum products per import:</label>
+                    <input type="number" id="maxProducts" min="1" max="100" value="50">
+                    <small>Limit the number of products imported at once</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="minRating">Minimum product rating:</label>
+                    <input type="number" id="minRating" min="0" max="5" step="0.1" value="0">
+                    <small>Only import products with at least this rating</small>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Price Adjustment</h2>
+                <div class="form-group">
+                    <label for="priceAdjustmentType">Price adjustment type:</label>
+                    <select id="priceAdjustmentType">
+                        <option value="none">No adjustment</option>
+                        <option value="percentage">Percentage markup</option>
+                        <option value="fixed">Fixed amount markup</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="priceAdjustmentValueGroup" style="display: none;">
+                    <label for="priceAdjustmentValue">Adjustment value:</label>
+                    <input type="number" id="priceAdjustmentValue" step="0.01" placeholder="0">
+                    <small id="priceAdjustmentHelp">Enter percentage (e.g., 20 for 20%) or fixed amount</small>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Category Mapping</h2>
+                <div class="form-group">
+                    <label for="defaultCategory">Default category for imported products:</label>
+                    <input type="text" id="defaultCategory" placeholder="e.g., Imported Products">
+                    <small>Category to assign when SHEIN category can't be mapped</small>
+                </div>
+                
+                <div class="category-mappings">
+                    <h3>Category Mappings</h3>
+                    <div id="categoryMappingsList">
+                        <!-- Category mappings will be dynamically added here -->
+                    </div>
+                    <button type="button" id="addCategoryMapping" class="btn btn-outline">
+                        + Add Category Mapping
+                    </button>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Notifications</h2>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="showSuccessNotifications" checked> 
+                        Show success notifications
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="showErrorNotifications" checked> 
+                        Show error notifications
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="showProgressNotifications" checked> 
+                        Show import progress notifications
+                    </label>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Advanced Settings</h2>
+                <div class="form-group">
+                    <label for="importDelay">Delay between imports (seconds):</label>
+                    <input type="number" id="importDelay" min="0" max="60" value="1">
+                    <small>Add delay to avoid rate limiting</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="retryAttempts">Retry attempts on failure:</label>
+                    <input type="number" id="retryAttempts" min="0" max="5" value="3">
+                    <small>Number of times to retry failed imports</small>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="enableDebugLogging"> 
+                        Enable debug logging
+                    </label>
+                    <small>Log detailed information for troubleshooting</small>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="actions">
+                <button type="button" id="resetBtn" class="btn btn-outline">Reset to Defaults</button>
+                <button type="button" id="exportBtn" class="btn btn-outline">Export Settings</button>
+                <button type="button" id="importBtn" class="btn btn-outline">Import Settings</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;">
+                <button type="button" id="saveBtn" class="btn btn-primary">Save Settings</button>
+            </div>
+            <div class="status" id="status"></div>
+        </footer>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>

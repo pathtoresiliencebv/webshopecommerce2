@@ -286,6 +286,56 @@ export type Database = {
           },
         ]
       }
+      chrome_extension_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          name: string
+          organization_id: string
+          permissions: Json
+          token_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          name: string
+          organization_id: string
+          permissions?: Json
+          token_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          name?: string
+          organization_id?: string
+          permissions?: Json
+          token_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chrome_extension_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collections: {
         Row: {
           created_at: string
@@ -1056,6 +1106,188 @@ export type Database = {
             columns: ["feed_id"]
             isOneToOne: false
             referencedRelation: "shopping_feeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_log: Json
+          failed_imports: number
+          id: string
+          import_data: Json
+          organization_id: string
+          processed_products: number
+          source_platform: string
+          started_at: string | null
+          status: string
+          successful_imports: number
+          total_products: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_log?: Json
+          failed_imports?: number
+          id?: string
+          import_data?: Json
+          organization_id: string
+          processed_products?: number
+          source_platform?: string
+          started_at?: string | null
+          status?: string
+          successful_imports?: number
+          total_products?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_log?: Json
+          failed_imports?: number
+          id?: string
+          import_data?: Json
+          organization_id?: string
+          processed_products?: number
+          source_platform?: string
+          started_at?: string | null
+          status?: string
+          successful_imports?: number
+          total_products?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          organization_id: string
+          platform: string
+          template_config: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          organization_id: string
+          platform?: string
+          template_config?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          organization_id?: string
+          platform?: string
+          template_config?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imported_products: {
+        Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          import_job_id: string
+          organization_id: string
+          processed_data: Json
+          product_id: string | null
+          raw_data: Json
+          source_product_id: string
+          source_url: string
+          updated_at: string
+        }
+        Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_job_id: string
+          organization_id: string
+          processed_data?: Json
+          product_id?: string | null
+          raw_data?: Json
+          source_product_id: string
+          source_url: string
+          updated_at?: string
+        }
+        Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_job_id?: string
+          organization_id?: string
+          processed_data?: Json
+          product_id?: string | null
+          raw_data?: Json
+          source_product_id?: string
+          source_url?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imported_products_import_job_id_fkey"
+            columns: ["import_job_id"]
+            isOneToOne: false
+            referencedRelation: "import_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imported_products_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imported_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -2530,6 +2762,10 @@ export type Database = {
         Args: { _product_id: string; _quantity: number }
         Returns: boolean
       }
+      generate_chrome_extension_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_order_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2556,6 +2792,15 @@ export type Database = {
           _user_id: string
         }
         Returns: string
+      }
+      update_import_job_progress: {
+        Args: {
+          _failed: number
+          _job_id: string
+          _processed: number
+          _successful: number
+        }
+        Returns: undefined
       }
       user_has_organization_access: {
         Args: { _organization_id: string }

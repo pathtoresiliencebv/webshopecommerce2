@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "SHEIN Product Importer for Aurelio Living",
+  "version": "1.0.0",
+  "description": "Import SHEIN products directly to your Aurelio Living store",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "identity",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://*.shein.com/*",
+    "https://us.shein.com/*",
+    "https://de.shein.com/*",
+    "https://fr.shein.com/*",
+    "https://uk.shein.com/*",
+    "https://nl.shein.com/*",
+    "https://ppvxydvbgbipvgvgaeja.supabase.co/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.shein.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SHEIN Product Importer",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["injected.js"],
+      "matches": ["https://*.shein.com/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

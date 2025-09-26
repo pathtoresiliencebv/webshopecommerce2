@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHEIN Product Importer</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="icons/icon48.png" alt="Aurelio Living" class="logo">
+            <h1>SHEIN Importer</h1>
+        </header>
+
+        <!-- Login Section -->
+        <div id="loginSection" class="section">
+            <h2>Admin Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="organizationId">Organization ID:</label>
+                    <input type="text" id="organizationId" placeholder="Optional">
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            <div id="loginError" class="error-message"></div>
+        </div>
+
+        <!-- Main Section -->
+        <div id="mainSection" class="section" style="display: none;">
+            <div class="user-info">
+                <span id="userEmail"></span>
+                <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Products Found:</span>
+                    <span id="productsFound" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Selected:</span>
+                    <span id="productsSelected" class="stat-value">0</span>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button id="scanBtn" class="btn btn-primary">
+                    <span class="icon">🔍</span> Scan Page
+                </button>
+                <button id="importBtn" class="btn btn-success" disabled>
+                    <span class="icon">📦</span> Import Selected
+                </button>
+                <button id="selectAllBtn" class="btn btn-outline">Select All</button>
+            </div>
+
+            <div class="import-settings">
+                <h3>Import Settings</h3>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="autoApprove"> Auto-approve products
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="priceAdjustment">Price Adjustment:</label>
+                    <select id="priceAdjustmentType">
+                        <option value="none">No adjustment</option>
+                        <option value="percentage">Percentage</option>
+                        <option value="fixed">Fixed amount</option>
+                    </select>
+                    <input type="number" id="priceAdjustmentValue" placeholder="Value" disabled>
+                </div>
+            </div>
+
+            <div id="productsList" class="products-list"></div>
+
+            <div id="importProgress" class="progress-section" style="display: none;">
+                <h3>Import Progress</h3>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div id="progressText" class="progress-text">0 / 0 products imported</div>
+                <div id="importResults" class="import-results"></div>
+            </div>
+        </div>
+
+        <div id="errorSection" class="section error-section" style="display: none;">
+            <h2>Error</h2>
+            <p id="errorMessage"></p>
+            <button id="retryBtn" class="btn btn-primary">Retry</button>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
