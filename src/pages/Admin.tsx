@@ -31,6 +31,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import OrganizationSwitcher from "@/components/OrganizationSwitcher";
 import CreateStoreDialog from "@/components/CreateStoreDialog";
+import ProductImportList from "@/pages/ProductImportList";
 import { Button } from "@/components/ui/button";
 import { LogOut, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +39,8 @@ import { supabase } from "@/integrations/supabase/client";
 export type AdminSection = 
   | "home" 
   | "orders"
+  | "products"
+  | "import-list"
   | "content"
   | "pages"
   | "analytics"
@@ -152,6 +155,8 @@ const Admin = () => {
         );
       case "discount-codes":
         return <AdminDiscountCodes />;
+      case "import-list":
+        return <ProductImportList />;
       case "theme":
         return <AdminTheme onSectionChange={setActiveSection} />;
       case "theme-customize":

@@ -5,6 +5,7 @@ import { AdminDomains } from './AdminDomains';
 import AdminDNSSetup from './AdminDNSSetup';
 import { AdminSubscription } from './AdminSubscription';
 import { AdminBilling } from './AdminBilling';
+import { PaymentProvidersSettings } from './PaymentProvidersSettings';
 import { AdminUsers } from './AdminUsers';
 import { AdminLocations } from './AdminLocations';
 import { AdminLanguages } from './AdminLanguages';
@@ -25,6 +26,8 @@ export function AdminStoreSettings() {
         return <AdminSubscription />;
       case 'billing':
         return <AdminBilling />;
+      case 'payment-methods':
+        return <PaymentProvidersSettings />;
       case 'users':
         return <AdminUsers />;
       case 'locations':

@@ -27,6 +27,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { OrganizationProvider } from "./contexts/OrganizationContext";
 import StoreManagerRoute from "./components/StoreManagerRoute";
 import { CreateStoreWizard } from "./components/admin/CreateStoreWizard";
+import AdminStoreSelector from "./pages/AdminStoreSelector";
+import GoogleShoppingFeed from "./pages/GoogleShoppingFeed";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +60,11 @@ const App = () => (
                     <Route path="/admin/stores/new" element={
                       <AdminProtectedRoute>
                         <CreateStoreWizard />
+                      </AdminProtectedRoute>
+                    } />
+                    <Route path="/admin/select-store" element={
+                      <AdminProtectedRoute>
+                        <AdminStoreSelector />
                       </AdminProtectedRoute>
                     } />
                     <Route path="/dashboard" element={<Dashboard />} />
@@ -161,6 +168,18 @@ const App = () => (
                     <Route path="/track" element={
                       <StoreProvider>
                         <TrackTrace />
+                      </StoreProvider>
+                    } />
+                    
+                    {/* Google Shopping Feed - per store */}
+                    <Route path="/google-shopping.xml" element={
+                      <StoreProvider>
+                        <GoogleShoppingFeed />
+                      </StoreProvider>
+                    } />
+                    <Route path="/store/:storeSlug/google-shopping.xml" element={
+                      <StoreProvider>
+                        <GoogleShoppingFeed />
                       </StoreProvider>
                     } />
                     

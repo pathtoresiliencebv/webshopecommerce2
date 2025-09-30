@@ -30,12 +30,13 @@ export function PaymentProvidersSettings() {
   const [providers, setProviders] = useState<PaymentProvider[]>([]);
   const [loading, setLoading] = useState(true);
   const [settingUp, setSettingUp] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (tenantDb && store) {
       loadProviders();
     }
-  }, [tenantDb, store]);
+  }, [tenantDb, store, refreshKey]);
 
   const loadProviders = async () => {
     try {
@@ -84,6 +85,8 @@ export function PaymentProvidersSettings() {
         {
           body: {
             accountId: data.accountId,
+            refreshUrl: window.location.href,
+            returnUrl: window.location.href,
           },
         }
       );
@@ -91,10 +94,19 @@ export function PaymentProvidersSettings() {
       if (linkError) throw linkError;
 
       // Open onboarding in new tab
-      window.open(linkData.url, '_blank');
+      const onboardingWindow = window.open(linkData.url, '_blank');
+      
+      // Poll for completion
+      const pollInterval = setInterval(() => {
+        if (onboardingWindow?.closed) {
+          clearInterval(pollInterval);
+          setRefreshKey(prev => prev + 1);
+          toast.success('Checking Stripe setup status...');
+        }
+      }, 1000);
 
-      // Reload providers
-      await loadProviders();
+      // Reload providers after 2 seconds
+      setTimeout(() => loadProviders(), 2000);
     } catch (error: any) {
       console.error('Error setting up Stripe:', error);
       toast.error(error.message || 'Failed to setup Stripe');
@@ -110,13 +122,29 @@ export function PaymentProvidersSettings() {
       const { data, error } = await supabase.functions.invoke(
         'stripe-create-onboarding-link',
         {
-          body: { accountId },
+          body: { 
+            accountId,
+            refreshUrl: window.location.href,
+            returnUrl: window.location.href,
+          },
         }
       );
 
       if (error) throw error;
 
-      window.open(data.url, '_blank');
+      const onboardingWindow = window.open(data.url, '_blank');
+      
+      // Poll for completion
+      const pollInterval = setInterval(() => {
+        if (onboardingWindow?.closed) {
+          clearInterval(pollInterval);
+          setRefreshKey(prev => prev + 1);
+          toast.success('Checking Stripe setup status...');
+        }
+      }, 1000);
+
+      // Auto-refresh after window closes
+      setTimeout(() => loadProviders(), 2000);
     } catch (error: any) {
       console.error('Error:', error);
       toast.error(error.message || 'Failed to create onboarding link');
@@ -161,9 +189,9 @@ export function PaymentProvidersSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Payment Providers</h2>
+        <h2 className="text-2xl font-bold">Betaalmethoden</h2>
         <p className="text-muted-foreground">
-          Manage payment methods for your store
+          Verbind Stripe om betalingen te accepteren voor {store?.name}
         </p>
       </div>
 

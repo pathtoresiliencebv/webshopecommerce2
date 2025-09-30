@@ -20,7 +20,8 @@ import {
   Gift,
   Images,
   BarChart3,
-  FileText
+  FileText,
+  Download
 } from "lucide-react";
 import { AdminSection } from "@/pages/Admin";
 import { useOrganization } from "@/contexts/OrganizationContext";
@@ -56,6 +57,7 @@ const mainMenuItems = [
 
 const productMenuItems = [
   { id: "products" as AdminSection, label: "All products", icon: Package },
+  { id: "import-list" as AdminSection, label: "Import List", icon: Download },
   { id: "collections" as AdminSection, label: "Collections", icon: FolderOpen },
   { id: "inventory" as AdminSection, label: "Inventory", icon: Boxes },
   { id: "transfers" as AdminSection, label: "Transfers", icon: ArrowLeftRight },

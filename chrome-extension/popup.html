@@ -1,104 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHEIN Product Importer</title>
-    <link rel="stylesheet" href="popup.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurelio Product Importer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 380px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+    
+    .header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .tagline {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    .content {
+      padding: 20px;
+    }
+    
+    .store-selector {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .store-selector label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 8px;
+      opacity: 0.9;
+    }
+    
+    .store-selector select {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    .store-selector select option {
+      background: #667eea;
+      color: #fff;
+    }
+    
+    .login-section {
+      text-align: center;
+    }
+    
+    .login-status {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #fff;
+      color: #667eea;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .btn-secondary {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      margin-top: 10px;
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .import-section {
+      display: none;
+    }
+    
+    .import-section.active {
+      display: block;
+    }
+    
+    .import-options {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    
+    .import-option {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .import-option:last-child {
+      margin-bottom: 0;
+    }
+    
+    .import-option input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    
+    .import-option label {
+      font-size: 13px;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .stat-card {
+      background: rgba(255,255,255,0.1);
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+    
+    .footer {
+      padding: 15px;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      font-size: 11px;
+      opacity: 0.7;
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <img src="icons/icon48.png" alt="Aurelio Living" class="logo">
-            <h1>SHEIN Importer</h1>
-        </header>
-
-        <!-- Login Section -->
-        <div id="loginSection" class="section">
-            <h2>Admin Login</h2>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" required>
-                </div>
-                <div class="form-group">
-                    <label for="organizationId">Organization ID:</label>
-                    <input type="text" id="organizationId" placeholder="Optional">
-                </div>
-                <button type="submit" class="btn btn-primary">Login</button>
-            </form>
-            <div id="loginError" class="error-message"></div>
-        </div>
-
-        <!-- Main Section -->
-        <div id="mainSection" class="section" style="display: none;">
-            <div class="user-info">
-                <span id="userEmail"></span>
-                <button id="logoutBtn" class="btn btn-secondary">Logout</button>
-            </div>
-
-            <div class="stats">
-                <div class="stat-item">
-                    <span class="stat-label">Products Found:</span>
-                    <span id="productsFound" class="stat-value">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Selected:</span>
-                    <span id="productsSelected" class="stat-value">0</span>
-                </div>
-            </div>
-
-            <div class="actions">
-                <button id="scanBtn" class="btn btn-primary">
-                    <span class="icon">🔍</span> Scan Page
-                </button>
-                <button id="importBtn" class="btn btn-success" disabled>
-                    <span class="icon">📦</span> Import Selected
-                </button>
-                <button id="selectAllBtn" class="btn btn-outline">Select All</button>
-            </div>
-
-            <div class="import-settings">
-                <h3>Import Settings</h3>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="autoApprove"> Auto-approve products
-                    </label>
-                </div>
-                <div class="form-group">
-                    <label for="priceAdjustment">Price Adjustment:</label>
-                    <select id="priceAdjustmentType">
-                        <option value="none">No adjustment</option>
-                        <option value="percentage">Percentage</option>
-                        <option value="fixed">Fixed amount</option>
-                    </select>
-                    <input type="number" id="priceAdjustmentValue" placeholder="Value" disabled>
-                </div>
-            </div>
-
-            <div id="productsList" class="products-list"></div>
-
-            <div id="importProgress" class="progress-section" style="display: none;">
-                <h3>Import Progress</h3>
-                <div class="progress-bar">
-                    <div id="progressFill" class="progress-fill"></div>
-                </div>
-                <div id="progressText" class="progress-text">0 / 0 products imported</div>
-                <div id="importResults" class="import-results"></div>
-            </div>
-        </div>
-
-        <div id="errorSection" class="section error-section" style="display: none;">
-            <h2>Error</h2>
-            <p id="errorMessage"></p>
-            <button id="retryBtn" class="btn btn-primary">Retry</button>
-        </div>
+  <div class="header">
+    <div class="logo">🛍️ Aurelio Importer</div>
+    <div class="tagline">Multi-Store Product Importer</div>
+  </div>
+  
+  <div class="content">
+    <!-- Store Selector -->
+    <div class="store-selector" id="storeSelector">
+      <label for="selectedStore">Select Store:</label>
+      <select id="selectedStore">
+        <option value="">Loading stores...</option>
+      </select>
     </div>
-
-    <script src="popup.js"></script>
+    
+    <!-- Login Section -->
+    <div class="login-section" id="loginSection">
+      <div class="login-status">
+        <p id="loginStatus">Not logged in</p>
+      </div>
+      <button class="btn btn-primary" id="loginBtn">Login to Aurelio</button>
+    </div>
+    
+    <!-- Import Section -->
+    <div class="import-section" id="importSection">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="importedCount">0</div>
+          <div class="stat-label">Imported</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="pendingCount">0</div>
+          <div class="stat-label">Pending</div>
+        </div>
+      </div>
+      
+      <div class="import-options">
+        <div class="import-option">
+          <input type="checkbox" id="autoApprove" />
+          <label for="autoApprove">Auto-approve imports</label>
+        </div>
+        <div class="import-option">
+          <input type="checkbox" id="includeSoldOut" />
+          <label for="includeSoldOut">Include sold out items</label>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" id="importBtn">Import Current Product</button>
+      <button class="btn btn-secondary" id="openAdminBtn">Open Admin Panel</button>
+      <button class="btn btn-secondary" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <p>Powered by Aurelio • v1.0.0</p>
+  </div>
+  
+  <script src="popup.js"></script>
 </body>
 </html>
