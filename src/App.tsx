@@ -29,6 +29,7 @@ import StoreManagerRoute from "./components/StoreManagerRoute";
 import { CreateStoreWizard } from "./components/admin/CreateStoreWizard";
 import AdminStoreSelector from "./pages/AdminStoreSelector";
 import GoogleShoppingFeed from "./pages/GoogleShoppingFeed";
+import TrackOrder from "./pages/TrackOrder";
 
 const queryClient = new QueryClient();
 
