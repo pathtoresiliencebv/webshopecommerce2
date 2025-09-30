@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useParams, useLocation } from 'react-router-dom';
+import { getTenantDatabase, clearTenantCache } from '@/lib/tenant-database';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 interface Store {
   id: string;
@@ -14,6 +16,7 @@ interface Store {
 
 interface StoreContextType {
   store: Store | null;
+  tenantDb: SupabaseClient | null; // 🆕 Tenant-specific database client
   loading: boolean;
   error: string | null;
 }
@@ -22,6 +25,7 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [store, setStore] = useState<Store | null>(null);
+  const [tenantDb, setTenantDb] = useState<SupabaseClient | null>(null); // 🆕 Tenant database
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { storeSlug } = useParams();
@@ -229,8 +233,39 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     fetchStore();
   }, [storeSlug, subdomain]);
 
+  // 🆕 Initialize tenant database when store changes
+  useEffect(() => {
+    const initializeTenantDatabase = async () => {
+      if (!store?.id) {
+        setTenantDb(null);
+        return;
+      }
+      
+      try {
+        console.log(`🔄 Initializing tenant database for store: ${store.name}`);
+        const db = await getTenantDatabase(store.id);
+        setTenantDb(db);
+        console.log(`✅ Tenant database ready for: ${store.name}`);
+      } catch (error) {
+        console.error('Failed to initialize tenant database:', error);
+        setError('Failed to connect to store database');
+        setTenantDb(null);
+      }
+    };
+
+    initializeTenantDatabase();
+
+    // Cleanup: Clear cache when store changes
+    return () => {
+      if (store?.id) {
+        clearTenantCache(store.id);
+      }
+    };
+  }, [store?.id]);
+
   const value = {
     store,
+    tenantDb, // 🆕 Expose tenant database to all components
     loading,
     error
   };
