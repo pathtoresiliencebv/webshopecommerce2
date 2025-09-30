@@ -204,7 +204,7 @@ export function EmailBuilder({ templateId, campaignId, workflowType, onSave, onP
         return `
           <tr>
             <td style="${styleString}; text-align: center;">
-              ${content.logo ? `<img src="${content.logo}" alt="Logo" style="max-width: 200px; margin-bottom: 20px;" />` : ''}
+              ${content.logo ? `<img src="${content.logo}" alt="Logo" style="max-width: 200px; max-height: 80px; margin-bottom: 20px;" />` : '<img src="{{store_logo}}" alt="{{store_name}}" style="max-width: 200px; max-height: 80px; margin-bottom: 20px;" />'}
               <h1 style="margin: 0; font-size: 32px; color: #333;">${content.title}</h1>
               ${content.subtitle ? `<p style="margin: 10px 0 0; font-size: 16px; color: #666;">${content.subtitle}</p>` : ''}
             </td>

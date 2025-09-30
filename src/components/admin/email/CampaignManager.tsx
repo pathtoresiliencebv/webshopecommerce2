@@ -789,6 +789,13 @@ function generateShippingEmail() {
           <tr>
             <td align="center" style="padding: 40px 0;">
               <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px;">
+                <!-- Store Logo -->
+                <tr>
+                  <td style="padding: 30px 20px 0; text-align: center;">
+                    <img src="{{store_logo}}" alt="{{store_name}}" style="max-height: 60px; max-width: 200px; height: auto;" />
+                  </td>
+                </tr>
+                <!-- Content -->
                 <tr>
                   <td style="padding: 40px 20px; text-align: center;">
                     <h1 style="margin: 0; font-size: 28px; color: #333;">📦 Je bestelling is onderweg!</h1>
@@ -799,6 +806,13 @@ function generateShippingEmail() {
                     </div>
                     <p style="margin: 20px 0; color: #666;">Geschatte levering: <strong>{{estimated_delivery}}</strong></p>
                     <a href="{{tracking_url}}" style="display: inline-block; padding: 15px 30px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">Track Je Pakket</a>
+                  </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 20px; text-align: center; border-top: 1px solid #eee; color: #999; font-size: 12px;">
+                    <p style="margin: 0;">{{store_name}} • {{store_address}}</p>
+                    <p style="margin: 5px 0 0;">{{store_email}} • {{store_phone}}</p>
                   </td>
                 </tr>
               </table>

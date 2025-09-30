@@ -183,6 +183,10 @@ const App = () => (
                       </StoreProvider>
                     } />
                     
+                    {/* Track Order - Global with Store Branding */}
+                    <Route path="/track" element={<TrackOrder />} />
+                    <Route path="/track-order" element={<TrackOrder />} />
+                    
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
