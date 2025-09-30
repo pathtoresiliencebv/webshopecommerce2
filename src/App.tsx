@@ -26,6 +26,7 @@ import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import { OrganizationProvider } from "./contexts/OrganizationContext";
 import StoreManagerRoute from "./components/StoreManagerRoute";
+import { CreateStoreWizard } from "./components/admin/CreateStoreWizard";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,11 @@ const App = () => (
                       </AdminProtectedRoute>
                     } />
                     <Route path="/admin/stores" element={<StoreManagerRoute />} />
+                    <Route path="/admin/stores/new" element={
+                      <AdminProtectedRoute>
+                        <CreateStoreWizard />
+                      </AdminProtectedRoute>
+                    } />
                     <Route path="/dashboard" element={<Dashboard />} />
                 
                     {/* Admin store-specific routes */}

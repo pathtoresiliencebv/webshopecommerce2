@@ -141,7 +141,7 @@ const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({ open, onOpenChang
                 title="Alleen kleine letters, cijfers en streepjes"
               />
               <span className="text-sm text-muted-foreground ml-1">
-                .jouwdomein.nl
+                .myaurelio.com
               </span>
             </div>
             <p className="text-xs text-muted-foreground">

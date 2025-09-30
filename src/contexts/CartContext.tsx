@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { useOrganization } from './OrganizationContext';
+import { useStore } from './StoreContext';
 import { toast } from '@/hooks/use-toast';
 
 // Track cart events for email marketing
@@ -65,6 +66,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [lastAddedProduct, setLastAddedProduct] = useState<any>(null);
   const { user } = useAuth();
   const { currentOrganization } = useOrganization();
+  const { store } = useStore();
+  
+  // Use store context if available (storefront), otherwise fall back to currentOrganization (admin)
+  const organizationId = store?.id || currentOrganization?.id;
 
   const allItems = user ? items : guestItems;
   const itemCount = allItems.reduce((total, item) => total + item.quantity, 0);
@@ -84,7 +89,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Fetch cart items when user or organization changes
   useEffect(() => {
-    if (user && currentOrganization) {
+    if (user && organizationId) {
       fetchCartItems();
       // Merge guest cart when user logs in
       mergeGuestCart();
@@ -92,10 +97,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setItems([]);
       setLoading(false);
     }
-  }, [user, currentOrganization]);
+  }, [user, organizationId]);
 
   const fetchCartItems = async () => {
-    if (!user || !currentOrganization) return;
+    if (!user || !organizationId) return;
     
     setLoading(true);
     try {
@@ -117,7 +122,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           )
         `)
         .eq('user_id', user.id)
-        .eq('organization_id', currentOrganization.id);
+        .eq('organization_id', organizationId);
 
       if (error) throw error;
 
@@ -183,7 +188,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const mergeGuestCart = async () => {
-    if (!user || !currentOrganization || guestItems.length === 0) return;
+    if (!user || !organizationId || guestItems.length === 0) return;
     
     // Add guest items to authenticated cart
     for (const guestItem of guestItems) {
@@ -194,7 +199,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             user_id: user.id,
             product_id: guestItem.product_id,
             quantity: guestItem.quantity,
-            organization_id: currentOrganization.id
+            organization_id: organizationId
           });
       } catch (error) {
         console.error('Error merging guest cart item:', error);
@@ -210,7 +215,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addItem = async (productId: string, quantity = 1) => {
-    if (!user || !currentOrganization) {
+    console.log('🛒 CartContext.addItem called', { productId, quantity, organizationId, hasUser: !!user });
+    
+    if (!user || !organizationId) {
+      console.log('📦 Adding to guest cart (no user or org)');
       // Fetch product details for guest cart
       try {
         const { data: product, error } = await supabase
@@ -231,8 +239,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         
         addGuestItem(productWithImage, quantity);
+        console.log('✅ Added to guest cart');
         return;
       } catch (error) {
+        console.error('❌ Error adding to guest cart:', error);
         toast({
           title: "Error",
           description: "Failed to add item to cart",
@@ -244,13 +254,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setLoading(true);
     try {
+      console.log('🔍 Checking for existing item...');
       // Check if item already exists in cart
       const existingItem = items.find(item => item.product_id === productId);
       
       if (existingItem) {
+        console.log('📝 Item exists, updating quantity');
         // Update quantity
         await updateQuantity(existingItem.id, existingItem.quantity + quantity);
       } else {
+        console.log('➕ Adding new item to cart');
         // Add new item
         const { error } = await supabase
           .from('shopping_cart')
@@ -258,7 +271,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             user_id: user.id,
             product_id: productId,
             quantity,
-            organization_id: currentOrganization.id
+            organization_id: organizationId
           });
 
         if (error) throw error;
@@ -286,13 +299,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         // Track cart event for email marketing
-        trackCartEvent('cart_add', currentOrganization.id, user.id, {
+        trackCartEvent('cart_add', organizationId, user.id, {
           product_id: productId,
           quantity
         });
+        
+        console.log('✅ Item added successfully');
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('❌ Error adding to cart:', error);
       toast({
         title: "Error",
         description: "Failed to add item to cart",
@@ -353,8 +368,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       // Track cart removal event
-      if (item && currentOrganization) {
-        trackCartEvent('cart_remove', currentOrganization.id, user?.id, {
+      if (item && organizationId) {
+        trackCartEvent('cart_remove', organizationId, user?.id, {
           product_id: item.product_id,
           quantity: item.quantity,
           product_name: item.product?.name
@@ -373,7 +388,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearCart = async () => {
-    if (!user || !currentOrganization) return;
+    if (!user || !organizationId) return;
     
     setLoading(true);
     try {
@@ -381,7 +396,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('shopping_cart')
         .delete()
         .eq('user_id', user.id)
-        .eq('organization_id', currentOrganization.id);
+        .eq('organization_id', organizationId);
 
       if (error) throw error;
       
