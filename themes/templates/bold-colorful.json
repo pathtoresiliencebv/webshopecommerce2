@@ -1,0 +1,111 @@
+{
+  "name": "Bold & Colorful",
+  "version": "1.0.0",
+  "description": "Vibrant colors and bold typography for modern brands",
+  "category": "colorful",
+  "colors": {
+    "primary": "#8B5CF6",
+    "secondary": "#EC4899",
+    "accent": "#F59E0B",
+    "background": "#FFFFFF",
+    "surface": "#F9FAFB",
+    "text": "#111827",
+    "textSecondary": "#6B7280",
+    "border": "#E5E7EB",
+    "success": "#10B981",
+    "warning": "#F59E0B",
+    "error": "#EF4444"
+  },
+  "typography": {
+    "headingFont": "Poppins",
+    "bodyFont": "Inter",
+    "fontSize": {
+      "xs": "0.75rem",
+      "sm": "0.875rem",
+      "base": "1rem",
+      "lg": "1.125rem",
+      "xl": "1.25rem",
+      "2xl": "1.5rem",
+      "3xl": "2rem",
+      "4xl": "2.5rem"
+    },
+    "fontWeight": {
+      "light": 300,
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700,
+      "extrabold": 800
+    },
+    "lineHeight": {
+      "tight": 1.2,
+      "normal": 1.5,
+      "relaxed": 1.8
+    }
+  },
+  "layout": {
+    "borderRadius": "1rem",
+    "maxWidth": "1280px",
+    "containerPadding": "1.5rem",
+    "sectionSpacing": "5rem",
+    "spacing": {
+      "xs": "0.5rem",
+      "sm": "0.75rem",
+      "md": "1.25rem",
+      "lg": "2rem",
+      "xl": "3rem",
+      "2xl": "4rem"
+    }
+  },
+  "components": {
+    "button": {
+      "primary": {
+        "background": "linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)",
+        "color": "#FFFFFF",
+        "borderRadius": "0.75rem",
+        "padding": "1rem 2rem",
+        "fontSize": "1.125rem",
+        "fontWeight": 600,
+        "hover": {
+          "transform": "scale(1.05)",
+          "shadow": "0 8px 20px rgba(139,92,246,0.4)"
+        }
+      }
+    },
+    "card": {
+      "background": "#FFFFFF",
+      "borderRadius": "1.5rem",
+      "shadow": "0 4px 12px rgba(0,0,0,0.08)",
+      "padding": "2rem",
+      "hover": {
+        "shadow": "0 12px 40px rgba(0,0,0,0.12)",
+        "transform": "translateY(-8px)"
+      }
+    },
+    "header": {
+      "background": "linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)",
+      "height": "5rem",
+      "sticky": true,
+      "shadow": "0 2px 8px rgba(0,0,0,0.1)"
+    },
+    "productCard": {
+      "imageAspectRatio": "4/5",
+      "showQuickView": true,
+      "hoverEffect": "lift",
+      "badgeStyle": "gradient"
+    }
+  },
+  "animations": {
+    "enabled": true,
+    "duration": 400,
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "pageTransitions": true,
+    "hoverEffects": true,
+    "scrollReveal": true
+  },
+  "metadata": {
+    "platform": "Aurelio Multi-Store",
+    "compatible": "1.0.0",
+    "createdAt": "2025-09-30T12:00:00Z"
+  }
+}

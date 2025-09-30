@@ -21,7 +21,8 @@ import {
   Images,
   BarChart3,
   FileText,
-  Download
+  Download,
+  Palette
 } from "lucide-react";
 import { AdminSection } from "@/pages/Admin";
 import { useOrganization } from "@/contexts/OrganizationContext";
@@ -75,6 +76,7 @@ const marketingMenuItems = [
 
 const salesChannelItems = [
   { id: "theme" as AdminSection, label: "Thema", icon: Store },
+  { id: "themes-manager" as AdminSection, label: "Thema's Beheren", icon: Palette },
   { id: "shopping-feeds" as AdminSection, label: "Shopping Feeds", icon: Rss },
 ];
 

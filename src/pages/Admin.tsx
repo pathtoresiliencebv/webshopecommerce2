@@ -6,6 +6,7 @@ import { AdminDiscountCodes } from "@/components/admin/AdminDiscountCodes";
 import { AdminTheme } from "@/components/admin/AdminTheme";
 import { AdminStoreSettings } from "@/components/admin/AdminStoreSettings";
 import { AdminThemeCustomize } from "@/components/admin/AdminThemeCustomize";
+import { AdminThemes } from "@/components/admin/AdminThemes";
 import { AdminTransfers } from "@/components/admin/AdminTransfers";
 import { AdminGiftCards } from "@/components/admin/AdminGiftCards";
 import { AdminShoppingFeeds } from "@/components/admin/AdminShoppingFeeds";
@@ -53,6 +54,7 @@ export type AdminSection =
   | "discount-codes" 
   | "theme"
   | "theme-customize" 
+  | "themes-manager"
   | "email-marketing"
   | "shopping-feeds"
   | "store-settings"
@@ -161,6 +163,8 @@ const Admin = () => {
         return <AdminTheme onSectionChange={setActiveSection} />;
       case "theme-customize":
         return <AdminThemeCustomize onSectionChange={setActiveSection} />;
+      case "themes-manager":
+        return <AdminThemes />;
       case "email-marketing":
         return (
           <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
