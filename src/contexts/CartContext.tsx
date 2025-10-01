@@ -2,8 +2,17 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { useOrganization } from './OrganizationContext';
-import { useStore } from './StoreContext';
 import { toast } from '@/hooks/use-toast';
+
+// Safe hook that doesn't throw when StoreProvider is missing
+const useSafeStore = () => {
+  try {
+    const { useStore } = require("@/contexts/StoreContext");
+    return useStore();
+  } catch {
+    return { store: null, tenantDb: null, loading: false, error: null };
+  }
+};
 
 // Track cart events for email marketing
 const trackCartEvent = async (eventType: string, organizationId: string, userId?: string, eventData?: any) => {
@@ -66,7 +75,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [lastAddedProduct, setLastAddedProduct] = useState<any>(null);
   const { user } = useAuth();
   const { currentOrganization } = useOrganization();
-  const { store } = useStore();
+  const { store } = useSafeStore();
   
   // Use store context if available (storefront), otherwise fall back to currentOrganization (admin)
   const organizationId = store?.id || currentOrganization?.id;
