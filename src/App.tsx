@@ -38,13 +38,14 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <OrganizationProvider>
-          <TooltipProvider>
-            <CartProvider>
-              <CartNotificationProvider>
-                <BrowserRouter>
-                  <Toaster />
-                  <Sonner />
-                  <Routes>
+          <StoreProvider>
+            <TooltipProvider>
+              <CartProvider>
+                <CartNotificationProvider>
+                  <BrowserRouter>
+                    <Toaster />
+                    <Sonner />
+                    <Routes>
                     {/* Admin routes - with auth and organization context */}
                     <Route path="/admin/auth" element={<AdminAuth />} />
                     <Route path="/admin" element={
@@ -78,111 +79,31 @@ const App = () => (
                     } />
                     
                     {/* Store-specific routes for main domain */}
-                    <Route path="/store/:storeSlug" element={
-                      <StoreProvider>
-                        <Index />
-                      </StoreProvider>
-                    } />
-                    <Route path="/store/:storeSlug/products" element={
-                      <StoreProvider>
-                        <Products />
-                      </StoreProvider>
-                    } />
-                    <Route path="/store/:storeSlug/products/:slug" element={
-                      <StoreProvider>
-                        <ProductDetail />
-                      </StoreProvider>
-                    } />
-                    <Route path="/store/:storeSlug/collections/:slug" element={
-                      <StoreProvider>
-                        <CollectionPage />
-                      </StoreProvider>
-                    } />
-                    <Route path="/store/:storeSlug/auth" element={
-                      <StoreProvider>
-                        <Auth />
-                      </StoreProvider>
-                    } />
-                    <Route path="/store/:storeSlug/checkout/success" element={
-                      <StoreProvider>
-                        <CheckoutSuccess />
-                      </StoreProvider>
-                    } />
-                    <Route path="/store/:storeSlug/checkout" element={
-                      <StoreProvider>
-                        <Checkout />
-                      </StoreProvider>
-                    } />
-                    <Route path="/store/:storeSlug/faq" element={
-                      <StoreProvider>
-                        <FAQ />
-                      </StoreProvider>
-                    } />
-                    <Route path="/store/:storeSlug/track" element={
-                      <StoreProvider>
-                        <TrackTrace />
-                      </StoreProvider>
-                    } />
+                    <Route path="/store/:storeSlug" element={<Index />} />
+                    <Route path="/store/:storeSlug/products" element={<Products />} />
+                    <Route path="/store/:storeSlug/products/:slug" element={<ProductDetail />} />
+                    <Route path="/store/:storeSlug/collections/:slug" element={<CollectionPage />} />
+                    <Route path="/store/:storeSlug/auth" element={<Auth />} />
+                    <Route path="/store/:storeSlug/checkout/success" element={<CheckoutSuccess />} />
+                    <Route path="/store/:storeSlug/checkout" element={<Checkout />} />
+                    <Route path="/store/:storeSlug/faq" element={<FAQ />} />
+                    <Route path="/store/:storeSlug/track" element={<TrackTrace />} />
 
                     {/* Default routes (with potential subdomain detection) */}
-                    <Route path="/" element={
-                      <StoreProvider>
-                        <Index />
-                      </StoreProvider>
-                    } />
-                    <Route path="/products" element={
-                      <StoreProvider>
-                        <Products />
-                      </StoreProvider>
-                    } />
-                    <Route path="/products/:slug" element={
-                      <StoreProvider>
-                        <ProductDetail />
-                      </StoreProvider>
-                    } />
-                    <Route path="/collections/:slug" element={
-                      <StoreProvider>
-                        <CollectionPage />
-                      </StoreProvider>
-                    } />
+                    <Route path="/" element={<Index />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/products/:slug" element={<ProductDetail />} />
+                    <Route path="/collections/:slug" element={<CollectionPage />} />
                     <Route path="/login" element={<Login />} />
-                    <Route path="/auth" element={
-                      <StoreProvider>
-                        <Auth />
-                      </StoreProvider>
-                    } />
-                    <Route path="/checkout/success" element={
-                      <StoreProvider>
-                        <CheckoutSuccess />
-                      </StoreProvider>
-                    } />
-                    <Route path="/checkout" element={
-                      <StoreProvider>
-                        <Checkout />
-                      </StoreProvider>
-                    } />
-                    <Route path="/faq" element={
-                      <StoreProvider>
-                        <FAQ />
-                      </StoreProvider>
-                    } />
-                    <Route path="/track" element={
-                      <StoreProvider>
-                        <TrackTrace />
-                      </StoreProvider>
-                    } />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/checkout/success" element={<CheckoutSuccess />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/track" element={<TrackTrace />} />
                     
                     {/* Google Shopping Feed - per store */}
-                    <Route path="/google-shopping.xml" element={
-                      <StoreProvider>
-                        <GoogleShoppingFeed />
-                      </StoreProvider>
-                    } />
-                    <Route path="/store/:storeSlug/google-shopping.xml" element={
-                      <StoreProvider>
-                        <GoogleShoppingFeed />
-                      </StoreProvider>
-                    } />
+                    <Route path="/google-shopping.xml" element={<GoogleShoppingFeed />} />
+                    <Route path="/store/:storeSlug/google-shopping.xml" element={<GoogleShoppingFeed />} />
                     
                     {/* Track Order - Global with Store Branding */}
                     <Route path="/track" element={<TrackOrder />} />
@@ -190,11 +111,12 @@ const App = () => (
                     
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </BrowserRouter>
-              </CartNotificationProvider>
-            </CartProvider>
-          </TooltipProvider>
+                    </Routes>
+                  </BrowserRouter>
+                </CartNotificationProvider>
+              </CartProvider>
+            </TooltipProvider>
+          </StoreProvider>
         </OrganizationProvider>
       </AuthProvider>
     </QueryClientProvider>

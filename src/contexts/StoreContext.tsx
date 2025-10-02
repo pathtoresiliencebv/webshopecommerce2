@@ -247,9 +247,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setTenantDb(db);
         console.log(`✅ Tenant database ready for: ${store.name}`);
       } catch (error) {
-        console.error('Failed to initialize tenant database:', error);
-        setError('Failed to connect to store database');
+        // Don't treat missing tenant database as a critical error
+        // Some stores may not have a separate tenant database configured yet
+        console.warn('Tenant database not available for this store (using shared database):', error);
         setTenantDb(null);
+        // Don't set error state - this is not a critical failure
       }
     };
 
