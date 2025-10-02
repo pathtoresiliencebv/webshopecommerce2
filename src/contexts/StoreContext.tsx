@@ -79,6 +79,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(true);
       setError(null);
 
+      // Check if Supabase is properly configured
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        console.error('❌ Supabase not configured. Please add Supabase integration in Lovable.');
+        setError('Database not configured. Please contact support.');
+        setLoading(false);
+        // Set a default store to prevent complete app failure
+        setStore({
+          id: 'demo',
+          name: 'Demo Store',
+          slug: 'demo',
+          description: 'Demo store - Supabase not configured'
+        });
+        return;
+      }
+
       try {
         let query = supabase
           .from('organizations')
