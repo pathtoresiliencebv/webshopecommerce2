@@ -7,9 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStore } from "@/contexts/StoreContext";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Store } from "lucide-react";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -18,6 +19,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { store, loading: storeLoading } = useStore();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -28,6 +30,11 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!store) {
+      toast.error("Store niet gevonden. Probeer het opnieuw.");
+      return;
+    }
     
     if (password !== confirmPassword) {
       toast.error("Wachtwoorden komen niet overeen");
@@ -41,49 +48,109 @@ export default function Auth() {
 
     setLoading(true);
     
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-      },
-    });
+    try {
+      // Step 1: Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            store_id: store.id,
+            store_name: store.name
+          }
+        },
+      });
 
-    if (error) {
-      if (error.message.includes("already_registered")) {
-        toast.error("Dit e-mailadres is al geregistreerd. Probeer in te loggen.");
-      } else {
-        toast.error(error.message);
+      if (authError) {
+        if (authError.message.includes("already_registered")) {
+          toast.error("Dit e-mailadres is al geregistreerd. Probeer in te loggen.");
+        } else {
+          toast.error(authError.message);
+        }
+        setLoading(false);
+        return;
       }
-    } else {
-      toast.success("Account succesvol aangemaakt! Je bent nu ingelogd.");
+
+      // Step 2: Create customer record for this store
+      if (authData.user) {
+        const { error: customerError } = await supabase
+          .from('customers')
+          .insert({
+            id: authData.user.id,
+            email: email,
+            organization_id: store.id,
+            first_name: email.split('@')[0], // Use email prefix as first name initially
+            accepts_marketing: true
+          });
+
+        if (customerError) {
+          console.error('Error creating customer record:', customerError);
+          // Don't fail the signup, just log it
+        }
+      }
+
+      toast.success(`Welkom bij ${store.name}! Je account is aangemaakt.`);
       navigate("/");
+    } catch (error) {
+      console.error('Signup error:', error);
+      toast.error("Er ging iets mis bij het aanmaken van je account.");
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      if (error.message.includes("Invalid login credentials")) {
-        toast.error("Ongeldige inloggegevens. Controleer je e-mail en wachtwoord.");
-      } else {
-        toast.error(error.message);
-      }
-    } else {
-      toast.success("Succesvol ingelogd!");
-      navigate("/");
+    if (!store) {
+      toast.error("Store niet gevonden. Probeer het opnieuw.");
+      return;
     }
     
-    setLoading(false);
+    setLoading(true);
+    
+    try {
+      // Step 1: Authenticate user
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) {
+        if (authError.message.includes("Invalid login credentials")) {
+          toast.error("Ongeldige inloggegevens. Controleer je e-mail en wachtwoord.");
+        } else {
+          toast.error(authError.message);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Check if user has access to this store
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('id, organization_id')
+        .eq('id', authData.user.id)
+        .eq('organization_id', store.id)
+        .maybeSingle();
+
+      if (customerError || !customer) {
+        // User doesn't have access to this store
+        await supabase.auth.signOut();
+        toast.error(`Je hebt geen toegang tot ${store.name}. Registreer je eerst voor deze winkel.`);
+        setLoading(false);
+        return;
+      }
+
+      toast.success(`Welkom terug bij ${store.name}!`);
+      navigate("/");
+    } catch (error) {
+      console.error('Sign in error:', error);
+      toast.error("Er ging iets mis bij het inloggen.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -99,7 +166,18 @@ export default function Auth() {
         </div>
 
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Welkom bij Aurelio Living</h1>
+          {store?.logo_url ? (
+            <div className="flex justify-center mb-4">
+              <img src={store.logo_url} alt={store.name} className="h-16 object-contain" />
+            </div>
+          ) : (
+            <div className="flex justify-center mb-4">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Store className="h-8 w-8 text-primary" />
+              </div>
+            </div>
+          )}
+          <h1 className="text-3xl font-bold">Welkom bij {storeLoading ? '...' : store?.name || 'onze winkel'}</h1>
           <p className="text-muted-foreground">
             Log in of maak een account aan om door te gaan met winkelen
           </p>
